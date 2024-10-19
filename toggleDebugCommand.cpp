@@ -7,8 +7,7 @@ namespace battleship{
 	}
 
 	void ToggleDebugCommand::execute(){
-		AbstractCommand::handle();
-		validate();
+		AbstractCommand::execute();
 
 		Game *game = Game::getSingleton();
 		game->setDebug(!game->isDebug());

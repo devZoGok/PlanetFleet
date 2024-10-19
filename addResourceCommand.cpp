@@ -21,14 +21,10 @@ namespace battleship{
 		resourceAmmount = atoi(arguments[2].c_str());
 	}
 
-	void AddResourceCommand::addResource(){
+	void AddResourceCommand::execute(){
+		AbstractCommand::execute();
+
 		Player *player = Game::getSingleton()->getPlayer(playerId);
 		player->updateResource(ResourceType(resourceId), resourceAmmount, true);
-	}
-
-	void AddResourceCommand::execute(){
-		AbstractCommand::handle();
-		validate();
-		addResource();
 	}
 }
