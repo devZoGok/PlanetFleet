@@ -176,7 +176,7 @@ namespace battleship{
         UnitType type;
         std::vector<Order> orders;
 		std::string guiScreen = "";
-        int health, maxHealth, playerId, lenHpBar = 200;
+        int health = 0, maxHealth, playerId, lenHpBar = 200;
 		vb01::s64 orderLineDispTime = 0, lastFireTime = 0;
         float lineOfSight;
 		std::vector<Armor> armorTypes;

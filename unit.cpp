@@ -322,9 +322,11 @@ namespace battleship{
 		vector<int> currTechs = player->getTechnologies();
 
 		string name = unitTable["name"];
-        health = unitTable["health"]; health += game->calcAbilFromTech(Ability::Type::HEALTH, currTechs, (int)GameObject::type, id);
         vehicle = unitTable["isVehicle"];
-		maxHealth = health;
+        health += game->calcAbilFromTech(Ability::Type::HEALTH, currTechs, (int)GameObject::type, id);
+		maxHealth = unitTable["health"];
+
+		if(health == 0) health = maxHealth;
 
         lineOfSight = unitTable["lineOfSight"]; lineOfSight += game->calcAbilFromTech(Ability::Type::LINE_OF_SIGHT, currTechs, (int)GameObject::type, id);
         unitClass = (UnitClass)unitTable["unitClass"];
