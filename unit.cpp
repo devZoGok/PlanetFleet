@@ -441,14 +441,17 @@ namespace battleship{
 	}
 
 	void Unit::reinit(){
+		if(losLightNode)
+			destroyLosLight();
+
 		destroyWeapons();
 		destroyHitbox();
-		destroyModel();
+		//destroyModel();
 		destroySound();
 
 		Unit::initProperties();
 
-		initModel();
+		//initModel();
 		initHitbox();
 		initSound();
 		initWeapons();
