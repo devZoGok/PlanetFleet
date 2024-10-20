@@ -446,12 +446,12 @@ namespace battleship{
 
 		destroyWeapons();
 		destroyHitbox();
-		//destroyModel();
+		destroyModel();
 		destroySound();
 
 		Unit::initProperties();
 
-		//initModel();
+		initModel();
 		initHitbox();
 		initSound();
 		initWeapons();
