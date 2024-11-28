@@ -88,21 +88,7 @@ namespace battleship{
 	}
 
 	void Player::issueOrder(Order::TYPE type, Vector3 destDir, vector<Order::Target> targets, bool append){
-		if(type != Order::TYPE::EJECT && targets.empty()) return;
-
 		vector<Unit*> selectedUnits = getSelectedUnits();
-
-		if(type == Order::TYPE::EJECT){
-			for(Unit *u : selectedUnits){
-				const vector<Unit::GarrisonSlot> &garrisonSlots = u->getGarrisonSlots();
-
-				for(Unit::GarrisonSlot slot : garrisonSlots)
-					if(slot.vehicle)
-						targets.push_back(Order::Target((Unit*)slot.vehicle));
-			}
-		}
-		else if(type != Order::TYPE::PATROL)
-			targets.push_back(Order::Target());
 
         for (Unit *u : selectedUnits) {
 			bool targetingSelf = false, structBuilt = true;
@@ -124,15 +110,10 @@ namespace battleship{
 			int lineId = -1;
 			ActiveGameState *activeState = ((ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE));
 
-			if(activeState && activeState->getPlayer() == this)
+			if(activeState && activeState->getPlayer() == this && type != Order::TYPE::EJECT)
 				lineId = getOrderLineId(type, u->getPos(), targets[0].pos);
 
-        	Order order(type, targets, destDir, lineId);
-
-            if (append)
-                u->addOrder(order);
-            else
-                u->setOrder(order);
+			u->receiveOrder(Order(type, targets, destDir, lineId), append);
         }
 	}
 

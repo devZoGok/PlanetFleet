@@ -73,7 +73,7 @@ namespace battleship{
 			if(trainingStatus >= 100){
 				Unit *unit = GameObjectFactory::createUnit(player, unitQueue[0], pos, rot);
 				player->addUnit(unit);
-				unit->setOrder(Order(Order::TYPE::MOVE, vector<Order::Target>{Order::Target(nullptr, pos + 30 * dirVec)}, Vector3::VEC_ZERO));
+				unit->receiveOrder(Order(Order::TYPE::MOVE, vector<Order::Target>{Order::Target(nullptr, pos + 30 * dirVec)}, Vector3::VEC_ZERO), false);
 
 				unitQueue.erase(unitQueue.begin());
 				trainingStatus = 0;
