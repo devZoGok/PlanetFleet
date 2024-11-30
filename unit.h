@@ -164,6 +164,7 @@ namespace battleship{
         void updateScreenCoordinates();
 		void initWeapons();
 		void destroyWeapons();
+		bool validateOrder(Order);
         inline bool canDisplayOrderLine(){return vb01::getTime() - orderLineDispTime < orderVecDispLength;}
 
         const int orderVecDispLength = 2000, DEATH_HP = 0;
@@ -187,7 +188,7 @@ namespace battleship{
 
 		std::vector<Player*> getSelectingPlayers();
         void removeOrder(int);
-		bool validateOrder(Order);
+		virtual bool validateGarrisonOrder(Order){return false;}
 		virtual void targetUnitsAutomatically();
 		virtual void reinit();
 		virtual void initProperties();
