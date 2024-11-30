@@ -46,17 +46,17 @@ namespace battleship{
 		pursuingTarget = false;
 	}
 
-	void Vehicle::addOrder(Order order){
+	void Vehicle::receiveOrder(Order order, bool add){
 		if(!(order.type == Order::TYPE::EJECT || order.type == Order::TYPE::LAUNCH)){
 			Order::Target targ = order.targets[0];
 			Vector3 targPos = (targ.unit ? targ.unit->getPos() : targ.pos);
 			preparePathpoints(order, targPos);
 
 			if(!pathPoints.empty())
-				orders.push_back(order);
+				Unit::receiveOrder(order, add);
 		}
 		else
-			orders.push_back(order);
+			Unit::receiveOrder(order, add);
 	}
 
     void Vehicle::turn(float angle) {

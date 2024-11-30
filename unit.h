@@ -133,7 +133,7 @@ namespace battleship{
         virtual void select();
         void setOrder(Order);
         std::vector<Projectile*> getProjectiles();
-        virtual void addOrder(Order);
+        virtual void receiveOrder(Order, bool);
 		bool canGarrison(Vehicle*);
 		void initLosLight();
 		void destroyLosLight();
@@ -187,6 +187,7 @@ namespace battleship{
 
 		std::vector<Player*> getSelectingPlayers();
         void removeOrder(int);
+		bool validateOrder(Order);
 		virtual void targetUnitsAutomatically();
 		virtual void reinit();
 		virtual void initProperties();
