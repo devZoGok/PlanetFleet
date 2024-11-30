@@ -46,6 +46,16 @@ namespace battleship{
 		pursuingTarget = false;
 	}
 
+	bool Vehicle::validateGarrisonOrder(Order order){
+		Unit *targUnit = order.targets[0].unit;
+
+		for(GarrisonSlot slot : targUnit->getGarrisonSlots())
+			if(!slot.vehicle && slot.category >= garrisonCategory)
+				return true;
+
+		return false;
+	}
+
 	void Vehicle::receiveOrder(Order order, bool add){
 		if(!(order.type == Order::TYPE::EJECT || order.type == Order::TYPE::LAUNCH)){
 			Order::Target targ = order.targets[0];

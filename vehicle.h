@@ -25,6 +25,7 @@ namespace battleship{
 			std::vector<vb01::Node*> debugPathPoints;
 
         	inline int getNextPatrolPointId(int numPoints) {return patrolPointId == numPoints - 1 ? 0 : patrolPointId + 1;}
+			bool validateGarrisonOrder(Order);
 			void enterGarrisonable();
 			void halt();
 			void turn(float);

@@ -690,7 +690,7 @@ namespace battleship{
 		    case Order::TYPE::MOVE:
 				return vehicle;
 			case Order::TYPE::GARRISON:
-				return true;
+				return validateGarrisonOrder(order);
 			case Order::TYPE::EJECT:
 				return !garrisonSlots.empty();
 		    case Order::TYPE::LAUNCH:
