@@ -118,21 +118,23 @@ namespace battleship{
 			AssetManager::getSingleton()->load(gm->getPath() + gop, true);
 			AssetManager::getSingleton()->load(gm->getPath() + vfxp, true);
 
-			vector<GameObject*> gameObjs;
+			if(debug){
+				vector<GameObject*> gameObjs;
 
-			for(Player *pl : Game::getSingleton()->getPlayers()){
-				for(Unit *u : pl->getUnits())
-					gameObjs.push_back((GameObject*)u);
+				for(Player *pl : Game::getSingleton()->getPlayers()){
+					for(Unit *u : pl->getUnits())
+						gameObjs.push_back((GameObject*)u);
 
-				for(Projectile *proj : pl->getProjectiles())
-					gameObjs.push_back((GameObject*)proj);
+					for(Projectile *proj : pl->getProjectiles())
+						gameObjs.push_back((GameObject*)proj);
 
-				for(ResourceDeposit *dep : pl->getResourceDeposits())
-					gameObjs.push_back((GameObject*)dep);
+					for(ResourceDeposit *dep : pl->getResourceDeposits())
+						gameObjs.push_back((GameObject*)dep);
+				}
+
+				for(GameObject *obj : gameObjs)
+					obj->reinit();
 			}
-
-			for(GameObject *obj : gameObjs)
-				obj->reinit();
 
             gm->getStateManager()->attachAppState(activeState);
         }

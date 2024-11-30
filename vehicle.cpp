@@ -94,6 +94,11 @@ namespace battleship{
 		garrisonCategory = unitTable["garrisonCategory"];
 	}
 
+	void Vehicle::reinit(){
+		Unit::reinit();
+		initProperties();
+	}
+
 	void Vehicle::navigate(float destOffset){
 		Vector3 hypVec = (pathPoints[0] - pos);
 		float hypAngle = hypVec.norm().getAngleBetween(upVec) - PI / 2;

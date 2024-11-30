@@ -10,7 +10,6 @@ namespace battleship{
 			void execute();
 		private:
 			void validate();
-			void addTechnology();
 
 			int playerId, techId;
 	};

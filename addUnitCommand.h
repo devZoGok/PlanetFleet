@@ -17,8 +17,6 @@ namespace battleship{
 			bool posEnabled, rotEnabled;
 			vb01::Vector3 pos = vb01::Vector3::VEC_ZERO;
 			vb01::Quaternion rot = vb01::Quaternion::QUAT_W;
-
-			void addUnit();
 	};
 }
 

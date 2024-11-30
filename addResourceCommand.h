@@ -10,7 +10,6 @@ namespace battleship{
 			void execute();
 		private:
 			void validate();
-			void addResource();
 
 			int playerId, resourceId, resourceAmmount;
 	};

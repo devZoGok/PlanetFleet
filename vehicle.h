@@ -34,6 +34,7 @@ namespace battleship{
 			void removePathpoint(int = 0);
 			void removeAllPathpoints();
 			void select();
+			void reinit();
 		protected:
 			std::vector<vb01::Vector3> pathPoints;
 			bool pursuingTarget = false;

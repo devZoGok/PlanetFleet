@@ -54,14 +54,10 @@ namespace battleship{
 			return;
 	}
 
-	void AddUnitCommand::addUnit(){
+	void AddUnitCommand::execute(){
+		AbstractCommand::execute();
+
         Player* player = Game::getSingleton()->getPlayer(playerId);
         player->addUnit(GameObjectFactory::createUnit(player, unitId, pos, rot, 100));
-	}
-
-	void AddUnitCommand::execute(){
-		AbstractCommand::handle();
-		validate();
-		addUnit();
 	}
 }
