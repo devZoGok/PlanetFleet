@@ -259,9 +259,14 @@ namespace battleship{
 
 		if(type != UnitType::HOVER && !(waterVehCanMove || landVehCanMove)) return;
 
-		Pathfinder *pathfinder = Pathfinder::getSingleton();
 		int dest = map->getCellId(destPos);
-		vector<int> path = pathfinder->findPath(cells, source, dest, (int)type);
+
+		vector<float> heuristics;
+
+		for(Map::Cell &cell : cells)
+			heuristics.push_back(145 * (cells[dest].pos.getDistanceFrom(cell.pos)));
+
+		vector<int> path = Pathfinder::getSingleton()->findPath(cells, heuristics, source, dest, (int)type);
 		bool pathTruncated = false;
 
 		for(int i = 0; i < path.size(); i++){

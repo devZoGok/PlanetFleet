@@ -1,6 +1,7 @@
 #include "pathfinderTest.h"
 #include "pathfinder.h"
 
+#include <vector.h>
 #include <util.h>
 
 #include <vector>
@@ -11,11 +12,12 @@ namespace battleship{
 
 		vector<Map::Cell> PathfinderTest::generateCellGraph(int numCellsOnSide){
 			vector<Map::Cell> cells;
+			float cellSize = 2;
 
 			for(int i = 0; i < numCellsOnSide; i++)
 				for(int j = 0; j < numCellsOnSide; j++){
-					vector<Map::Edge> edges = Map::generateAdjacentNodeEdges(numCellsOnSide, i, numCellsOnSide, j, 1);
-					cells.push_back(Map::Cell(Vector3::VEC_ZERO, Map::Cell::Type::LAND, edges));
+					vector<Map::Edge> edges = Map::generateAdjacentNodeEdges(numCellsOnSide, i, numCellsOnSide, j, 1000);
+					cells.push_back(Map::Cell(Vector3(j * cellSize, 0, i * cellSize), Map::Cell::Type::LAND, edges));
 				}
 
 			return cells;
@@ -32,6 +34,22 @@ namespace battleship{
 			return sumPathWeights;
 		}
 
+		vector<float> PathfinderTest::generateHeuristics(vector<Map::Cell> &cells, int dest, int type){
+			vector<float> heur;
+			int numSideCells = sqrt(cells.size());
+
+			if(type == 0)
+				for(Map::Cell &cell : cells)
+					heur.push_back(145 * cells[dest].pos.getDistanceFrom(cell.pos));
+			else if(type == 1)
+				for(int i = 0; i < cells.size(); i++){
+					int x = i % numSideCells, y = i / numSideCells;
+					heur.push_back(2 * (numSideCells - 1) - (x + y));
+				}
+
+			return heur;
+		}
+
 		void PathfinderTest::testFindPath(){
 			cells = vector<Map::Cell>{
 				Map::Cell(Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 0, 0), Map::Edge(2, 0, 1), Map::Edge(4, 0, 2)}),
@@ -46,7 +64,9 @@ namespace battleship{
 			const u16 INF = u16(0 - 1);
 			pathfinder->setImpassibleNodeVal(INF);
 
-			vector<int> path = pathfinder->findPath(cells, 0, cells.size() - 1);
+			int src = 0, dest = cells.size() - 1;
+			vector<float> heur;
+			vector<int> path = pathfinder->findPath(cells, heur, src, dest, 3);
 			CPPUNIT_ASSERT(path == vector<int>({0, 1, 2, 4, 3, 6}));
 
 			int sumPathWeights = calcPathLength(path);
@@ -54,13 +74,15 @@ namespace battleship{
 		}
 
 		void PathfinderTest::testFindBigPath(){
-			int numIterations = 1;
-			cells = generateCellGraph(60);
+			cells = generateCellGraph(250);
+			int numIterations = 1, src = 0, dest = cells.size() - 1;
+			vector<float> heur;
+			heur = generateHeuristics(cells, dest, 0);
 			s64 sumTime = 0;
 
 			for(int i = 0; i < numIterations; i++){
 				s64 t0 = getTime();
-				pathfinder->findPath(cells, 0, cells.size() - 1);
+				pathfinder->findPath(cells, heur, src, dest, 3);
 				s64 t1 = getTime();
 				sumTime += t1 - t0;
 			}

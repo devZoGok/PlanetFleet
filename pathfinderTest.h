@@ -26,6 +26,7 @@ namespace battleship{
 			std::vector<Map::Cell> cells;
 
 			std::vector<Map::Cell> generateCellGraph(int);
+			std::vector<float> generateHeuristics(std::vector<Map::Cell>&, int, int = 0);
 			int calcPathLength(std::vector<int>&);
 	};
 }
