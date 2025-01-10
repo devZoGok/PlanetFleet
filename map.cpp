@@ -520,7 +520,7 @@ namespace battleship{
     void Map::load(string mapName){
 		this->mapName = mapName;
 
-		Pathfinder::getSingleton()->setImpassibleNodeVal(u16(0 - 1));
+		Pathfinder::getSingleton()->setImpassibleNodeVal(u32(0 - 1));
 		string path = GameManager::getSingleton()->getPath();
 		AssetManager::getSingleton()->load(path + "Textures/", true);
 
