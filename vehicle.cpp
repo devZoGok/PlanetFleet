@@ -128,7 +128,7 @@ namespace battleship{
 				advance(movementAmmount);
 			}
 
-			if(vertDist > 0.5 * height){
+			if(vertDist > .1){
 				float dist = pos.y - pathPoints[0].y;
 				float movementAmmount = (speed > fabs(dist) ? dist : speed);
 

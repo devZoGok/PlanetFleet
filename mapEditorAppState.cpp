@@ -333,23 +333,20 @@ namespace battleship{
 	//TODO add diagnally adjacent edges to underwater cells 
 	vector<Map::Cell> MapEditorAppState::MapEditor::generateMapCells(){
 		Vector3 mapSize = map->getMapSize();
-		Vector3 startPos = -.49 * Vector3(mapSize.x, 0, mapSize.z), cellSize = map->getCellSize();
+		Vector3 cellSize = map->getCellSize();
+		Vector3 startPos = -.5 * (Vector3(mapSize.x, 0, mapSize.z) - Vector3(cellSize.x, 0, cellSize.z));
+
 		int numHorCells = int(mapSize.x / cellSize.x);
 		int numVertCells = int(mapSize.z / cellSize.z);
 		vector<Map::Cell> cells;
 		vector<pair<int, float>> waterBodyBedPoints;
 		Node *terrainNode = map->getNodeParent();
 
+
 		for(int i = 0; i < numVertCells; i++)
 			for(int j = 0; j < numHorCells; j++){
 				Vector3 rayPos = startPos + Vector3(cellSize.x * j, 100, cellSize.z * i);
 				vector<RayCaster::CollisionResult> res = RayCaster::cast(rayPos, -Vector3::VEC_J, terrainNode->getChild(0), 0, configData::DIST_FROM_RAY);
-
-				if(res.empty()){
-					RayCaster::CollisionResult r;
-					r.pos = Vector3(rayPos.x, 0, rayPos.z);
-					res.push_back(r);
-				}
 				
 				Map::Cell::Type type = Map::Cell::Type::LAND;
 				Vector3 pos = res[0].pos;
@@ -367,7 +364,8 @@ namespace battleship{
 				}
 
 				vector<Map::Edge> edges = Map::generateAdjacentNodeEdges(numVertCells, i, numHorCells, j, 10);
-				cells.push_back(Map::Cell(pos, type, edges));
+				Map::Cell cell = Map::Cell(pos, type, edges);
+				cells.push_back(cell);
 			}
 
 		vector<Map::Cell> surfaceWaterCells;
@@ -389,7 +387,7 @@ namespace battleship{
 
 		for(int i = 0; i < surfaceWaterCells.size(); i++){
 			for(int j = 0; j < surfaceWaterCells[i].underWaterCellIds.size(); j++){
-				int aboveCellId = (j == 0 ? surfaceWaterCells[i].edges[0].srcCellId : j - 1);
+				int aboveCellId = (j == 0 ? surfaceWaterCells[i].edges[0].srcCellId : surfaceWaterCells[i].underWaterCellIds[j - 1]);
 				vector<Map::Edge> edges = vector<Map::Edge>{Map::Edge(weight, surfaceWaterCells[i].underWaterCellIds[j], aboveCellId)};
 
 				if(surfaceWaterCells[i].underWaterCellIds.size() > j + 1)
