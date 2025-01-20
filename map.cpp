@@ -698,6 +698,8 @@ namespace battleship{
 				if(fabs(cells[cellId].pos.y - pos.y) < .5 * CELL_SIZE.y)
 					return cellId;
 			}
+
+			return cellId;
 		}
 		else
 			return surfaceCellId;

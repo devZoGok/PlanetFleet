@@ -438,21 +438,40 @@ namespace battleship{
 				Node *nodeParent = map->getNodeParent();
 
 				if(u->getType() == UnitType::UNDERWATER && nodeParent->getNumChildren() > 0){
-					vector<RayCaster::CollisionResult> res = map->raycastTerrain(Vector3(pos.x, 100, pos.z), Vector3(0, -1, 0), false);
-
-					Vector3 waterBodyPos = Vector3::VEC_ZERO;
-					Vector3 cellSize = map->getCellSize();
+					Vector3 cellSize = map->getCellSize(), waterBodyPos;
+					bool inWater = false;
 
 					for(int i = 1; i < nodeParent->getNumChildren(); i++){
-						Vector3 wpos = nodeParent->getChild(i)->getPosition();
+						Vector3 wPos = nodeParent->getChild(i)->getPosition();
+						Vector3 wSize = ((Quad*)nodeParent->getChild(i)->getMesh(0))->getSize();
 						
-						if(fabs(wpos.x - pos.x) < .5 * cellSize.x && fabs(wpos.z - pos.z) < .5 * cellSize.z){
-							waterBodyPos = wpos;
+						if(fabs(wPos.x - pos.x) < .5 * wSize.x && fabs(wPos.z - pos.z) < .5 * wSize.y){
+							waterBodyPos = wPos;
+							inWater = true;
 							break;
 						}
 					}
 
-					results[0].pos.y = res[0].pos.y + depth * (waterBodyPos.y - res[0].pos.y);
+					if(inWater){
+						vector<RayCaster::CollisionResult> res = map->raycastTerrain(
+								Vector3(results[0].pos.x, 100, results[0].pos.z), 
+								-Vector3::VEC_J,
+								false
+						);
+
+						vector<Map::Cell> &cells = map->getCells();
+						int cid = map->getCellId(results[0].pos, false);
+						int numSubmarineCells = cells[cid].underWaterCellIds.size();
+						float maxDepth = cells[cid].pos.y;
+						float minDepth = (numSubmarineCells > 0 ? cells[cells[cid].underWaterCellIds[numSubmarineCells - 1]].pos.y : maxDepth) - .5 * cellSize.y;
+
+						float newDepth = res[0].pos.y + depth * (waterBodyPos.y - res[0].pos.y);
+
+						if(newDepth < minDepth) newDepth = minDepth;
+						else if(newDepth > maxDepth) newDepth = maxDepth;
+
+						results[0].pos.y = newDepth;
+					}
 				}
 			}
 
