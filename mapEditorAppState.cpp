@@ -676,7 +676,7 @@ namespace battleship{
 					CameraController::getSingleton()->setLookingAround(isPressed);
 
                 break;
-			case Bind::DESELECT_STRUCTURE:
+			case Bind::ROTATE_OBJ_FRAME:
 				ufCtr->removeGameObjectFrames();
 				ufCtr->setPlacingFrames(false);
 				break;

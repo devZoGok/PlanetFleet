@@ -12,7 +12,7 @@ mappings = {
 		{bind = 8, trigger = 313, action = false, bindType = 2, inOptions = false},
 		{bind = 9, trigger = 310, action = false, bindType = 2, inOptions = false},
 		{bind = 10, trigger = 311, action = false, bindType = 2, inOptions = false},
-		{bind = 11, trigger = 1, action = true, bindType = 1, inOptions = false},
+		{bind = 11, trigger = 2, action = true, bindType = 1, inOptions = false},
 		{bind = 12, trigger = 0, action = true, bindType = 1, inOptions = true},
 		{bind = 13, trigger = 1, action = true, bindType = 1, inOptions = true},
 		{bind = 14, trigger = 72, action = true, bindType = 0, inOptions = true},

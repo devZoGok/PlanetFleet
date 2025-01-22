@@ -88,7 +88,8 @@ namespace battleship{
   		    },
   		    {
   		        Bind::DRAG_BOX,
-  		        Bind::DESELECT,
+				Bind::MOVE_CAMERA,
+  		        Bind::ROTATE_OBJ_FRAME,
 				Bind::HALT,
   		        Bind::ZOOM_IN,
   		        Bind::ZOOM_OUT,
