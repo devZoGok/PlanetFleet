@@ -52,6 +52,7 @@ namespace battleship{
 		}
 	}
 
+	//TODO specify what to snap the frame to
 	void GameObjectFrameController::snapToObj(GameObjectFrame &s, GameObject::Type type, int unitId, float maxDist){
 		if(s.getType() == GameObject::Type::UNIT && s.getId() == unitId){
 			s.status = GameObjectFrame::NOT_PLACEABLE;
@@ -101,9 +102,7 @@ namespace battleship{
 		}
 
 		GameObjectFrame &s = gameObjectFrames[id];
-
-		if(!rotatingStructure)
-			s.placeAt(newPos);
+		s.placeAt(newPos);
 
 		s.status = (unevenness < maxUnevenness ? GameObjectFrame::PLACEABLE : GameObjectFrame::NOT_PLACEABLE);
 		snapToObj(s, GameObject::Type::UNIT, 20, 3);
@@ -138,7 +137,8 @@ namespace battleship{
 				newPos = paintSelectRowStart + dir * hypothenuse * i;
 			}
 
-			placeGameObjectFrame(i, newPos, width, length);
+
+			if(!rotatingStructure) placeGameObjectFrame(i, newPos, width, length);
 		}
 	}
 

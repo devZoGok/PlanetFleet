@@ -162,13 +162,15 @@ namespace battleship{
 		GameObjectFrameController *fc = GameObjectFrameController::getSingleton();
 
 		if(!selectingDestOrient && orderMouseClicked && !selectedUnits.empty() && getTime() - lastOrderMouseClicked > 100){
-			selectingDestOrient = true;
+			if(targets.empty()) castRayToTerrain();
 
-			fc->setPlacingFrames(true);
+			for(int i = 0; i < selectedUnits.size(); i++){
+				fc->addGameObjectFrame(GameObjectFrame(selectedUnits[i]->getId(), GameObject::Type::UNIT));
+				fc->placeGameObjectFrame(fc->getNumGameObjectFrames() - 1, targets[0].pos, selectedUnits[i]->getWidth(), selectedUnits[i]->getLength());
+			}
+
 			fc->setRotatingFrames(true);
-
-			for(Unit *unit : selectedUnits)
-				fc->addGameObjectFrame(GameObjectFrame(unit->getId(), GameObject::Type::UNIT));
+			selectingDestOrient = true;
 		}
 		else if(selectingDestOrient && !orderMouseClicked){
 			selectingDestOrient = false;
@@ -597,7 +599,8 @@ namespace battleship{
 							issueOrder(Order::TYPE::BUILD, targets, shiftPressed);
 						}
 						else if(!canSelect){
-                    		castRayToTerrain();
+                    		if(targets.empty()) castRayToTerrain();
+
 							issueOrder(Order::TYPE::MOVE, targets, shiftPressed);
 						}
 					}
