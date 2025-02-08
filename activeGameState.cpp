@@ -164,10 +164,11 @@ namespace battleship{
 		if(!selectingDestOrient && orderMouseClicked && !selectedUnits.empty() && getTime() - lastOrderMouseClicked > 100){
 			if(targets.empty()) castRayToTerrain();
 
-			for(int i = 0; i < selectedUnits.size(); i++){
-				fc->addGameObjectFrame(GameObjectFrame(selectedUnits[i]->getId(), GameObject::Type::UNIT));
-				fc->placeGameObjectFrame(fc->getNumGameObjectFrames() - 1, targets[0].pos, selectedUnits[i]->getWidth(), selectedUnits[i]->getLength());
-			}
+			if(!buildableStructSelected)
+				for(int i = 0; i < selectedUnits.size(); i++){
+					fc->addGameObjectFrame(GameObjectFrame(selectedUnits[i]->getId(), GameObject::Type::UNIT));
+					fc->placeGameObjectFrame(fc->getNumGameObjectFrames() - 1, targets[0].pos, selectedUnits[i]->getWidth(), selectedUnits[i]->getLength());
+				}
 
 			fc->setRotatingFrames(true);
 			selectingDestOrient = true;
@@ -597,6 +598,8 @@ namespace battleship{
 							targets[0].unit = buildStruct;
 
 							issueOrder(Order::TYPE::BUILD, targets, shiftPressed);
+
+							buildableStructSelected = false;
 						}
 						else if(!canSelect){
                     		if(targets.empty()) castRayToTerrain();
@@ -719,6 +722,7 @@ namespace battleship{
 			case Bind::DESELECT_STRUCTURE:
 				ufCtr->removeGameObjectFrames();
 				ufCtr->setPlacingFrames(false);
+				buildableStructSelected = false;
 				break;
         }
     }
