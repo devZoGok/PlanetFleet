@@ -34,10 +34,16 @@ namespace battleship{
 			inline bool isPlacingVertically(){return placingVertically;}
 			inline void setPlacingVertically(bool v){this->placingVertically = v;}
 			inline void setPaintSelectRowStart(vb01::Vector3 st){paintSelectRowStart = st;}
+			inline void toggleFrameTransformations(bool rot, bool pos, bool pv){
+				setRotating(rot);
+				setPlacingOnSurface(pos);
+				setPlacingVertically(pv);
+			}
 		private:
 			GameObjectFrameController(){}
 			void paintSelect(vb01::Vector3, float, float);
 			void snapToObj(GameObjectFrame&, GameObject::Type, int, float);
+			void updatePlacement();
 
 			std::vector<GameObjectFrame> gameObjectFrames;
 			vb01::Vector3 paintSelectRowStart, placementPos;

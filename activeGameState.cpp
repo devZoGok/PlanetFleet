@@ -171,20 +171,18 @@ namespace battleship{
 				}
 
 			selectingDestOrient = true;
-			fc->setPlacingOnSurface(true);
 			fc->setRotating(true);
 		}
 		else if(selectingDestOrient && !orderMouseClicked){
 			selectingDestOrient = false;
 
-			fc->setPlacingOnSurface(false);
-			fc->setRotating(false);
+			fc->toggleFrameTransformations(false, false, false);
 			fc->removeGameObjectFrames();
 		}
 
         renderUnits();
 
-		if(fc->isPlacingOnSurface())
+		if(fc->isRotating() || fc->isPlacingOnSurface() || fc->isPlacingVertically())
 			fc->update();
 
 		CameraController *camCtr = CameraController::getSingleton();
@@ -221,8 +219,7 @@ namespace battleship{
 		mainPlayer->deselectUnits();
 		GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
 		ufCtr->removeGameObjectFrames();
-		ufCtr->setPlacingOnSurface(false);
-		ufCtr->setRotating(false);
+		ufCtr->toggleFrameTransformations(false, false, false);
 
 		unitGuiScreen = "";
 		ConcreteGuiManager::getSingleton()->readLuaScreenScript("activeGameState.lua");
@@ -428,7 +425,15 @@ namespace battleship{
 
 	//TODO fix ejectable unit selection with multiple transports selected
     void ActiveGameState::issueOrder(Order::TYPE type, vector<Order::Target> targets, bool addOrder) {
-		Vector3 destDir = (selectingDestOrient ? GameObjectFrameController::getSingleton()->getGameObjectFrame(0).getDirVec() : Vector3::VEC_ZERO);
+		depth = 1;
+		Vector3 destDir =  Vector3::VEC_ZERO;
+		
+		if(selectingDestOrient){
+			GameObjectFrame &objFrame = GameObjectFrameController::getSingleton()->getGameObjectFrame(0);
+			destDir = objFrame.getDirVec();
+			targets[0].pos = objFrame.getPos();
+		}
+
 		mainPlayer->issueOrder(type, destDir, targets, addOrder);
 		this->targets.clear();
     }
@@ -492,8 +497,7 @@ namespace battleship{
 					quad->setSize(Vector3::VEC_ZERO);
 					quad->updateVerts(quad->getMeshBase());
 
-					ufCtr->setPlacingOnSurface(false);
-					ufCtr->setRotating(false);
+					ufCtr->toggleFrameTransformations(false, false, false);
 					ufCtr->removeGameObjectFrames();
                 }
 
@@ -563,7 +567,6 @@ namespace battleship{
 							issueOrder(Order::TYPE::MOVE, targets, shiftPressed);
 						}
 					}
-
 				}
 
                 break;
@@ -596,8 +599,7 @@ namespace battleship{
 					break;
 				}
 			case Bind::SHIFT_SUB_DEPTH:
-				ufCtr->setPlacingVertically(isPressed);
-				ufCtr->setRotating(false);
+				ufCtr->toggleFrameTransformations(false, false, isPressed);
                 break;
 			case Bind::ZOOM_IN:
                 if (zooms > -NUM_MAX_ZOOMS) {
@@ -674,9 +676,9 @@ namespace battleship{
 
                 break;
 			case Bind::DESELECT_STRUCTURE:
-				ufCtr->removeGameObjectFrames();
-				ufCtr->setPlacingOnSurface(false);
 				buildableStructSelected = false;
+				ufCtr->toggleFrameTransformations(false, false, false);
+				ufCtr->removeGameObjectFrames();
 				break;
         }
     }
