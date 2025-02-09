@@ -25,12 +25,14 @@ namespace battleship{
 			inline int getNumGameObjectFrames(){return gameObjectFrames.size();}
 			inline void addGameObjectFrame(GameObjectFrame u){gameObjectFrames.push_back(u);}
 			inline GameObjectFrame& getGameObjectFrame(int i){return gameObjectFrames[i];}
-			inline bool isPlacingFrames(){return placingStructures;}
-			inline void setPlacingFrames(bool ps){placingStructures = ps;}
 			inline bool isPaintSelecting(){return paintSelecting;}
 			inline void setPaintSelecting(bool ps){paintSelecting = ps;}
-			inline bool isRotatingFrames(){return rotatingStructure;}
-			inline void setRotatingFrames(bool rs){rotatingStructure = rs;}
+			inline bool isRotating(){return rotating;}
+			inline void setRotating(bool rs){rotating = rs;}
+			inline bool isPlacingOnSurface(){return placingOnSurface;}
+			inline void setPlacingOnSurface(bool ps){placingOnSurface = ps;}
+			inline bool isPlacingVertically(){return placingVertically;}
+			inline void setPlacingVertically(bool v){this->placingVertically = v;}
 			inline void setPaintSelectRowStart(vb01::Vector3 st){paintSelectRowStart = st;}
 		private:
 			GameObjectFrameController(){}
@@ -38,8 +40,9 @@ namespace battleship{
 			void snapToObj(GameObjectFrame&, GameObject::Type, int, float);
 
 			std::vector<GameObjectFrame> gameObjectFrames;
-			vb01::Vector3 paintSelectRowStart, rowDir;
-	   		bool placingStructures = false, paintSelecting = false, rotatingStructure = false;
+			vb01::Vector3 paintSelectRowStart, placementPos;
+			float minDepth, maxDepth;
+	   		bool paintSelecting = false, rotating = false, placingOnSurface = false, placingVertically = false, minDepthCalculated = false;
 	};
 }
 

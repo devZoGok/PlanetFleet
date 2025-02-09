@@ -24,7 +24,7 @@ namespace battleship{
 		LEFT_SHIFT,
 		SELECT_PATROL_POINTS,
 		LAUNCH,
-		TOGGLE_SUB,
+		SHIFT_SUB_DEPTH,
 		GROUP_0,
 		GROUP_1,
 		GROUP_2,

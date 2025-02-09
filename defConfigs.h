@@ -97,7 +97,7 @@ namespace battleship{
   		        Bind::LEFT_SHIFT,
   		        Bind::SELECT_PATROL_POINTS,
   		        Bind::LAUNCH,
-  		        Bind::TOGGLE_SUB,
+  		        Bind::SHIFT_SUB_DEPTH,
   		        Bind::GROUP_0,
   		        Bind::GROUP_1,
   		        Bind::GROUP_2,

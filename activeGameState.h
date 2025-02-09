@@ -36,6 +36,7 @@ namespace battleship{
         inline std::vector<Unit*>& getUnitGroup(int i){return unitGroups[i];}
 		inline void setBuildableStructSelected(bool bss){this->buildableStructSelected = bss;}
 		inline bool isBuildableStructSelected(){return buildableStructSelected;}
+		inline float getDepth(){return depth;}
     private:
 		enum CursorState{
 			NORMAL,

@@ -1,6 +1,7 @@
 #include <solUtil.h>
 
 #include "gameObjectFrameController.h"
+#include "activeGameState.h"
 #include "resourceDeposit.h"
 #include "defConfigs.h"
 #include "player.h"
@@ -11,9 +12,11 @@
 
 #include <material.h>
 #include <meshData.h>
-#include <mesh.h>
+#include <quad.h>
 #include <model.h>
 #include <root.h>
+
+#include <stateManager.h>
 
 #include <string>
 
@@ -116,29 +119,77 @@ namespace battleship{
 		for(GameObjectFrame &frame : gameObjectFrames)
 			frame.update();
 
+		Map *map = Map::getSingleton();
 		Vector3 startPos = Root::getSingleton()->getCamera()->getPosition();
-		vector<RayCaster::CollisionResult> results = Map::getSingleton()->raycastTerrain(startPos, (screenToSpace(getCursorPos()) - startPos).norm(), true);
+		Vector3 endPos = screenToSpace(getCursorPos());
+		vector<RayCaster::CollisionResult> results = map->raycastTerrain(startPos, (endPos - startPos).norm(), true);
 
 		if(results.empty()) return;
 
-		Vector3 newPos, rowEnd;
-		sol::table sizeTable = generateView()[gameObjectFrames[0].getGameObjTableName()][gameObjectFrames[0].getId() + 1]["size"]; 
-    	float width = sizeTable["x"], length = sizeTable["z"];
+    	float width, length;
 
-		if(paintSelecting)
+		if(paintSelecting){
+			sol::table sizeTable = generateView()[gameObjectFrames[0].getGameObjTableName()][gameObjectFrames[0].getId() + 1]["size"]; 
+    		width = sizeTable["x"], length = sizeTable["z"];
 			paintSelect(results[0].pos, width, length);
-		else if(!(paintSelecting || rotatingStructure))
-			newPos = results[0].pos;
+		}
+
+		if(placingVertically){
+			if(!minDepthCalculated){
+				placementPos = results[0].pos;
+
+				Node *nodeParent = map->getNodeParent();
+				Vector3 cellSize = map->getCellSize(), waterBodyPos;
+				bool inWater = false;
+		
+				for(int i = 1; i < nodeParent->getNumChildren(); i++){
+					Vector3 wPos = nodeParent->getChild(i)->getPosition();
+					Vector3 wSize = ((Quad*)nodeParent->getChild(i)->getMesh(0))->getSize();
+					
+					if(fabs(wPos.x - endPos.x) < .5 * wSize.x && fabs(wPos.z - endPos.z) < .5 * wSize.y){
+						waterBodyPos = wPos;
+						inWater = true;
+						break;
+					}
+				}
+		
+				if(inWater){
+					vector<RayCaster::CollisionResult> res = map->raycastTerrain(
+							Vector3(endPos.x, 100, endPos.z), 
+							-Vector3::VEC_J,
+							false
+					);
+		
+					vector<Map::Cell> &cells = map->getCells();
+					int cid = map->getCellId(placementPos, false);
+					int numSubmarineCells = cells[cid].underWaterCellIds.size();
+					maxDepth = cells[cid].pos.y;
+					minDepth = (numSubmarineCells > 0 ? cells[cells[cid].underWaterCellIds[numSubmarineCells - 1]].pos.y : maxDepth) - .5 * cellSize.y;
+					minDepthCalculated = true;
+				}
+			}
+			else{
+				ActiveGameState *activeState = (ActiveGameState*)(GameManager::getSingleton()->getStateManager()->getAppStateByType((int)AppStateType::ACTIVE_STATE));
+				float newDepth = minDepth + activeState->getDepth() * (maxDepth - minDepth);
+				placementPos.y = newDepth;
+			}
+		}
+		else{
+			minDepthCalculated = false;
+
+			if(placingOnSurface)
+				placementPos = results[0].pos;
+		}
 
 		for(int i = 0; i < gameObjectFrames.size(); i++){
 			if(paintSelecting){
 				float hypothenuse = sqrt(width * width + length * length);
 				Vector3 dir = (results[0].pos - paintSelectRowStart).norm(); 
-				newPos = paintSelectRowStart + dir * hypothenuse * i;
+				placementPos = paintSelectRowStart + dir * hypothenuse * i;
 			}
 
-
-			if(!rotatingStructure) placeGameObjectFrame(i, newPos, width, length);
+			if(!rotating && (placingOnSurface || placingVertically))
+				placeGameObjectFrame(i, placementPos, width, length);
 		}
 	}
 
