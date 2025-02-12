@@ -133,7 +133,7 @@ namespace battleship{
         virtual void select();
         void setOrder(Order);
         std::vector<Projectile*> getProjectiles();
-        virtual void addOrder(Order);
+        virtual void receiveOrder(Order, bool);
 		bool canGarrison(Vehicle*);
 		void initLosLight();
 		void destroyLosLight();
@@ -164,6 +164,7 @@ namespace battleship{
         void updateScreenCoordinates();
 		void initWeapons();
 		void destroyWeapons();
+		bool validateOrder(Order);
         inline bool canDisplayOrderLine(){return vb01::getTime() - orderLineDispTime < orderVecDispLength;}
 
         const int orderVecDispLength = 2000, DEATH_HP = 0;
@@ -176,7 +177,7 @@ namespace battleship{
         UnitType type;
         std::vector<Order> orders;
 		std::string guiScreen = "";
-        int health, maxHealth, playerId, lenHpBar = 200;
+        int health = 0, maxHealth, playerId, lenHpBar = 200;
 		vb01::s64 orderLineDispTime = 0, lastFireTime = 0;
         float lineOfSight;
 		std::vector<Armor> armorTypes;
@@ -187,6 +188,7 @@ namespace battleship{
 
 		std::vector<Player*> getSelectingPlayers();
         void removeOrder(int);
+		virtual bool validateGarrisonOrder(Order){return false;}
 		virtual void targetUnitsAutomatically();
 		virtual void reinit();
 		virtual void initProperties();

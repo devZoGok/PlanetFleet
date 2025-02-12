@@ -16,55 +16,64 @@ namespace battleship{
 			return pathfinder;
 		}
 
-		int Pathfinder::findMinDistVert(vector<pair<int, bool>> &cells, u32 distances[]){
-			int numCells = cells.size(), minDistVert;
-
-			for(int i = 0; i < numCells; i++)
-				if(!cells[i].second){
-					minDistVert = i;
-					break;
-				}
-
-			for(int i = 0; i < numCells; i++){
-				bool checked = cells[i].second;
-
-				if(!checked && distances[i] < distances[minDistVert])
-					minDistVert = i;
-			}
-
-			return minDistVert;
-		}
-
-		vector<int> Pathfinder::findPath(vector<Map::Cell> &cells, int source, int dest, int unitType){
+		vector<int> Pathfinder::findPath(vector<Map::Cell> &cells, vector<float> &heuristics, int source, int dest, int unitType){
 			const int size = cells.size();
 			u32 *distances = new u32[size];
 			vector<int> *paths = new vector<int>[size];
 			paths[source].push_back(source);
+
 			vector<pair<int, bool>> cellsByCheck;
+
+			vector<bool> cellChecked;
 
 			for(int i = 0; i < size; i++){
 				cellsByCheck.push_back(pair(i, false));
 				distances[i] = (i == source ? 0 : impassibleNodeVal);
+				cellChecked.push_back(false);
 			}
 
+			bool useHeur = !heuristics.empty();
+			vector<int> possibleMinCells = vector<int>{source};
+			cellChecked[source] = true;
+
 			while(!cellsByCheck[dest].second){
-				int vertStrich = findMinDistVert(cellsByCheck, distances);
+				int vertStrich = possibleMinCells[0], vsId = 0;
+
+				for(int i = 0; i < possibleMinCells.size(); i++){
+					float sum1 = distances[possibleMinCells[i]] + (useHeur ? heuristics[possibleMinCells[i]] : 0); 
+					float sum2 = distances[possibleMinCells[vsId]] + (useHeur ? heuristics[possibleMinCells[vsId]] : 0); 
+
+					if(sum1 < sum2 || (useHeur && sum1 == sum2 && heuristics[i] < heuristics[vertStrich])){
+						vertStrich = possibleMinCells[i];
+						vsId = i;
+					}
+				}
+
+				cellChecked[possibleMinCells[vsId]] = false;
+				possibleMinCells.erase(possibleMinCells.begin() + vsId);
+
 				cellsByCheck[vertStrich].second = true;
 
 				int numEdges = cells[vertStrich].edges.size();
 
 				for(int i = 0; i < numEdges; i++){
+					int edgeNode = cells[vertStrich].edges[i].destCellId;
+
+					if(cellsByCheck[edgeNode].second) continue;
+
+					if(!cellChecked[edgeNode]){
+						cellChecked[edgeNode] = true;
+						possibleMinCells.push_back(edgeNode);
+					}
+
 					bool canMoveToStrichCell = true;
 					bool ship = ((UnitType)unitType == UnitType::UNDERWATER || (UnitType)unitType == UnitType::SEA_LEVEL);
 
 					if((ship && cells[vertStrich].type != Map::Cell::WATER) || ((UnitType)unitType == UnitType::LAND && cells[vertStrich].type != Map::Cell::LAND))
-						canMoveToStrichCell = false;
+						continue;
 
-					int edgeNode = cells[vertStrich].edges[i].destCellId, cellTypeFactor = (canMoveToStrichCell ? 1 : 100);
-					bool isChecked = cellsByCheck[edgeNode].second;
-
-					if(!isChecked && (distances[vertStrich] + cells[vertStrich].edges[i].weight * cellTypeFactor < distances[edgeNode])){
-						distances[edgeNode] = distances[vertStrich] + cells[vertStrich].edges[i].weight * cellTypeFactor;
+					if(distances[vertStrich] + cells[vertStrich].edges[i].weight < distances[edgeNode]){
+						distances[edgeNode] = distances[vertStrich] + cells[vertStrich].edges[i].weight;
 						paths[edgeNode] = paths[vertStrich];
 						paths[edgeNode].push_back(edgeNode);
 					}

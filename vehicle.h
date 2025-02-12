@@ -25,15 +25,17 @@ namespace battleship{
 			std::vector<vb01::Node*> debugPathPoints;
 
         	inline int getNextPatrolPointId(int numPoints) {return patrolPointId == numPoints - 1 ? 0 : patrolPointId + 1;}
+			bool validateGarrisonOrder(Order);
 			void enterGarrisonable();
 			void halt();
 			void turn(float);
-			void addOrder(Order);
+			void receiveOrder(Order, bool);
 			void advance(float, MoveDir = MoveDir::FORW);
 			void addPathpoint(vb01::Vector3);
 			void removePathpoint(int = 0);
 			void removeAllPathpoints();
 			void select();
+			void reinit();
 		protected:
 			std::vector<vb01::Vector3> pathPoints;
 			bool pursuingTarget = false;

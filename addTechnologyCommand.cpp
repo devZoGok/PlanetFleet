@@ -30,13 +30,8 @@ namespace battleship{
 			return;
 	}
 
-	void AddTechnologyCommand::addTechnology(){
-		Game::getSingleton()->getPlayer(playerId)->addTechnology(techId);
-	}
-
 	void AddTechnologyCommand::execute(){
-		AbstractCommand::handle();
-		validate();
-		addTechnology();
+		AbstractCommand::execute();
+		Game::getSingleton()->getPlayer(playerId)->addTechnology(techId);
 	}
 }

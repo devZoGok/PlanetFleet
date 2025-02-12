@@ -16,6 +16,6 @@ namespace battleship{
 		GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
 		GameObject::Type type = (unitListbox ? GameObject::Type::UNIT : GameObject::Type::RESOURCE_DEPOSIT);
 		ufCtr->addGameObjectFrame(GameObjectFrame(selectedOption, type));
-		ufCtr->setPlacingFrames(true);
+		ufCtr->setPlacingOnSurface(true);
 	}
 }

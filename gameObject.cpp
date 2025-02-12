@@ -51,16 +51,18 @@ namespace battleship{
 
 	//TODO remove neccessity to create a material for an invisible mesh
 	void GameObject::initHitbox(){
-		Box *box = new Box(Vector3(width, height, length));
-		box->setWireframe(true);
-
 		Material *mat = new Material(Root::getSingleton()->getLibPath() + "texture");
 		mat->addBoolUniform("texturingEnabled", false);
+		mat->addBoolUniform("lightingEnabled", false);
 		mat->addVec4Uniform("diffuseColor", Vector4(1, 1, 1, 1));
+
+		Box *box = new Box(Vector3(width, height, length));
+		box->setWireframe(true);
 		box->setMaterial(mat);
 
 		sol::table gameObjTable = generateView()[GameObject::getGameObjTableName()][id + 1];
 		sol::table offsetPosTable = gameObjTable["hitboxOffset"];
+
 		hitbox = new Node(Vector3(offsetPosTable["x"], offsetPosTable["y"], offsetPosTable["z"]));
 		hitbox->attachMesh(box);
 		hitbox->setVisible(true);
@@ -68,7 +70,6 @@ namespace battleship{
 	}
 
 	void GameObject::destroyHitbox(){
-		hitbox->dettachMesh(0);
 		model->dettachChild(hitbox);
 		delete hitbox;
 	}
@@ -81,6 +82,9 @@ namespace battleship{
 	}
 	
 	void GameObject::destroyModel(){
+		if(model->getMaterial())
+			delete model->getMaterial();
+
 		Root::getSingleton()->getRootNode()->dettachChild(model);
 		delete model;
 	}
@@ -88,19 +92,17 @@ namespace battleship{
 	//TODO improve DEFAULT_TEXTURE handling
 	void GameObject::initModel(bool textured){
 		sol::table gameObjTable = generateView()[GameObject::getGameObjTableName()][id + 1];
-		string basePath = gameObjTable["basePath"];
-		string meshPath = gameObjTable["meshPath"];
-
+		string basePath = gameObjTable["basePath"], meshPath = gameObjTable["meshPath"];
 		model = new Model(basePath + meshPath);
-		Root *root = Root::getSingleton();
-		string libPath = root->getLibPath();
 
-		Material *mat = new Material(libPath + "texture");
+		Root *root = Root::getSingleton();
+		Material *mat = new Material(root->getLibPath() + "texture");
 
 		if(textured){
 			string albedoPath = gameObjTable["albedoPath"].get_or(configData::DEFAULT_TEXTURE);
 			string f[]{albedoPath == configData::DEFAULT_TEXTURE ? GameManager::getSingleton()->getPath() + albedoPath : basePath + albedoPath};
     		Texture *diffuseTexture = new Texture(f, 1, false);
+
 			mat->addBoolUniform("texturingEnabled", true);
 			mat->addBoolUniform("lightingEnabled", true);
 			mat->addBoolUniform("constLightingEnabled", false);

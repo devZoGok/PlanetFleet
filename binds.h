@@ -16,7 +16,7 @@ namespace battleship{
 		LOOK_RIGHT,
 		LOOK_AROUND,
 		DRAG_BOX,
-		DESELECT,
+		ROTATE_OBJ_FRAME,
 		HALT,
 		ZOOM_IN,
 		ZOOM_OUT,
@@ -24,7 +24,7 @@ namespace battleship{
 		LEFT_SHIFT,
 		SELECT_PATROL_POINTS,
 		LAUNCH,
-		TOGGLE_SUB,
+		SHIFT_SUB_DEPTH,
 		GROUP_0,
 		GROUP_1,
 		GROUP_2,
@@ -54,7 +54,8 @@ namespace battleship{
 		ENABLE_CHASE_STATE,
 		ENABLE_STAND_GROUND_STATE,
 		ENABLE_HOLD_FIRE_STATE,
-		HACK
+		HACK,
+		MOVE_CAMERA
 	};
 }
 

@@ -34,6 +34,9 @@ namespace battleship{
 		inline std::vector<vb01Gui::Button*> getButtons(){return buttons;}
         inline Player* getPlayer(){return mainPlayer;}
         inline std::vector<Unit*>& getUnitGroup(int i){return unitGroups[i];}
+		inline void setBuildableStructSelected(bool bss){this->buildableStructSelected = bss;}
+		inline bool isBuildableStructSelected(){return buildableStructSelected;}
+		inline float getDepth(){return depth;}
     private:
 		enum CursorState{
 			NORMAL,
@@ -69,11 +72,18 @@ namespace battleship{
         std::vector<Unit*> unitGroups[9];
 		std::vector<Order::Target> targets;
 		std::vector<vb01Gui::Button*> buttons;
-        bool isSelectionBox = false, shiftPressed = false, controlPressed = false, leftMouseClicked = false, selectingPatrolPoints = false, selectingDestOrient = false;
+        bool isSelectionBox = false;
+		bool shiftPressed = false;
+		bool controlPressed = false;
+		bool selectMouseClicked = false;
+		bool orderMouseClicked = false;
+		bool buildableStructSelected = false;
+		bool selectingPatrolPoints = false;
+		bool selectingDestOrient = false;
         int playerId, zooms = 0;
 	   	const int NUM_MAX_ZOOMS = 10;
 		float depth = 1;
-		vb01::s64 lastLeftMouseClicked = 0;
+		vb01::s64 lastSelectMouseClicked = 0, lastOrderMouseClicked = 0;
 		vb01::Node *cursorNode = nullptr;
 		vb01::Texture *pointerTex = nullptr, *attackTex = nullptr, *garrisonTex = nullptr;
     };

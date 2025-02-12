@@ -149,7 +149,7 @@ namespace battleship{
 
 		float eps = .01;
 
-		if(!isSelectionBox && leftMouseClicked && (fabs(clickPoint.x - cursorPos.x) > eps || fabs(clickPoint.y - cursorPos.y) > eps) && getTime() - lastLeftMouseClicked > 10)
+		if(!isSelectionBox && selectMouseClicked && (fabs(clickPoint.x - cursorPos.x) > eps || fabs(clickPoint.y - cursorPos.y) > eps) && getTime() - lastSelectMouseClicked > 10)
 			isSelectionBox = true;
 		else if (isSelectionBox)
 			updateDragBox();
@@ -161,19 +161,28 @@ namespace battleship{
 		vector<Unit*> selectedUnits = mainPlayer->getSelectedUnits();
 		GameObjectFrameController *fc = GameObjectFrameController::getSingleton();
 
-		if(!selectingDestOrient && leftMouseClicked && !selectedUnits.empty() && getTime() - lastLeftMouseClicked > 100){
+		if(!selectingDestOrient && orderMouseClicked && !selectedUnits.empty() && getTime() - lastOrderMouseClicked > 100){
+			if(targets.empty()) castRayToTerrain();
+
+			if(!buildableStructSelected)
+				for(int i = 0; i < selectedUnits.size(); i++){
+					fc->addGameObjectFrame(GameObjectFrame(selectedUnits[i]->getId(), GameObject::Type::UNIT));
+					fc->placeGameObjectFrame(fc->getNumGameObjectFrames() - 1, targets[0].pos, selectedUnits[i]->getWidth(), selectedUnits[i]->getLength());
+				}
+
 			selectingDestOrient = true;
+			fc->setRotating(true);
+		}
+		else if(selectingDestOrient && !orderMouseClicked){
+			selectingDestOrient = false;
 
-			fc->setPlacingFrames(true);
-			fc->setRotatingFrames(true);
-
-			for(Unit *unit : selectedUnits)
-				fc->addGameObjectFrame(GameObjectFrame(unit->getId(), GameObject::Type::UNIT));
+			fc->toggleFrameTransformations(false, false, false);
+			fc->removeGameObjectFrames();
 		}
 
         renderUnits();
 
-		if(fc->isPlacingFrames())
+		if(fc->isRotating() || fc->isPlacingOnSurface() || fc->isPlacingVertically())
 			fc->update();
 
 		CameraController *camCtr = CameraController::getSingleton();
@@ -210,7 +219,7 @@ namespace battleship{
 		mainPlayer->deselectUnits();
 		GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
 		ufCtr->removeGameObjectFrames();
-		ufCtr->setPlacingFrames(false);
+		ufCtr->toggleFrameTransformations(false, false, false);
 
 		unitGuiScreen = "";
 		ConcreteGuiManager::getSingleton()->readLuaScreenScript("activeGameState.lua");
@@ -416,7 +425,15 @@ namespace battleship{
 
 	//TODO fix ejectable unit selection with multiple transports selected
     void ActiveGameState::issueOrder(Order::TYPE type, vector<Order::Target> targets, bool addOrder) {
-		Vector3 destDir = (selectingDestOrient ? GameObjectFrameController::getSingleton()->getGameObjectFrame(0).getDirVec() : Vector3::VEC_ZERO);
+		depth = 1;
+		Vector3 destDir =  Vector3::VEC_ZERO;
+		
+		if(selectingDestOrient){
+			GameObjectFrame &objFrame = GameObjectFrameController::getSingleton()->getGameObjectFrame(0);
+			destDir = objFrame.getDirVec();
+			targets[0].pos = objFrame.getPos();
+		}
+
 		mainPlayer->issueOrder(type, destDir, targets, addOrder);
 		this->targets.clear();
     }
@@ -430,34 +447,8 @@ namespace battleship{
 		Map *map = Map::getSingleton();
 		vector<RayCaster::CollisionResult> results = map->raycastTerrain(camPos, rayDir, true);
 
-		if(!results.empty()){
-			GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
-
-			for(Unit *u : mainPlayer->getSelectedUnits()){
-				Vector3 pos = u->getPos();
-				Node *nodeParent = map->getNodeParent();
-
-				if(u->getType() == UnitType::UNDERWATER && nodeParent->getNumChildren() > 0){
-					vector<RayCaster::CollisionResult> res = map->raycastTerrain(Vector3(pos.x, 100, pos.z), Vector3(0, -1, 0), false);
-
-					Vector3 waterBodyPos = Vector3::VEC_ZERO;
-					Vector3 cellSize = map->getCellSize();
-
-					for(int i = 1; i < nodeParent->getNumChildren(); i++){
-						Vector3 wpos = nodeParent->getChild(i)->getPosition();
-						
-						if(fabs(wpos.x - pos.x) < .5 * cellSize.x && fabs(wpos.z - pos.z) < .5 * cellSize.z){
-							waterBodyPos = wpos;
-							break;
-						}
-					}
-
-					results[0].pos.y = res[0].pos.y + depth * (waterBodyPos.y - res[0].pos.y);
-				}
-			}
-
+		if(!results.empty())
 			targets.push_back(Order::Target(nullptr, results[0].pos));
-		}
     }
 
 	void ActiveGameState::enableUnitState(Unit::State state){
@@ -467,94 +458,27 @@ namespace battleship{
 			unit->setState(state);
 	}
     
-	//TODO only allow appropriate orders for units
     void ActiveGameState::onAction(int bind, bool isPressed) {
 		GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
 
 		if(!ConcreteGuiManager::getSingleton()->findClickedButtons().empty())
 			return;
 
+		vector<Unit*> selectedUnits = mainPlayer->getSelectedUnits();
+
         switch((Bind)bind){
 			case Bind::DRAG_BOX: 
-				leftMouseClicked = isPressed;
+				selectMouseClicked = isPressed;
 
 				if(isPressed){
 					clickPoint = getCursorPos();
-					lastLeftMouseClicked = getTime();
+					lastSelectMouseClicked = getTime();
 				}
 				else{
-					int numSelectedUnits = mainPlayer->getNumSelectedUnits();
+					if(!shiftPressed) deselectUnits();
 
-                    if(numSelectedUnits > 0){
-						if(selectingPatrolPoints){
-                    		castRayToTerrain();
-
-							if(!(targets.empty() || selectingPatrolPoints)){
-								Order::TYPE type = Order::TYPE::MOVE;
-							
-								if(controlPressed || (targets[0].unit && targets[0].unit->getPlayer()->getTeam() != mainPlayer->getTeam()))
-									type = Order::TYPE::ATTACK;
-								else if(ufCtr->isPlacingFrames() && !selectingDestOrient)
-									type = Order::TYPE::BUILD;
-							
-								issueOrder(type, targets, shiftPressed);
-							}
-						}
-						else if(!(selectingDestOrient || isSelectionBox)){
-							bool canSelect = canSelectHoveredOnGameObj();
-							bool ownGameObj = (gameObjHoveredOn && gameObjHoveredOn->getPlayer()->getTeam() == mainPlayer->getTeam());
-
-							if(gameObjHoveredOn && gameObjHoveredOn->getType() == GameObject::Type::UNIT && ownGameObj && ((Unit*)gameObjHoveredOn)->getNumGarrisonSlots() > 0){
-								bool canGarrison = true;
-
-								for(int i = 0; i < mainPlayer->getNumSelectedUnits(); i++)
-									if(!((Unit*)gameObjHoveredOn)->canGarrison((Vehicle*)mainPlayer->getSelectedUnit(i))){
-										canGarrison = false;
-										break;
-									}
-
-								if(canGarrison)
-									issueOrder(Order::TYPE::GARRISON, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn, gameObjHoveredOn->getPos())}, shiftPressed);
-							}
-							else if(gameObjHoveredOn && ownGameObj && ((Unit*)gameObjHoveredOn)->getUnitClass() == UnitClass::EXTRACTOR && !controlPressed){
-								issueOrder(Order::TYPE::SUPPLY, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
-							}
-							else if(gameObjHoveredOn && (controlPressed || (!ownGameObj && gameObjHoveredOn->getType() == GameObject::Type::UNIT)))
-								issueOrder(Order::TYPE::ATTACK, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn, gameObjHoveredOn->getPos())}, shiftPressed);
-							else if(controlPressed && !gameObjHoveredOn){
-                    			castRayToTerrain();
-								issueOrder(Order::TYPE::ATTACK, targets, shiftPressed);
-							}
-							else if(ufCtr->isPlacingFrames() && !selectingDestOrient){
-                    			castRayToTerrain();
-								GameObjectFrame gmObjFr = ufCtr->getGameObjectFrame(0);
-
-								if(gmObjFr.status == GameObjectFrame::NOT_PLACEABLE)
-									return;
-
-								Unit *buildStruct = GameObjectFactory::createUnit(mainPlayer, gmObjFr.getId(), gmObjFr.getPos(), gmObjFr.getRot());
-								mainPlayer->addUnit(buildStruct);
-								targets[0].unit = buildStruct;
-
-								issueOrder(Order::TYPE::BUILD, targets, shiftPressed);
-							}
-							else if(canSelect){
-								if(!shiftPressed)
-									deselectUnits();
-
-								mainPlayer->selectUnit((Unit*)gameObjHoveredOn);
-							}
-							else if(!canSelect){
-                    			castRayToTerrain();
-								issueOrder(Order::TYPE::MOVE, targets, shiftPressed);
-							}
-						}
-					}
-					else if(numSelectedUnits == 0 && canSelectHoveredOnGameObj()){
-						if(!shiftPressed) deselectUnits();
-
+					if(canSelectHoveredOnGameObj())
 						mainPlayer->selectUnit((Unit*)gameObjHoveredOn);
-					}
 
 					selectingDestOrient = false;
 
@@ -573,12 +497,81 @@ namespace battleship{
 					quad->setSize(Vector3::VEC_ZERO);
 					quad->updateVerts(quad->getMeshBase());
 
-					ufCtr->setPlacingFrames(false);
-					ufCtr->setRotatingFrames(false);
+					ufCtr->toggleFrameTransformations(false, false, false);
 					ufCtr->removeGameObjectFrames();
                 }
 
                 break;
+			case Bind::ROTATE_OBJ_FRAME:
+				orderMouseClicked = isPressed;
+
+				if(isPressed)
+					lastOrderMouseClicked = getTime();
+				else if(!(isPressed || selectedUnits.empty())){
+					if(selectingPatrolPoints){
+                    	castRayToTerrain();
+
+						if(!(targets.empty() || selectingPatrolPoints)){
+							Order::TYPE type = Order::TYPE::MOVE;
+						
+							if(controlPressed || (targets[0].unit && targets[0].unit->getPlayer()->getTeam() != mainPlayer->getTeam()))
+								type = Order::TYPE::ATTACK;
+							else if(ufCtr->isPlacingOnSurface() && !selectingDestOrient)
+								type = Order::TYPE::BUILD;
+						
+							issueOrder(type, targets, shiftPressed);
+						}
+					}
+					else if(!isSelectionBox){
+						bool canSelect = canSelectHoveredOnGameObj();
+						bool ownGameObj = (gameObjHoveredOn && gameObjHoveredOn->getPlayer()->getTeam() == mainPlayer->getTeam());
+
+						if(gameObjHoveredOn && gameObjHoveredOn->getType() == GameObject::Type::UNIT && ownGameObj && ((Unit*)gameObjHoveredOn)->getNumGarrisonSlots() > 0){
+							bool canGarrison = true;
+
+							for(int i = 0; i < mainPlayer->getNumSelectedUnits(); i++)
+								if(!((Unit*)gameObjHoveredOn)->canGarrison((Vehicle*)mainPlayer->getSelectedUnit(i))){
+									canGarrison = false;
+									break;
+								}
+
+							if(canGarrison)
+								issueOrder(Order::TYPE::GARRISON, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn, gameObjHoveredOn->getPos())}, shiftPressed);
+						}
+						else if(gameObjHoveredOn && ownGameObj && ((Unit*)gameObjHoveredOn)->getUnitClass() == UnitClass::EXTRACTOR && !controlPressed){
+							issueOrder(Order::TYPE::SUPPLY, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
+						}
+						else if(gameObjHoveredOn && (controlPressed || (!ownGameObj && gameObjHoveredOn->getType() == GameObject::Type::UNIT)))
+							issueOrder(Order::TYPE::ATTACK, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn, gameObjHoveredOn->getPos())}, shiftPressed);
+						else if(controlPressed && !gameObjHoveredOn){
+                    		castRayToTerrain();
+							issueOrder(Order::TYPE::ATTACK, targets, shiftPressed);
+						}
+						else if(selectedUnits[0]->getUnitClass() == UnitClass::ENGINEER && ufCtr->isPlacingOnSurface()){
+                    		castRayToTerrain();
+							GameObjectFrame gmObjFr = ufCtr->getGameObjectFrame(0);
+
+							if(gmObjFr.status == GameObjectFrame::NOT_PLACEABLE) return;
+
+							Unit *buildStruct = GameObjectFactory::createUnit(mainPlayer, gmObjFr.getId(), gmObjFr.getPos(), gmObjFr.getRot());
+							mainPlayer->addUnit(buildStruct);
+							targets[0].unit = buildStruct;
+
+							issueOrder(Order::TYPE::BUILD, targets, shiftPressed);
+
+							buildableStructSelected = false;
+						}
+						else if(!canSelect){
+                    		if(targets.empty()) castRayToTerrain();
+
+							issueOrder(Order::TYPE::MOVE, targets, shiftPressed);
+						}
+					}
+				}
+
+                break;
+			case Bind::MOVE_CAMERA:
+				break;
 			case Bind::ENABLE_CHASE_STATE:
 				if(isPressed) enableUnitState(Unit::State::CHASE);
 				break;
@@ -588,10 +581,6 @@ namespace battleship{
 			case Bind::ENABLE_HOLD_FIRE_STATE:
 				if(isPressed) enableUnitState(Unit::State::HOLD_FIRE);
 				break;
-			case Bind::DESELECT:
-				if(ufCtr->isPlacingFrames()) ufCtr->setRotatingFrames(isPressed);
-                if (!isPressed) deselectUnits();
-                break;
 			case Bind::EJECT_GARRISON:
 				if(isPressed) issueOrder(Order::TYPE::EJECT, vector<Order::Target>{}, shiftPressed);
 				break;
@@ -609,7 +598,8 @@ namespace battleship{
 
 					break;
 				}
-			case Bind::TOGGLE_SUB:
+			case Bind::SHIFT_SUB_DEPTH:
+				ufCtr->toggleFrameTransformations(false, false, isPressed);
                 break;
 			case Bind::ZOOM_IN:
                 if (zooms > -NUM_MAX_ZOOMS) {
@@ -621,12 +611,12 @@ namespace battleship{
 			case Bind::ZOOM_OUT:
                 if (zooms < NUM_MAX_ZOOMS) {
 					Camera *cam = Root::getSingleton()->getCamera();
-                    cam->setPosition(cam->getPosition() - (cam->getDirection().norm().norm() * .5f));
+                    cam->setPosition(cam->getPosition() - (cam->getDirection().norm() * .5f));
                     zooms++;
                 }
                 break;
 			case Bind::LOOK_AROUND:
-				if(!ufCtr->isPlacingFrames())
+				if(!ufCtr->isPlacingOnSurface())
 					CameraController::getSingleton()->setLookingAround(isPressed);
                 break;
 			case Bind::HALT: 
@@ -637,18 +627,14 @@ namespace battleship{
 				//TODO reimplement submarine diving mechanic
 			case Bind::LEFT_CONTROL:
                 controlPressed = isPressed;
-				if(isPressed) depth -= 0.05;
                 break;
 			case Bind::LEFT_SHIFT:
 			{
         		shiftPressed = isPressed;
 
-				GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
 				ufCtr->setPaintSelecting(shiftPressed);
 
 				if(isPressed){
-					depth += 0.05;
-
 					Vector3 startPos = Root::getSingleton()->getCamera()->getPosition();
 					vector<RayCaster::CollisionResult> results = Map::getSingleton()->raycastTerrain(startPos, (screenToSpace(getCursorPos()) - startPos).norm(), true);
 
@@ -690,8 +676,9 @@ namespace battleship{
 
                 break;
 			case Bind::DESELECT_STRUCTURE:
+				buildableStructSelected = false;
+				ufCtr->toggleFrameTransformations(false, false, false);
 				ufCtr->removeGameObjectFrames();
-				ufCtr->setPlacingFrames(false);
 				break;
         }
     }
@@ -708,13 +695,19 @@ namespace battleship{
 					dirProj = Vector3(dirProj.x, 0, dirProj.z).norm();
 					CameraController::getSingleton()->orientCamera(Vector3(0, 1, 0).cross(dirProj), strength);
 				}
+				else if(ufCtr->isPlacingVertically()){
+					depth -= .2 * strength;
+
+					if(depth < 0) depth = 0;
+					else if(depth > 1) depth = 1;
+				}
 
 				break;
 			case Bind::LOOK_LEFT: 
 			case Bind::LOOK_RIGHT: 
 				if(camCtr->isLookingAround())
 					CameraController::getSingleton()->orientCamera(Vector3(0, 1, 0), strength);
-				else if(ufCtr->isRotatingFrames())
+				else if(ufCtr->isRotating())
 					ufCtr->rotateGameObjectFrames(100 * strength);
 
 				break;

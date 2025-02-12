@@ -46,17 +46,27 @@ namespace battleship{
 		pursuingTarget = false;
 	}
 
-	void Vehicle::addOrder(Order order){
+	bool Vehicle::validateGarrisonOrder(Order order){
+		Unit *targUnit = order.targets[0].unit;
+
+		for(GarrisonSlot slot : targUnit->getGarrisonSlots())
+			if(!slot.vehicle && slot.category >= garrisonCategory)
+				return true;
+
+		return false;
+	}
+
+	void Vehicle::receiveOrder(Order order, bool add){
 		if(!(order.type == Order::TYPE::EJECT || order.type == Order::TYPE::LAUNCH)){
 			Order::Target targ = order.targets[0];
 			Vector3 targPos = (targ.unit ? targ.unit->getPos() : targ.pos);
 			preparePathpoints(order, targPos);
 
 			if(!pathPoints.empty())
-				orders.push_back(order);
+				Unit::receiveOrder(order, add);
 		}
 		else
-			orders.push_back(order);
+			Unit::receiveOrder(order, add);
 	}
 
     void Vehicle::turn(float angle) {
@@ -94,6 +104,11 @@ namespace battleship{
 		garrisonCategory = unitTable["garrisonCategory"];
 	}
 
+	void Vehicle::reinit(){
+		Unit::reinit();
+		initProperties();
+	}
+
 	void Vehicle::navigate(float destOffset){
 		Vector3 hypVec = (pathPoints[0] - pos);
 		float hypAngle = hypVec.norm().getAngleBetween(upVec) - PI / 2;
@@ -113,7 +128,7 @@ namespace battleship{
 				advance(movementAmmount);
 			}
 
-			if(vertDist > 0.5 * height){
+			if(vertDist > .1){
 				float dist = pos.y - pathPoints[0].y;
 				float movementAmmount = (speed > fabs(dist) ? dist : speed);
 
@@ -244,9 +259,16 @@ namespace battleship{
 
 		if(type != UnitType::HOVER && !(waterVehCanMove || landVehCanMove)) return;
 
-		Pathfinder *pathfinder = Pathfinder::getSingleton();
 		int dest = map->getCellId(destPos);
-		vector<int> path = pathfinder->findPath(cells, source, dest, (int)type);
+
+		if(type != UnitType::UNDERWATER && fabs(destPos.y - cells[dest].pos.y) > .1) return;
+
+		vector<float> heuristics;
+
+		for(Map::Cell &cell : cells)
+			heuristics.push_back(145 * (cells[dest].pos.getDistanceFrom(cell.pos)));
+
+		vector<int> path = Pathfinder::getSingleton()->findPath(cells, heuristics, source, dest, (int)type);
 		bool pathTruncated = false;
 
 		for(int i = 0; i < path.size(); i++){

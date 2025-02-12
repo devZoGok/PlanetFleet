@@ -2,13 +2,14 @@
 #include "addUnitCommand.h"
 #include "addResourceCommand.h"
 #include "addTechnologyCommand.h"
+#include "toggleDebugCommand.h"
 
 using namespace std;
 
 namespace battleship{
     void Console::execute(string cmdStr) {
 		int space = cmdStr.find(" ");
-		string cmdName, argsStr;
+		string cmdName = cmdStr, argsStr = "";
 
 		if(space != -1){
 			cmdName = cmdStr.substr(0, space);
@@ -21,5 +22,7 @@ namespace battleship{
 			AddResourceCommand(argsStr).execute();
 		else if(cmdName == "add-technology")
 			AddTechnologyCommand(argsStr).execute();
+		else if(cmdName == "toggle-debug")
+			ToggleDebugCommand(argsStr).execute();
     }
 }

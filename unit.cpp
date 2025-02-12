@@ -322,9 +322,11 @@ namespace battleship{
 		vector<int> currTechs = player->getTechnologies();
 
 		string name = unitTable["name"];
-        health = unitTable["health"]; health += game->calcAbilFromTech(Ability::Type::HEALTH, currTechs, (int)GameObject::type, id);
         vehicle = unitTable["isVehicle"];
-		maxHealth = health;
+        health += game->calcAbilFromTech(Ability::Type::HEALTH, currTechs, (int)GameObject::type, id);
+		maxHealth = unitTable["health"];
+
+		if(health == 0) health = maxHealth;
 
         lineOfSight = unitTable["lineOfSight"]; lineOfSight += game->calcAbilFromTech(Ability::Type::LINE_OF_SIGHT, currTechs, (int)GameObject::type, id);
         unitClass = (UnitClass)unitTable["unitClass"];
@@ -441,6 +443,9 @@ namespace battleship{
 	}
 
 	void Unit::reinit(){
+		if(losLightNode)
+			destroyLosLight();
+
 		destroyWeapons();
 		destroyHitbox();
 		destroyModel();
@@ -539,7 +544,7 @@ namespace battleship{
 		if(orders.empty())
 			for(Unit *unit : units)
 				if(unit->getPos().getDistanceFrom(pos) < lineOfSight){
-					setOrder(Order(Order::TYPE::ATTACK, vector<Order::Target>{Order::Target(unit)}, Vector3::VEC_ZERO, -1, false));
+					receiveOrder(Order(Order::TYPE::ATTACK, vector<Order::Target>{Order::Target(unit)}, Vector3::VEC_ZERO, -1, false), false);
 					break;
 				}
 	}
@@ -646,17 +651,16 @@ namespace battleship{
 				adjWaterCellId = edge.destCellId;
 		}
 
-		if(garrisonSlots.size() > 0){
-			for(Order::Target targ : order.targets){
-				bool exitToLandCell = (targ.unit->getType() == UnitType::LAND && adjLandCellId != -1);
-				bool exitToWaterCell = ((targ.unit->getType() == UnitType::SEA_LEVEL || targ.unit->getType() == UnitType::UNDERWATER) && adjWaterCellId != -1);
-
+		for(GarrisonSlot &slot : garrisonSlots)
+			if(slot.vehicle){
+				bool exitToLandCell = (slot.vehicle->getType() == UnitType::LAND && adjLandCellId != -1);
+				bool exitToWaterCell = ((slot.vehicle->getType() == UnitType::SEA_LEVEL || slot.vehicle->getType() == UnitType::UNDERWATER) && adjWaterCellId != -1);
+				
 				if(exitToLandCell || exitToWaterCell)
-					((Vehicle*)targ.unit)->exitGarrisonable(cells[exitToLandCell ? adjLandCellId : adjWaterCellId].pos);
+					slot.vehicle->exitGarrisonable(cells[exitToLandCell ? adjLandCellId : adjWaterCellId].pos);
 			}
 
-			removeOrder(0);
-		}
+		removeOrder(0);
 	}
 
 	void Unit::attack(Order order){
@@ -676,12 +680,53 @@ namespace battleship{
 			}
 	}
 
-    void Unit::setOrder(Order order) {
-        while (!orders.empty())
-			removeOrder(0);
+	bool Unit::validateOrder(Order order){
+		switch (order.type) {
+		    case Order::TYPE::ATTACK:
+				return !weapons.empty();
+		    case Order::TYPE::BUILD:
+				return unitClass == UnitClass::ENGINEER;
+		    case Order::TYPE::PATROL:
+		    case Order::TYPE::MOVE:
+				return vehicle;
+			case Order::TYPE::GARRISON:
+				return validateGarrisonOrder(order);
+			case Order::TYPE::EJECT:
+				return !garrisonSlots.empty();
+		    case Order::TYPE::LAUNCH:
+				{
+					for(Weapon *weapon : weapons)
+						if(weapon->getType() == Weapon::Type::CRUISE_MISSILE)
+							return true;
 
-        addOrder(order);
-        orderLineDispTime = getTime();
+					return false;
+				}
+		    case Order::TYPE::SUPPLY:
+				return unitClass == UnitClass::RESOURCE_ROVER;
+		    case Order::TYPE::HACK:
+				{
+					for(Weapon *weapon : weapons)
+						if(weapon->getType() == Weapon::Type::CRUISE_MISSILE)
+							return true;
+
+					return false;
+				}
+			default:
+				return false;
+		}
+	}
+
+    void Unit::receiveOrder(Order order, bool add) {
+		if(!validateOrder(order)) return;
+
+		if(!add){
+			while (!orders.empty())
+				removeOrder(0);
+			
+			orderLineDispTime = getTime();
+		}
+
+		orders.push_back(order);
     }
 
     void Unit::halt() {
@@ -700,10 +745,6 @@ namespace battleship{
 				break;
 			}
 		}
-	}
-
-	void Unit::addOrder(Order order){
-		orders.push_back(order);
 	}
 
 	vector<Player*> Unit::getSelectingPlayers(){
