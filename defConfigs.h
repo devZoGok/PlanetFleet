@@ -20,7 +20,7 @@ namespace battleship{
 		using namespace gameBase;
 
   		const std::string DEFAULT_TEXTURE = "Textures/defaultTexture.jpg";
-  		const double camPanSpeed = .5, CAMERA_DISTANCE = 100, CAMERA_ZOOM_INCREMENT = 1, cellLength = 14, cellWidth = 14, cellDepth = 7, DIST_FROM_RAY = 20;
+  		const double camPanSpeed = .5, CAMERA_DISTANCE = 100, CAMERA_ZOOM_INCREMENT = 1, cellLength = 7, cellWidth = 7, cellDepth = 7, DIST_FROM_RAY = 15;
 		const int maxNumGroups = 10, NUM_MAX_ZOOMS = 75;
 		const vb01::u32 IMPASS_NODE_VAL = 65535;
 
