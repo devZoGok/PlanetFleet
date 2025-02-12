@@ -261,6 +261,8 @@ namespace battleship{
 
 		int dest = map->getCellId(destPos);
 
+		if(type != UnitType::UNDERWATER && fabs(destPos.y - cells[dest].pos.y) > .1) return;
+
 		vector<float> heuristics;
 
 		for(Map::Cell &cell : cells)

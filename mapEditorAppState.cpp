@@ -624,7 +624,7 @@ namespace battleship{
 
 		GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
 
-		if(ufCtr->isPlacingFrames())
+		if(ufCtr->isPlacingOnSurface())
 			ufCtr->update();
 	}
 
@@ -659,7 +659,7 @@ namespace battleship{
 
 		switch((Bind)bind){
 			case Bind::LOOK_AROUND:
-				if(ufCtr->isPlacingFrames()){
+				if(ufCtr->isPlacingOnSurface()){
 					Player *player = Game::getSingleton()->getPlayer(0);
 					GameObjectFrame &frame = ufCtr->getGameObjectFrame(0);
 					Model *model = frame.getModel();
@@ -676,9 +676,9 @@ namespace battleship{
 					CameraController::getSingleton()->setLookingAround(isPressed);
 
                 break;
-			case Bind::DESELECT_STRUCTURE:
+			case Bind::ROTATE_OBJ_FRAME:
 				ufCtr->removeGameObjectFrames();
-				ufCtr->setPlacingFrames(false);
+				ufCtr->setPlacingOnSurface(false);
 				break;
 			case Bind::INCREASE_RADIUS:
 				if(isPressed) mapEditor->updateCircleRadius(true);

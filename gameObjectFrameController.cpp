@@ -1,6 +1,7 @@
 #include <solUtil.h>
 
 #include "gameObjectFrameController.h"
+#include "activeGameState.h"
 #include "resourceDeposit.h"
 #include "defConfigs.h"
 #include "player.h"
@@ -11,9 +12,11 @@
 
 #include <material.h>
 #include <meshData.h>
-#include <mesh.h>
+#include <quad.h>
 #include <model.h>
 #include <root.h>
+
+#include <stateManager.h>
 
 #include <string>
 
@@ -52,6 +55,7 @@ namespace battleship{
 		}
 	}
 
+	//TODO specify what to snap the frame to
 	void GameObjectFrameController::snapToObj(GameObjectFrame &s, GameObject::Type type, int unitId, float maxDist){
 		if(s.getType() == GameObject::Type::UNIT && s.getId() == unitId){
 			s.status = GameObjectFrame::NOT_PLACEABLE;
@@ -79,6 +83,7 @@ namespace battleship{
 
 	//TODO implement terrain evenness check
 	//TODO factor out literal values
+	//TODO fix which unit frames light green or red
 	void GameObjectFrameController::placeGameObjectFrame(int id, Vector3 newPos, float width, float length){
 		Map *map = Map::getSingleton();
 		MeshData meshData = map->getNodeParent()->getChild(0)->getMesh(0)->getMeshBase();
@@ -86,6 +91,7 @@ namespace battleship{
 		int numVerts = 3 * meshData.numTris;
 
 		float maxUnevenness = .5, unevenness = 0;
+		bool placeable = true;
 
 		for(int i = 0; i < numVerts; i++){
 			float diffX = fabs(newPos.x - verts[i].pos->x);
@@ -95,51 +101,111 @@ namespace battleship{
 			if(diffX < 0.5 * width && diffZ < 0.5 * length && diffY > unevenness){
 				unevenness = diffY;
 
-				if(unevenness > maxUnevenness)
+				if(unevenness > maxUnevenness){
+					placeable = false;
 					break;
+				}
 			}
 		}
 
 		GameObjectFrame &s = gameObjectFrames[id];
+		s.placeAt(newPos);
 
-		if(!rotatingStructure)
-			s.placeAt(newPos);
-
-		s.status = (unevenness < maxUnevenness ? GameObjectFrame::PLACEABLE : GameObjectFrame::NOT_PLACEABLE);
 		snapToObj(s, GameObject::Type::UNIT, 20, 3);
 
+		Vector4 color;
+
+		if(placeable){
+			s.status = GameObjectFrame::PLACEABLE;
+			color = Vector4(0, 1, 0, 1);
+		}
+		else{
+			s.status = GameObjectFrame::NOT_PLACEABLE;
+			color = Vector4(1, 0, 0, 1);
+		}
+
 		Material *mat = s.getModel()->getMaterial();
-		Vector4 color = (s.status == GameObjectFrame::NOT_PLACEABLE ? Vector4(1, 0, 0, 1) : Vector4(0, 1, 0, 1));
 		mat->setVec4Uniform("diffuseColor", color);
 	}
 
-	void GameObjectFrameController::update(){
+	void GameObjectFrameController::updatePlacement(){
 		for(GameObjectFrame &frame : gameObjectFrames)
 			frame.update();
 
+		Map *map = Map::getSingleton();
 		Vector3 startPos = Root::getSingleton()->getCamera()->getPosition();
-		vector<RayCaster::CollisionResult> results = Map::getSingleton()->raycastTerrain(startPos, (screenToSpace(getCursorPos()) - startPos).norm(), true);
+		Vector3 endPos = screenToSpace(getCursorPos());
+		vector<RayCaster::CollisionResult> results = map->raycastTerrain(startPos, (screenToSpace(getCursorPos()) - startPos).norm(), true);
 
 		if(results.empty()) return;
 
-		Vector3 newPos, rowEnd;
-		sol::table sizeTable = generateView()[gameObjectFrames[0].getGameObjTableName()][gameObjectFrames[0].getId() + 1]["size"]; 
-    	float width = sizeTable["x"], length = sizeTable["z"];
+    	float width, length;
 
-		if(paintSelecting)
+		if(paintSelecting){
+			sol::table sizeTable = generateView()[gameObjectFrames[0].getGameObjTableName()][gameObjectFrames[0].getId() + 1]["size"]; 
+    		width = sizeTable["x"], length = sizeTable["z"];
 			paintSelect(results[0].pos, width, length);
-		else if(!(paintSelecting || rotatingStructure))
-			newPos = results[0].pos;
+		}
+
+		if(placingVertically){
+			if(!minDepthCalculated){
+				placementPos = results[0].pos;
+
+				Node *nodeParent = map->getNodeParent();
+				Vector3 cellSize = map->getCellSize(), waterBodyPos;
+				bool inWater = false;
+		
+				for(int i = 1; i < nodeParent->getNumChildren(); i++){
+					Vector3 wPos = nodeParent->getChild(i)->getPosition();
+					Vector3 wSize = ((Quad*)nodeParent->getChild(i)->getMesh(0))->getSize();
+					
+					if(fabs(wPos.x - placementPos.x) < .5 * wSize.x && fabs(wPos.z - placementPos.z) < .5 * wSize.y){
+						waterBodyPos = wPos;
+						inWater = true;
+						break;
+					}
+				}
+
+				if(!inWater) return;
+		
+				vector<RayCaster::CollisionResult> res = map->raycastTerrain(
+					Vector3(placementPos.x, 100, placementPos.z), 
+					-Vector3::VEC_J,
+					false
+				);
+		
+				vector<Map::Cell> &cells = map->getCells();
+				int cid = map->getCellId(placementPos, false);
+				int numSubmarineCells = cells[cid].underWaterCellIds.size();
+				maxDepth = cells[cid].pos.y;
+				minDepth = (numSubmarineCells > 0 ? cells[cells[cid].underWaterCellIds[numSubmarineCells - 1]].pos.y : maxDepth) - .5 * cellSize.y;
+				minDepthCalculated = true;
+			}
+			else{
+				ActiveGameState *activeState = (ActiveGameState*)(GameManager::getSingleton()->getStateManager()->getAppStateByType((int)AppStateType::ACTIVE_STATE));
+				float newDepth = minDepth + activeState->getDepth() * (maxDepth - minDepth);
+				placementPos.y = newDepth;
+			}
+		}
+		else if(placingOnSurface)
+			placementPos = results[0].pos;
 
 		for(int i = 0; i < gameObjectFrames.size(); i++){
 			if(paintSelecting){
 				float hypothenuse = sqrt(width * width + length * length);
 				Vector3 dir = (results[0].pos - paintSelectRowStart).norm(); 
-				newPos = paintSelectRowStart + dir * hypothenuse * i;
+				placementPos = paintSelectRowStart + dir * hypothenuse * i;
 			}
 
-			placeGameObjectFrame(i, newPos, width, length);
+			if(!rotating && (placingOnSurface || placingVertically))
+				placeGameObjectFrame(i, placementPos, width, length);
 		}
+	}
+
+	void GameObjectFrameController::update(){
+		updatePlacement();
+
+		if(!placingVertically) minDepthCalculated = false;
 	}
 
 	void GameObjectFrameController::removeGameObjectFrame(int i){
