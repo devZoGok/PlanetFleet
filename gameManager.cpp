@@ -8,6 +8,7 @@
 
 #include "gameManager.h"
 #include "gameObjectFactory.h"
+#include "map.h"
 #include "game.h"
 #include "guiAppState.h"
 #include "defConfigs.h"
@@ -82,7 +83,7 @@ namespace battleship{
 		);
 
 		SOL_LUA_STATE.new_usertype<Player>(
-			"Player", sol::constructors<Player(int, int, int, Vector3, bool, Vector3, string)>(),
+			"Player", sol::constructors<Player(int, int, int, Vector3, bool, int, string)>(),
 			"getSelectedUnits", &Player::getSelectedUnits,
 			"addUnit", &Player::addUnit,
 			"getUnit", &Player::getUnit,
@@ -91,7 +92,7 @@ namespace battleship{
 			"issueOrder", &Player::issueOrder,
 			"selectUnits", &Player::selectUnits,
 			"deselectUnits", &Player::deselectUnits,
-			"getSpawnPoint", &Player::getSpawnPoint,
+			"getSpawnPointId", &Player::getSpawnPointId,
 			"getUnitsById", &Player::getUnitsById,
 			"getUnitsByClass", &Player::getUnitsByClass
 		);
@@ -113,6 +114,7 @@ namespace battleship{
 			"y", &Vector3::y,
 			"z", &Vector3::z,
 			"norm", &Vector3::norm,
+			"getAngleBetween", &Vector3::getAngleBetween,
 			"getDistanceFrom", &Vector3::getDistanceFrom,
 			"add", [](Vector3 v1, Vector3 v2){return v1 + v2;},
 			"subtr", [](Vector3 v1, Vector3 v2){return v1 - v2;},
@@ -127,6 +129,13 @@ namespace battleship{
 			"y", &Quaternion::y,
 			"z", &Quaternion::z,
 			"multVec", [](Quaternion q, Vector3 v){return q * v;}
+		);
+
+		SOL_LUA_STATE.new_usertype<Map>(
+			"Map",
+			"getSingleton", &Map::getSingleton,
+			"getSpawnPoint", &Map::getSpawnPoint,
+			"getNumSpawnPoints", &Map::getNumSpawnPoints
 		);
 	}
 

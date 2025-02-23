@@ -12,13 +12,13 @@ namespace battleship{
 	using namespace gameBase;
 	using namespace std;
 
-    Player::Player(int diff, int fac, int t, Vector3 col, bool cpuPl, Vector3 sp, string n) : 
+    Player::Player(int diff, int fac, int t, Vector3 col, bool cpuPl, int sp, string n) : 
 		difficulty(diff), 
 		faction(fac), 
 		team(t), 
 		color(col), 
 		cpuPlayer(cpuPl), 
-		spawnPoint(sp), 
+		spawnPointId(sp), 
 		name("pl"), 
 		refineds(30000), 
 		trader(new Trader())
@@ -211,5 +211,13 @@ namespace battleship{
 				research = (add ? research + ammount : ammount);
 				break;
 		}
+	}
+
+	void Player::build(int id, Vector3 pos, Quaternion rot, bool additionalOrder){
+		/*
+		Unit *buildStruct = GameObjectFactory::createUnit(this, id, pos, rot);
+		addUnit(buildStruct);
+		issueOrder(Order::TYPE::BUILD, vector<Order::Target>{Order::Target(buildStruct)}, additionalOrder);
+		*/
 	}
 }

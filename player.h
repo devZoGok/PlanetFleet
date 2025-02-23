@@ -16,7 +16,7 @@ namespace battleship{
 
     class Player {
     public:
-        Player(int, int, int, vb01::Vector3, bool = true, vb01::Vector3 = vb01::Vector3::VEC_ZERO, std::string = "");
+        Player(int, int, int, vb01::Vector3, bool = true, int = -1, std::string = "");
         ~Player();
         void update();
 		void issueOrder(Order::TYPE, vb01::Vector3, std::vector<Order::Target>, bool);
@@ -32,6 +32,7 @@ namespace battleship{
 		void addTechnology(int);
 		int getResource(ResourceType);
 		void updateResource(ResourceType, int, bool);
+		void build(int, vb01::Vector3, vb01::Quaternion, bool);
 		inline Trader* getTrader(){return trader;}
 		inline void deselectUnits(){selectedUnits.clear();}
 		inline Unit* getSelectedUnit(int id){return selectedUnits[id];}
@@ -52,7 +53,7 @@ namespace battleship{
         inline int getTeam(){return team;}
         inline int getNumUnits(){return units.size();}
         inline int getFaction(){return faction;}
-        inline vb01::Vector3 getSpawnPoint(){return spawnPoint;}
+        inline int getSpawnPointId(){return spawnPointId;}
 		inline bool isCpuPlayer(){return cpuPlayer;}
 		inline int getNumVehiclesBuilt(){return vehiclesBuilt;}
 		inline int getNumVehiclesDestroyed(){return vehiclesDestroyed;}
@@ -78,12 +79,13 @@ namespace battleship{
 		int faction, difficulty, team;
 		int vehiclesBuilt = 0, vehiclesDestroyed = 0, vehiclesLost = 0;
 		int structuresBuilt = 0, structuresDestroyed = 0, structuresLost = 0;
+        int spawnPointId = -1;
 		Trader *trader = nullptr; 
 		std::string name;
         std::vector<Unit*> units, selectedUnits;
 		std::vector<Projectile*> projectiles;
 		std::vector<ResourceDeposit*> resourceDeposits;
-        vb01::Vector3 spawnPoint, color;
+        vb01::Vector3 color;
 		vb01::Material *colorMaterial = nullptr;
 
 		int getOrderLineId(Order::TYPE, vb01::Vector3, vb01::Vector3);

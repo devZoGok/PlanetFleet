@@ -1,9 +1,9 @@
 Player.numStartEngis = 3
-Player.dirToCenter = nil 
-Player.numDefWarMechs = 5
+Player.baseDir = nil 
+Player.numDefWarMechs = 1
 Player.numTaskForceWarMechs = 5
-Player.numTaskForceTanks = 5
-Player.numTaskForceArtillery = 5
+Player.numTaskForceTanks = 1
+Player.numTaskForceArtillery = 1
 Player.givenOrder = false
 
 --TODO use enum-like values instead of literals for order types
@@ -20,7 +20,24 @@ function Player:buildFort()
 	self:deselectUnits()
 	self:selectUnits({engineer})
 
-	fort = GameObjectFactory.createUnit(self, UnitId.FORT, self:getSpawnPoint(), Quaternion:new(1, 0, 0, 0), 0)
+	map = Map.getSingleton()
+	sp = map:getSpawnPoint(self:getSpawnPointId())
+	minDistId = nil 
+
+	for i = 0, map:getNumSpawnPoints() do
+		if i ~= self:getSpawnPointId() then
+			if minDistId == nil then minDistId = i end
+
+			if map:getSpawnPoint(i):getDistanceFrom(sp) < map:getSpawnPoint(minDistId):getDistanceFrom(sp) then
+				minDistId = i
+			end
+		end
+	end
+
+	self.baseDir = map:getSpawnPoint(minDistId):subtr(sp):norm()
+	right = (self.baseDir:getAngleBetween(Vector3:new(1, 0, 0)) > 1.57)
+	angle = self.baseDir:getAngleBetween(Vector3:new(0, 0, 1)) * (right and -1 or 1)
+	fort = GameObjectFactory.createUnit(self, UnitId.FORT, sp, Quaternion:new(angle, Vector3:new(0, 1, 0)), 0)
 	self:addUnit(fort)
 	self:issueOrder(1, Vector3:new(0, 0, 0), {Target:new(fort, Vector3:new(0, 0, 0))}, false)
 
@@ -35,7 +52,7 @@ function Player:trainEngineers()
 	end
 
 	fort = forts[1]:toFactory()
-	dirToCenter = Vector3:new(0, 0, 0):subtr(fort:getPos()):norm()
+	baseDir = Vector3:new(0, 0, 0):subtr(fort:getPos()):norm()
 
 	while #fort:getQueue() + #self:getUnitsByClass(UnitClass.ENGINEER, -1) < self.numStartEngis do
 		fort:appendToQueue(0)
@@ -58,7 +75,7 @@ function Player:buildExtractor()
 	if #deposits == 0 then return false end
 
 	depPos = deposits[1]:getPos()
-	spawnPoint = self:getSpawnPoint()
+	spawnPoint = Map.getSingleton():getSpawnPoint(self:getSpawnPointId())
 
 	for i = 1, #deposits do
 		if deposits[i]:getPos():getDistanceFrom(spawnPoint) < depPos:getDistanceFrom(spawnPoint) then
@@ -78,8 +95,8 @@ function Player:startBuilding(buildingId, engiId, angle)
 	self:deselectUnits()
 	self:selectUnits({engineer})
 	
-	dirVec = Quaternion:new(angle, Vector3:new(0, 1, 0)):multVec(dirToCenter)
-	refPos = self:getSpawnPoint():add(dirVec:mult(20))
+	dirVec = Quaternion:new(angle, Vector3:new(0, 1, 0)):multVec(baseDir)
+	refPos = Map.getSingleton():getSpawnPoint(self:getSpawnPointId()):add(dirVec:mult(20))
 	building = GameObjectFactory.createUnit(self, buildingId, refPos, Quaternion:new(1, 0, 0, 0), 0)
 	self:addUnit(building)
 	self:issueOrder(1, Vector3:new(0, 0, 0), {Target:new(building, Vector3:new(0, 0, 0))}, false)
@@ -218,11 +235,12 @@ function Player:sendTaskforce()
 	end
 
 	players = Game.getSingleton():getPlayers()
+	map = Map.getSingleton()
 	enemySpawnPoint = nil
 
 	for i = 1, #players do
 		if players[i] ~= self then
-			enemySpawnPoint = players[i]:getSpawnPoint()
+			enemySpawnPoint = map:getSpawnPoint(players[i]:getSpawnPointId())
 			break
 		end
 	end
