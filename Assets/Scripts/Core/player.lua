@@ -25,13 +25,13 @@ function Player:buildFort()
 	sp = map:getSpawnPoint(self:getSpawnPointId())
 	minDistId = nil 
 
-	for i = 1, map:getNumSpawnPoints() do
+	for i = 0, map:getNumSpawnPoints() - 1 do
 		if i == self:getSpawnPointId() then goto continue end
 
-		if minDistId == nil then minDistId = i - 1 end
+		if minDistId == nil then minDistId = i end
 
 		if map:getSpawnPoint(i):getDistanceFrom(sp) < map:getSpawnPoint(minDistId):getDistanceFrom(sp) then
-			minDistId = i - 1
+			minDistId = i
 		end
 
 		::continue::
@@ -258,6 +258,7 @@ function Player:enemiesCloseBy()
 		self:selectUnits(taskForce)
 		self:issueOrder(2, Vector3:new(0, 0, 0), {Target:new(targUnit, Vector3:new(0, 0, 0))}, false)
 	elseif self.taskForceClearing and not targUnit then
+		print('clearing finished...')
 		self.taskForceClearing = false
 	end
 
@@ -266,7 +267,7 @@ end
 
 function Player:attackSpawnPoint()
 	if self.movingToHostileSpawnPoint then return true end
-	print('atacking')
+	print('advancing')
 
 	taskForceMechs = self:getUnitsByClass(UnitClass.WAR_MECH, self.numTaskForceWarMechs)
 	taskForceTanks = self:getUnitsByClass(UnitClass.TANK, self.numTaskForceTanks)
