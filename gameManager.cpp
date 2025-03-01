@@ -61,6 +61,7 @@ namespace battleship{
 			"getNumOrders", &Unit::getNumOrders,
 			"getPos", &GameObject::getPos,
 			"getUnitClass", &Unit::getUnitClass,
+			"getLineOfSight", &Unit::getLineOfSight,
 			"toEngineer", &Unit::toEngineer,
 			"toPointDefense", &Unit::toPointDefense,
 			"toStructure", &Unit::toStructure,
@@ -93,6 +94,8 @@ namespace battleship{
 			"selectUnits", &Player::selectUnits,
 			"deselectUnits", &Player::deselectUnits,
 			"getSpawnPointId", &Player::getSpawnPointId,
+			"getTeam", &Player::getTeam,
+			"getUnits", &Player::getUnits,
 			"getUnitsById", &Player::getUnitsById,
 			"getUnitsByClass", &Player::getUnitsByClass
 		);

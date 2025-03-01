@@ -4,7 +4,8 @@ Player.numDefWarMechs = 1
 Player.numTaskForceWarMechs = 5
 Player.numTaskForceTanks = 1
 Player.numTaskForceArtillery = 1
-Player.givenOrder = false
+Player.taskForceClearing = false
+Player.movingToHostileSpawnPoint = false
 
 --TODO use enum-like values instead of literals for order types
 --TODO simplify building construction
@@ -24,14 +25,16 @@ function Player:buildFort()
 	sp = map:getSpawnPoint(self:getSpawnPointId())
 	minDistId = nil 
 
-	for i = 0, map:getNumSpawnPoints() do
-		if i ~= self:getSpawnPointId() then
-			if minDistId == nil then minDistId = i end
+	for i = 1, map:getNumSpawnPoints() do
+		if i == self:getSpawnPointId() then goto continue end
 
-			if map:getSpawnPoint(i):getDistanceFrom(sp) < map:getSpawnPoint(minDistId):getDistanceFrom(sp) then
-				minDistId = i
-			end
+		if minDistId == nil then minDistId = i - 1 end
+
+		if map:getSpawnPoint(i):getDistanceFrom(sp) < map:getSpawnPoint(minDistId):getDistanceFrom(sp) then
+			minDistId = i - 1
 		end
+
+		::continue::
 	end
 
 	self.baseDir = map:getSpawnPoint(minDistId):subtr(sp):norm()
@@ -214,10 +217,56 @@ function Player:buildTaskforce()
 	return false
 end
 
-function Player:sendTaskforce()
-	if --[[taskForceMechs[1]:getNumOrders() > 0 and taskForceMechs[1]:getOrder(0).type == 2--]] self.givenOrder then
-		return true
+function Player:enemiesCloseBy()
+	--if self.taskForceClearing then return true end
+
+	self:selectUnits(self:getUnitsByClass(UnitClass.WAR_MECH, self.numTaskForceWarMechs))
+	self:selectUnits(self:getUnitsByClass(UnitClass.TANK, self.numTaskForceTanks))
+	self:selectUnits(self:getUnitsByClass(UnitClass.ARTILLERY, self.numTaskForceArtillery))
+	taskForce = self:getSelectedUnits()
+
+	uns = {}
+	players = Game.getSingleton():getPlayers()
+
+	for i = 1, #players do
+		if players[i] == self or players[i]:getTeam() == self:getTeam() then goto continue end
+
+		un = players[i]:getUnits()
+		uns = table.move(un, 1, #un, #uns + 1, uns)
+
+		::continue::
 	end
+
+	targUnit = nil
+
+	for i = 1, #uns do
+		for j = 1, #taskForce do
+			if taskForce[j]:getPos():getDistanceFrom(uns[i]:getPos()) < taskForce[j]:getLineOfSight() then
+				targUnit = uns[i]
+				break
+			end
+		end
+
+		if targUnit then break end
+	end
+
+	if not self.taskForceClearing and targUnit then
+		print('clearing...')
+		self.taskForceClearing = true
+
+		self:deselectUnits()
+		self:selectUnits(taskForce)
+		self:issueOrder(2, Vector3:new(0, 0, 0), {Target:new(targUnit, Vector3:new(0, 0, 0))}, false)
+	elseif self.taskForceClearing and not targUnit then
+		self.taskForceClearing = false
+	end
+
+	return self.taskForceClearing
+end
+
+function Player:attackSpawnPoint()
+	if self.movingToHostileSpawnPoint then return true end
+	print('atacking')
 
 	taskForceMechs = self:getUnitsByClass(UnitClass.WAR_MECH, self.numTaskForceWarMechs)
 	taskForceTanks = self:getUnitsByClass(UnitClass.TANK, self.numTaskForceTanks)
@@ -234,19 +283,20 @@ function Player:sendTaskforce()
 		taskForce[i]:setState(0)
 	end
 
-	players = Game.getSingleton():getPlayers()
 	map = Map.getSingleton()
+	numSpawnPoints = map:getNumSpawnPoints()
 	enemySpawnPoint = nil
+	players = Game.getSingleton():getPlayers()
 
-	for i = 1, #players do
-		if players[i] ~= self then
+	for i = 1, numSpawnPoints do
+		if i - 1 ~= self:getSpawnPointId() then
 			enemySpawnPoint = map:getSpawnPoint(players[i]:getSpawnPointId())
 			break
 		end
 	end
 
 	self:issueOrder(2, Vector3:new(0, 0, 0), {Target:new(nil, enemySpawnPoint)}, false)
-	self.givenOrder = true
+	self.movingToHostileSpawnPoint = true
 
 	return true
 end
@@ -262,6 +312,12 @@ Player.behaviour = {
 		{type = BTNodeType.FUNCTION, func = 'buildHarvester'},
 		{type = BTNodeType.FUNCTION, func = 'startHarvesting'},
 		{type = BTNodeType.FUNCTION, func = 'buildTaskforce'},
-		{type = BTNodeType.FUNCTION, func = 'sendTaskforce'},
+		{
+			type = BTNodeType.SELECTOR, 
+			children = {
+				{type = BTNodeType.FUNCTION, func = 'enemiesCloseBy'},
+				{type = BTNodeType.FUNCTION, func = 'attackSpawnPoint'}
+			}
+		},
 	}
 }
