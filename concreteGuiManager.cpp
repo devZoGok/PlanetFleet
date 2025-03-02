@@ -389,7 +389,6 @@ namespace battleship{
 				listbox = new LandTextureListbox(pos, size, lines, maxDisplay, fontPath);
 				break;
 			case CPU_DIFFICULTIES:
-				lines = vector<string>{"Easy", "Medium", "Hard"};
 				numLines = lines.size();
 				closable = true;
 				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
@@ -397,7 +396,6 @@ namespace battleship{
 				listbox = new Listbox(pos, size, lines, maxDisplay, fontPath);
 				break;
 			case FACTIONS:
-				//lines = vector<string>{"America inc.", "European Republic", "Asian Co-Prosperity Sphere"};
 				numLines = lines.size();
 				closable = true;
 				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);

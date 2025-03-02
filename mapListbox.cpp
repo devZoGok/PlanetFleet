@@ -21,6 +21,8 @@ namespace battleship{
 	MapListbox::MapListbox(Vector3 pos, Vector2 size, std::vector<string> &lines, int maxDisplay, bool adg, string fontPath, bool closeable) : 
 		Listbox(pos, size, lines, maxDisplay, fontPath, closeable), 
 		addPlayerGui(adg) {
+			openUp();
+			close();
 	}
 
 	void MapListbox::onClose(){
@@ -36,12 +38,17 @@ namespace battleship{
 			int numSpawnPoints = Map::getSingleton()->getNumMapSpawnPoints(mapName);
 			sol::state_view SOL_LUA_VIEW = generateView();
 
-			for(int i = 0; i < numSpawnPoints; i++){
+			for(int i = 0; i < numSpawnPoints - 1; i++){
+				int prevNumListboxes = guiManager->getListboxes().size();
+
 				SOL_LUA_VIEW.script("lineId = " + to_string(i));
 		   		guiManager->parseLuaScript("playerSelection.lua");
 
 				std::vector<Listbox*> listboxes = guiManager->getListboxes();
-				cpuPlayerListboxes.push_back(listboxes[listboxes.size() - 1]);
+				int diffNumListboxes = guiManager->getListboxes().size() - prevNumListboxes;
+
+				for(int j = 0; j < diffNumListboxes; j++)
+					cpuPlayerListboxes.push_back(listboxes[listboxes.size() - 1 - j]);
 			}
 		}
 	}
