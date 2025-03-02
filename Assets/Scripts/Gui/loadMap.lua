@@ -4,6 +4,7 @@ gui = {
 		pos = {x = 110, y = 190, z = 0},
 		size = {x = 360, y = 20},
 		guiType = GuiType.LISTBOX,
+		addPlayerGui = false,
 		listboxType = ListboxType.MAPS,
 		numMaxDisplay = 5
 	},

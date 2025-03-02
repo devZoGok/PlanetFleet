@@ -15,6 +15,7 @@
 #include "newMapButton.h"
 #include "loadMapButton.h"
 #include "exportButton.h"
+#include "mapListbox.h"
 #include "skyboxTextureListbox.h"
 #include "landTextureListbox.h"
 #include "gameObjectListbox.h"
@@ -167,7 +168,7 @@ namespace battleship{
 				}
 
 				int mid = guiTable["dependencies"][4]["id"];
-				Listbox *mapListbox = (Listbox*)guiElements[mid].second;
+				Listbox *mapListbox = (MapListbox*)guiElements[mid].second;
 
 				button = new PlayButton(difficultyListboxes, factionsListboxes, mapListbox, pos, size, name, true);
 				break;
@@ -293,11 +294,19 @@ namespace battleship{
 		int numMaxDisplay = guiTable["numMaxDisplay"];
 		ListboxType listboxType = (ListboxType)guiTable["listboxType"];
 
-		vector<string> lines;
 		int maxDisplay, numLines;
 		bool closable;
-		Listbox *listbox = nullptr;
+		vector<string> lines;
+		sol::optional<sol::table> linesOpt = guiTable["lines"];
 
+		if(linesOpt != sol::nullopt){
+			sol::table linesTbl = guiTable["lines"];
+
+			for(int i = 0; i < linesTbl.size(); i++)
+		   		lines.push_back(guiTable["lines"][i + 1]);
+		}
+
+		Listbox *listbox = nullptr;
 		string fontPath = fontBasePath + "batang.ttf";
 
 		switch(listboxType){
@@ -326,14 +335,16 @@ namespace battleship{
 
 				break;
 			}
-			case MAPS:
+			case MAPS:{
 				lines = readDir(GameManager::getSingleton()->getPath() + "Models/Maps/", true);
 				numLines = lines.size();
 				closable = true;
 				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
+				bool addPlayers = guiTable["addPlayerGui"];
 
-				listbox = new Listbox(pos, size, lines, maxDisplay, fontPath, closable);
+				listbox = new MapListbox(pos, size, lines, maxDisplay, addPlayers, fontPath, closable);
 				break;
+			}
 			case VEHICLES:
 			case STRUCTURES:
 			case RESOURCE_DEPOSITS:{
@@ -386,7 +397,7 @@ namespace battleship{
 				listbox = new Listbox(pos, size, lines, maxDisplay, fontPath);
 				break;
 			case FACTIONS:
-				lines = vector<string>{"Empire", "Mutants", "Shapeshifters"};
+				//lines = vector<string>{"America inc.", "European Republic", "Asian Co-Prosperity Sphere"};
 				numLines = lines.size();
 				closable = true;
 				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
@@ -552,7 +563,10 @@ namespace battleship{
 		){
 		removeAllGuiElements(buttonExceptions, listboxExceptions, checkboxExceptions, sliderExceptions, textboxExceptions, guiRecttboxExceptions, textExceptions);
 		guiElements.clear();
+		parseLuaScript(script);
+	}
 
+	void ConcreteGuiManager::parseLuaScript(string script){
 		string basePath = GameManager::getSingleton()->getPath() + "Scripts/Gui/";
 		sol::state_view SOL_LUA_VIEW = generateView();
 		SOL_LUA_VIEW.script_file(basePath + script);

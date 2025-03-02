@@ -82,6 +82,7 @@ namespace battleship{
 					std::vector<vb01::Node*> = std::vector<vb01::Node*>{},
 					std::vector<vb01::Text*> = std::vector<vb01::Text*>{}
 				);
+			void parseLuaScript(std::string); 
 		private:
 			ConcreteGuiManager();
 			vb01Gui::Button* parseButton(int);
