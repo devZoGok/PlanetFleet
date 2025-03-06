@@ -39,8 +39,8 @@ namespace battleship{
         private:
         };
 
-        InGameAppState(std::vector<std::string>, std::vector<std::string>);
-        ~InGameAppState();
+        InGameAppState();
+        ~InGameAppState(){}
         void onAttached();
         void onDettached();
         void update();
@@ -50,7 +50,7 @@ namespace battleship{
 		inline ActiveGameState* getActiveState(){return activeState;}
     private:
         bool isMainMenuActive = false;
-        std::vector<std::string> difficultyLevels, factions, modelPaths;
+        std::vector<std::string> modelPaths;
         Player *mainPlayer;
         int playerId;
         ActiveGameState* activeState;

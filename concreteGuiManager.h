@@ -65,6 +65,8 @@ namespace battleship{
 		LAND_TEXTURES,
 		CPU_DIFFICULTIES,
 		FACTIONS,
+		COLORS,
+		TEAMS,
 		CONSOLE,
 		TRADE_OFFERS
 	};

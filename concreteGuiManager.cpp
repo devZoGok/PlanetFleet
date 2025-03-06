@@ -156,21 +156,9 @@ namespace battleship{
 				button = new ExportButton(pos, size);
 				break;
 			case PLAY:{
-				int did = guiTable["dependencies"][1]["id"];
-				vector<Listbox*> difficultyListboxes = vector<Listbox*>{(Listbox*)guiElements[did].second};
-
-				vector<Listbox*> factionsListboxes;
-				int numPlayers = 2;
-
-				for(int i = 0; i < numPlayers; i++){
-					int did = guiTable["dependencies"][i + 2]["id"];
-					factionsListboxes.push_back((Listbox*)guiElements[did].second);
-				}
-
-				int mid = guiTable["dependencies"][4]["id"];
+				int mid = guiTable["dependencies"][1]["id"];
 				Listbox *mapListbox = (MapListbox*)guiElements[mid].second;
-
-				button = new PlayButton(difficultyListboxes, factionsListboxes, mapListbox, pos, size, name, true);
+				button = new PlayButton(mapListbox, pos, size, name, true);
 				break;
 			}
 			case RESUME:
@@ -308,6 +296,10 @@ namespace battleship{
 
 		Listbox *listbox = nullptr;
 		string fontPath = fontBasePath + "batang.ttf";
+		sol::optional<string> nameOpt = guiTable["name"];
+		string name = "";
+
+		if(nameOpt != sol::nullopt) name = guiTable["name"];
 
 		switch(listboxType){
 			case CONTROLS:{
@@ -389,13 +381,9 @@ namespace battleship{
 				listbox = new LandTextureListbox(pos, size, lines, maxDisplay, fontPath);
 				break;
 			case CPU_DIFFICULTIES:
-				numLines = lines.size();
-				closable = true;
-				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
-
-				listbox = new Listbox(pos, size, lines, maxDisplay, fontPath);
-				break;
 			case FACTIONS:
+			case COLORS:
+			case TEAMS:
 				numLines = lines.size();
 				closable = true;
 				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
@@ -420,6 +408,8 @@ namespace battleship{
 
 		int typeArr[2]{(int)GuiElementType::LISTBOX, (int)listboxType};
 	 	guiElements.push_back(make_pair(typeArr, (void*)listbox));
+
+		listbox->setName(name);
 
 		return listbox;
 	}

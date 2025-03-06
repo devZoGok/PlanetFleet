@@ -384,7 +384,7 @@ namespace battleship{
 
 	void Map::loadSpawnPoints(){
 		sol::state_view SOL_LUA_VIEW = generateView();
-		int numSpawnPoints = getNumSpawnPoints();
+		int numSpawnPoints = getNumMapSpawnPoints();
 
 		for(int i = 0; i < numSpawnPoints; i++){
 			sol::table posTable = SOL_LUA_VIEW[mapTable]["spawnPoints"][i + 1];

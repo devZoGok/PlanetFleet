@@ -2,6 +2,8 @@
 #include "gameManager.h"
 #include "concreteGuiManager.h"
 
+#include <listbox.h>
+
 #include <glfw3.h>
 
 namespace battleship{
@@ -21,5 +23,9 @@ namespace battleship{
 	
 	void SinglePlayerButton::onClick() {
 		ConcreteGuiManager::getSingleton()->readLuaScreenScript("singlePlayerMenu.lua");
+
+		Listbox *listbox = ConcreteGuiManager::getSingleton()->getListboxes()[0];
+		listbox->openUp();
+		listbox->close();
 	}
 }
