@@ -403,9 +403,8 @@ namespace battleship{
 		assetManager->load(path + vfxPrefix, true);
 		assetManager->load(path + gameObjPrefix, true);
 
+		int numPlayers = Game::getSingleton()->getNumPlayers();
 		string playerInd = "players";
-		SOL_LUA_VIEW.script("numPlayers = #" + mapTable + "." + playerInd);
-		int numPlayers = SOL_LUA_VIEW["numPlayers"];
 
 		for(int i = 0; i < numPlayers; i++){
 			string resDepInd = "resourceDeposits";
