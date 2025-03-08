@@ -74,7 +74,14 @@ function Player:buildExtractor()
 	self:deselectUnits()
 	self:selectUnits({engineer})
 
-	deposits = self:getResourceDeposits()
+	deposits = {}
+	players = Game.getSingleton():getPlayers()
+
+	for i = 1, #players do
+		deps = players[i]:getResourceDeposits()
+		table.move(deps, 1, #deps, #deposits + 1, deposits)
+	end
+
 	if #deposits == 0 then return false end
 
 	depPos = deposits[1]:getPos()

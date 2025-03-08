@@ -33,19 +33,7 @@ namespace battleship{
 		return game;
 	}
 
-	void Game::resetLuaGameObjects(){
-		sol::state_view SOL_LUA_VIEW = generateView();
-		SOL_LUA_VIEW.script("game.players = {}");
-
-		for(int i = 0; i < players.size(); i++)
-			SOL_LUA_VIEW["game"]["players"][i + 1] = players[i];
-
-		for(int i = 0; i < players.size(); i++)
-			if(players[i]->isCpuPlayer()){
-				string plStr = "game.players[" + to_string(i + 1) + "]";
-				SOL_LUA_VIEW.script("executeBtNode(" + plStr + ", " + plStr + ".behaviour)");
-			}
-	}
+	void Game::resetLuaGameObjects(){}
 
 	void Game::endGame(bool victory){
 		ended = true;
@@ -60,7 +48,16 @@ namespace battleship{
 	}
 
 	void Game::update(){
-		resetLuaGameObjects();
+		sol::state_view SOL_LUA_VIEW = generateView();
+
+		for(int i = 0; i < players.size(); i++)
+			SOL_LUA_VIEW["game"]["players"][i + 1] = players[i];
+
+		for(int i = 0; i < players.size(); i++)
+			if(players[i]->isCpuPlayer()){
+				string plStr = "game.players[" + to_string(i + 1) + "]";
+				SOL_LUA_VIEW.script("executeBtNode(" + plStr + ", " + plStr + ".behaviour)");
+			}
 
 		int numPlayersWithUnits = 0;
 
@@ -88,7 +85,7 @@ namespace battleship{
 
 
 	void Game::removeAllElements(){
-		resetLuaGameObjects();
+		generateView().script("game.players = {}");
 
 		while(!players.empty()){
 			delete players[0];
