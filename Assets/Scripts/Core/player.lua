@@ -16,7 +16,7 @@ function Player:buildFort()
 	forts = self:getUnitsByClass(UnitClass.FORT, 1)
 
 	if #forts > 0 then
-		return forts[1]:toStructure():getBuildStatus() >= 100 and BTNodeResult.SUCCESS or BTNodeResult.RUNNING
+		return forts[1]:toStructure():getBuildStatus() == 100 and BTNodeResult.SUCCESS or BTNodeResult.RUNNING
 	end
 
 	engis = self:getUnitsByClass(UnitClass.ENGINEER, 1)
@@ -63,16 +63,47 @@ function Player:trainEngineers()
 	return (engisStartNumBuilt and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
 end
 
---Correct resource deposit selection
-function Player:buildExtractor()
-	if #self:getUnitsByClass(UnitClass.EXTRACTOR, 1) > 0 then
-		return true
+function Player:findIdleEngineer()
+	engineers = self:getUnitsByClass(UnitClass.ENGINEER, -1)
+
+	for i = 1, #engineers do
+		if engineers[i]:getNumOrders() == 0 then return engineers[i] end
 	end
 
-	engineer = self:getUnitsByClass(UnitClass.ENGINEER, -1)[1]
-	self:deselectUnits()
-	self:selectUnits({engineer})
+	return nil
+end
 
+function Player:buildStructure(engineer, buildingId, buildPos, buildAngle)
+	if not engineer then return BTNodeResult.FAILURE end
+
+	unitClass = units[buildingId + 1].unitClass
+
+	if #self:getUnitsByClass(unitClass, 1) == 0 then
+		self:deselectUnits()
+		self:selectUnits({engineer})
+		
+		building = GameObjectFactory.createUnit(self, buildingId, buildPos, Quaternion:new(1, 0, 0, 0), 0)
+		self:addUnit(building)
+		self:issueOrder(1, Vector3:new(0, 0, 0), {Target:new(building, Vector3:new(0, 0, 0))}, false)
+	end
+
+	building = self:getUnitsByClass(unitClass, 1)[1]
+	return (building:toStructure():getBuildStatus() == 100 and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
+end
+
+-- TODO dispatch another engineer if the previous is destroyed before completion
+function Player:buildLandFactory()
+	buildPos = Map.getSingleton():getSpawnPoint(self:getSpawnPointId()):add(self.baseDir:mult(20))
+	return self:buildStructure(self:findIdleEngineer(), UnitId.LAND_FACTORY, buildPos, .6)
+end
+
+function Player:buildRefinery()
+	buildPos = Map.getSingleton():getSpawnPoint(self:getSpawnPointId()):add(self.baseDir:mult(20))
+	return self:buildStructure(self:findIdleEngineer(), UnitId.REFINERY, buildPos, -.1)
+end
+
+-- TODO optimize deposit position check
+function Player:buildExtractor()
 	deposits = {}
 	players = Game.getSingleton():getPlayers()
 
@@ -81,7 +112,7 @@ function Player:buildExtractor()
 		table.move(deps, 1, #deps, #deposits + 1, deposits)
 	end
 
-	if #deposits == 0 then return false end
+	if #deposits == 0 then return BTNodeResult.FAILURE end
 
 	depPos = deposits[1]:getPos()
 	spawnPoint = Map.getSingleton():getSpawnPoint(self:getSpawnPointId())
@@ -92,76 +123,23 @@ function Player:buildExtractor()
 		end
 	end
 
-	extractor = GameObjectFactory.createUnit(self, UnitId.EXTRACTOR, depPos, Quaternion:new(1, 0, 0, 0), 0)
-	self:addUnit(extractor)
-	self:issueOrder(1, Vector3:new(0, 0, 0), {Target:new(extractor, Vector3:new(0, 0, 0))}, false)
- 
-	return true
-end
-
-function Player:startBuilding(buildingId, engiId, angle)
-	engineer = self:getUnitsByClass(UnitClass.ENGINEER, -1)[engiId]
-	self:deselectUnits()
-	self:selectUnits({engineer})
-	
-	dirVec = Quaternion:new(angle, Vector3:new(0, 1, 0)):multVec(baseDir)
-	refPos = Map.getSingleton():getSpawnPoint(self:getSpawnPointId()):add(dirVec:mult(20))
-	building = GameObjectFactory.createUnit(self, buildingId, refPos, Quaternion:new(1, 0, 0, 0), 0)
-	self:addUnit(building)
-	self:issueOrder(1, Vector3:new(0, 0, 0), {Target:new(building, Vector3:new(0, 0, 0))}, false)
-end
-
-function Player:buildRefinery()
-	if #self:getUnitsByClass(UnitClass.REFINERY, 1) == 0 then
-		self:startBuilding(UnitId.REFINERY, 2, -.6)
-	end
-
-	refineries = self:getUnitsByClass(UnitClass.REFINERY, -1)
-	refineryBuilt = false
-
-	for i = 1, #refineries do
-		if refineries[i]:toStructure():getBuildStatus() == 100 then
-			refineryBuilt = true
-			break
-		end
-	end
-
-	return refineryBuilt
-end
-
-function Player:buildLandFactory()
-	if #self:getUnitsByClass(UnitClass.LAND_FACTORY, 1) == 0 then
-		self:startBuilding(UnitId.LAND_FACTORY, 3, .6)
-	end
-
-	factories = self:getUnitsByClass(UnitClass.LAND_FACTORY, -1)
-	factoryBuilt = false
-
-	for i = 1, #factories do
-		if factories[i]:toStructure():getBuildStatus() == 100 then
-			factoryBuilt = true
-			break
-		end
-	end
-
-	return factoryBuilt
+	return self:buildStructure(self:findIdleEngineer(), UnitId.EXTRACTOR, depPos, 0)
 end
 
 function Player:buildHarvester()
 	if #self:getUnitsByClass(UnitClass.RESOURCE_ROVER, 1) > 0 then
-		return true
+		return BTNodeResult.SUCCESS
 	end
 
-	landFactories = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)
-	if #landFactories == 0 then return false end
+	factories = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)
+	if #factories == 0 then return BTNodeResult.FAILURE end
 
-	factory = landFactories[1]:toFactory()
+	factory = factories[1]:toFactory()
 
 	if #factory:getQueue() == 0 then
 		factory:appendToQueue(3)
+		return BTNodeResult.RUNNING
 	end
-
-	return false
 end
 
 function Player:startHarvesting()
@@ -169,18 +147,18 @@ function Player:startHarvesting()
 
 	for i = 1, #harvesters do
 		if harvesters[i]:getNumOrders() > 0 and harvesters[i]:getOrder(0).type == 7 then
-			return true
+			return BTNodeResult.SUCCESS
 		end
 	end
 
-	extrs = self:getUnitsByClass(UnitClass.EXTRACTOR, 1)
-	if #extrs == 0 then return false end
+	extractors = self:getUnitsByClass(UnitClass.EXTRACTOR, 1)
+	if #extractors == 0 then return BTNodeResult.FAILURE end
 
 	self:deselectUnits()
 	self:selectUnits({harvesters[1]})
-	self:issueOrder(7, Vector3:new(0, 0, 0), {Target:new(extrs[1], Vector3:new(0, 0, 0))}, false)
+	self:issueOrder(7, Vector3:new(0, 0, 0), {Target:new(extractors[1], Vector3:new(0, 0, 0))}, false)
 
-	return true
+	return BTNodeResult.SUCCESS
 end
 
 function Player:buildTaskforceUnitGroup(numUnits, currNumUnits, factory, buId)
@@ -313,11 +291,28 @@ Player.behaviour = {
 	children = {
 		{type = BTNodeType.FUNCTION, func = 'buildFort'},
 		{type = BTNodeType.FUNCTION, func = 'trainEngineers'},
-		--[[{
-		{type = BTNodeType.FUNCTION, func = 'buildExtractor'},
-		{type = BTNodeType.FUNCTION, func = 'buildRefinery'},
-		{type = BTNodeType.FUNCTION, func = 'buildLandFactory'},
-		{type = BTNodeType.FUNCTION, func = 'buildHarvester'},
+		{
+			type = BTNodeType.PARALLEL,
+			numMinSuccesses = 3,
+			children = {
+				{
+					type = BTNodeType.SEQUENCE, 
+					children = {
+						{type = BTNodeType.FUNCTION, func = 'buildLandFactory'},
+						{type = BTNodeType.FUNCTION, func = 'buildHarvester'},
+					}
+				},
+				{type = BTNodeType.FUNCTION, func = 'buildRefinery'},
+				{
+					type = BTNodeType.SEQUENCE, 
+					children = {
+						{type = BTNodeType.FUNCTION, func = 'buildExtractor'},
+						{type = BTNodeType.FUNCTION, func = 'startHarvesting'},
+					}
+				}
+			}
+		},
+		--[[
 		{type = BTNodeType.FUNCTION, func = 'startHarvesting'},
 		{type = BTNodeType.FUNCTION, func = 'buildTaskforce'},
 		{
@@ -327,12 +322,6 @@ Player.behaviour = {
 				{type = BTNodeType.FUNCTION, func = 'attackSpawnPoint'}
 			}
 		},
-			type = BTNodeType.PARALLEL, 
-			numMinSuccesses = 2,
-			children = {
-				{type = BTNodeType.FUNCTION, func = 'enemiesCloseBy'},
-				{type = BTNodeType.FUNCTION, func = 'attackSpawnPoint'}
-			}
-		},]]--
+		]]--
 	}
 }
