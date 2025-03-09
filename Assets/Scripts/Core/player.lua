@@ -1,25 +1,29 @@
 Player.numStartEngis = 3
 Player.baseDir = nil 
+
 Player.numDefWarMechs = 1
+
 Player.numTaskForceWarMechs = 5
 Player.numTaskForceTanks = 1
 Player.numTaskForceArtillery = 1
 Player.taskForceClearing = false
+
 Player.movingToHostileSpawnPoint = false
 
 --TODO use enum-like values instead of literals for order types
 --TODO simplify building construction
 function Player:buildFort()
-	if #self:getUnitsByClass(UnitClass.FORT, 1) > 0 then
-		return true
+	forts = self:getUnitsByClass(UnitClass.FORT, 1)
+
+	if #forts > 0 then
+		return forts[1]:toStructure():getBuildStatus() >= 100 and BTNodeResult.SUCCESS or BTNodeResult.RUNNING
 	end
 
 	engis = self:getUnitsByClass(UnitClass.ENGINEER, 1)
-	if #engis == 0 then return false end
+	if #engis == 0 then return BTNodeResult.FAILURE end
 
-	engineer = engis[1]
 	self:deselectUnits()
-	self:selectUnits({engineer})
+	self:selectUnits({engis[1]})
 
 	map = Map.getSingleton()
 	sp = map:getSpawnPoint(self:getSpawnPointId())
@@ -44,24 +48,19 @@ function Player:buildFort()
 	self:addUnit(fort)
 	self:issueOrder(1, Vector3:new(0, 0, 0), {Target:new(fort, Vector3:new(0, 0, 0))}, false)
 
-	return true
+	return BTNodeResult.RUNNING
 end
 
 function Player:trainEngineers()
-	forts = self:getUnitsByClass(UnitClass.FORT, 1)
+	fort = self:getUnitsByClass(UnitClass.FORT, 1)[1]:toFactory()
+	engineers = self:getUnitsByClass(UnitClass.ENGINEER, -1)
+	engineerDiffNum = self.numStartEngis - #engineers
+	queueDiff = engineerDiffNum - #fort:getQueue()
 
-	if #forts == 0 or (#forts > 0 and forts[1]:toFactory():getBuildStatus() < 100) then
-		return false
-	end
+	for i = 1, queueDiff do fort:appendToQueue(0) end
 
-	fort = forts[1]:toFactory()
-	baseDir = Vector3:new(0, 0, 0):subtr(fort:getPos()):norm()
-
-	while #fort:getQueue() + #self:getUnitsByClass(UnitClass.ENGINEER, -1) < self.numStartEngis do
-		fort:appendToQueue(0)
-	end
-
-	return #self:getUnitsByClass(UnitClass.ENGINEER, -1) == self.numStartEngis
+	engisStartNumBuilt = (#self:getUnitsByClass(UnitClass.ENGINEER, -1) == self.numStartEngis)
+	return (engisStartNumBuilt and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
 end
 
 --Correct resource deposit selection
@@ -314,6 +313,7 @@ Player.behaviour = {
 	children = {
 		{type = BTNodeType.FUNCTION, func = 'buildFort'},
 		{type = BTNodeType.FUNCTION, func = 'trainEngineers'},
+		--[[{
 		{type = BTNodeType.FUNCTION, func = 'buildExtractor'},
 		{type = BTNodeType.FUNCTION, func = 'buildRefinery'},
 		{type = BTNodeType.FUNCTION, func = 'buildLandFactory'},
@@ -327,5 +327,12 @@ Player.behaviour = {
 				{type = BTNodeType.FUNCTION, func = 'attackSpawnPoint'}
 			}
 		},
+			type = BTNodeType.PARALLEL, 
+			numMinSuccesses = 2,
+			children = {
+				{type = BTNodeType.FUNCTION, func = 'enemiesCloseBy'},
+				{type = BTNodeType.FUNCTION, func = 'attackSpawnPoint'}
+			}
+		},]]--
 	}
 }
