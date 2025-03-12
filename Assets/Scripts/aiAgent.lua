@@ -8,7 +8,16 @@ function executeBtNode(agent, btNode)
 	for i = 1, #btNode.children do
 		if btNode.children[i].type == BTNodeType.FUNCTION then
 			func = btNode.children[i].func
-			res = agent[func](agent)
+			args = btNode.children[i].args
+			res = agent[func](agent, args)
+
+			a1 = args and args.tfId or nil
+			a1 = a1 and a1 or ''
+
+			a2 = args and args.spId or nil
+			a2 = a2 and a2 or ''
+
+			print('executing: ' .. func .. ', args: tf: ' .. a1 .. ', sp: ' .. a2 .. ', res: ' .. res)
 		else
 			res = executeBtNode(agent, btNode.children[i])
 		end

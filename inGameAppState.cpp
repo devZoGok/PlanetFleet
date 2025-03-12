@@ -17,12 +17,15 @@
 #include "concreteGuiManager.h"
 #include "vessel.h"
 
+#include <solUtil.h>
+
 using namespace vb01;
 using namespace vb01Gui;
 using namespace std;
 
 namespace battleship{
 	using namespace configData;
+	using namespace gameBase;
 
     InGameAppState::ResumeButton::ResumeButton(Vector3 pos, Vector2 size) : Button(pos, size, "Resume", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true) {}
 
@@ -67,6 +70,14 @@ namespace battleship{
         GuiAppState *guiState = ((GuiAppState*)stateManager->getAppStateByType((int)AppStateType::GUI_STATE));
         activeState = new ActiveGameState(guiState, playerId);
         stateManager->attachAppState(activeState);
+
+		sol::state_view SOL_LUA_VIEW = generateView();
+		vector<Player*> players = Game::getSingleton()->getPlayers();
+
+		for(int i = 0; i < players.size(); i++)
+			SOL_LUA_VIEW["game"]["players"][i + 1] = players[i];
+
+		SOL_LUA_VIEW.script_file(gm->getPath() + "Scripts/Core/playerInit.lua");
     }
 
     void InGameAppState::onDettached() {

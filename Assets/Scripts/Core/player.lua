@@ -1,18 +1,19 @@
 Player.numStartEngis = 3
 Player.baseDir = nil 
-
 Player.numDefWarMechs = 1
+Player.behaviour = {}
 
-Player.numTaskForceWarMechs = 5
-Player.numTaskForceTanks = 1
-Player.numTaskForceArtillery = 1
-Player.taskForceClearing = false
+Player.taskForceData = {
+	{class = UnitClass.WAR_MECH, buildId = 0, numUnits = 2},
+	{class = UnitClass.TANK, buildId = 1, numUnits = 1},
+	{class = UnitClass.ARTILLERY, buildId = 2, numUnits = 1}
+}
 
-Player.movingToHostileSpawnPoint = false
+Player.taskForces = {}
 
 --TODO use enum-like values instead of literals for order types
 --TODO simplify building construction
-function Player:buildFort()
+function Player:buildFort(arguments)
 	forts = self:getUnitsByClass(UnitClass.FORT, 1)
 
 	if #forts > 0 then
@@ -51,7 +52,7 @@ function Player:buildFort()
 	return BTNodeResult.RUNNING
 end
 
-function Player:trainEngineers()
+function Player:trainEngineers(arguments)
 	fort = self:getUnitsByClass(UnitClass.FORT, 1)[1]:toFactory()
 	engineers = self:getUnitsByClass(UnitClass.ENGINEER, -1)
 	engineerDiffNum = self.numStartEngis - #engineers
@@ -92,18 +93,18 @@ function Player:buildStructure(engineer, buildingId, buildPos, buildAngle)
 end
 
 -- TODO dispatch another engineer if the previous is destroyed before completion
-function Player:buildLandFactory()
+function Player:buildLandFactory(arguments)
 	buildPos = Map.getSingleton():getSpawnPoint(self:getSpawnPointId()):add(self.baseDir:mult(20))
 	return self:buildStructure(self:findIdleEngineer(), UnitId.LAND_FACTORY, buildPos, .6)
 end
 
-function Player:buildRefinery()
+function Player:buildRefinery(arguments)
 	buildPos = Map.getSingleton():getSpawnPoint(self:getSpawnPointId()):add(self.baseDir:mult(20))
 	return self:buildStructure(self:findIdleEngineer(), UnitId.REFINERY, buildPos, -.1)
 end
 
 -- TODO optimize deposit position check
-function Player:buildExtractor()
+function Player:buildExtractor(arguments)
 	deposits = {}
 	players = Game.getSingleton():getPlayers()
 
@@ -126,20 +127,19 @@ function Player:buildExtractor()
 	return self:buildStructure(self:findIdleEngineer(), UnitId.EXTRACTOR, depPos, 0)
 end
 
-function Player:buildHarvester()
-	if #self:getUnitsByClass(UnitClass.RESOURCE_ROVER, 1) > 0 then
+function Player:buildHarvester(arguments)
+	if self:getUnitsByClass(UnitClass.RESOURCE_ROVER, 1)[1] then
 		return BTNodeResult.SUCCESS
 	end
 
-	factories = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)
-	if #factories == 0 then return BTNodeResult.FAILURE end
+	factory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]
+	if not factory then return BTNodeResult.FAILURE end
 
-	factory = factories[1]:toFactory()
+	factory = factory:toFactory()
 
-	if #factory:getQueue() == 0 then
-		factory:appendToQueue(3)
-		return BTNodeResult.RUNNING
-	end
+	if #factory:getQueue() == 0 then factory:appendToQueue(3) end
+
+	return BTNodeResult.RUNNING
 end
 
 function Player:startHarvesting()
@@ -169,64 +169,95 @@ function Player:buildTaskforceUnitGroup(numUnits, currNumUnits, factory, buId)
 	end
 end
 
-function Player:buildTaskforce()
-	currNumBuiltWarMechs = #self:getUnitsByClass(UnitClass.WAR_MECH, -1)
-	currNumBuiltTanks = #self:getUnitsByClass(UnitClass.TANK, -1)
-	currNumBuiltArtillery = #self:getUnitsByClass(UnitClass.ARTILLERY, -1)
-	currNumWarMechs = currNumBuiltWarMechs
-	currNumTanks = currNumBuiltTanks
-	currNumArtillery = currNumBuiltArtillery
-	currLandFactories = self:getUnitsByClass(UnitClass.LAND_FACTORY, -1)
+function Player:buildTaskForces(arguments)
+	landFactory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]
 
-	for i = 1, #currLandFactories do
-		currNumWarMechs = currNumWarMechs + currLandFactories[i]:toFactory():getNumQueueUnitsById(0)
-		currNumTanks = currNumTanks + currLandFactories[i]:toFactory():getNumQueueUnitsById(1)
-		currNumArtillery = currNumArtillery + currLandFactories[i]:toFactory():getNumQueueUnitsById(2)
+	if not landFactory then return BTNodeResult.FAILURE end
+
+	landFactory = landFactory:toFactory()
+	numAttackableSpawnPoints = Map.getSingleton():getNumSpawnPoints() - 1
+
+	if #landFactory:getQueue() == 0 then
+		enoughUnits = true
+
+		for i = 1, #self.taskForceData do
+			tfUnits = self:getUnitsByClass(self.taskForceData[i].class, -1)
+
+			if #tfUnits < numAttackableSpawnPoints * self.taskForceData[i].numUnits then
+				enoughUnits = false
+				break
+			end
+		end
+
+		if enoughUnits then return BTNodeResult.SUCCESS end
 	end
 
-	numWarMechs = self.numDefWarMechs + self.numTaskForceWarMechs
-	numTanks = self.numTaskForceTanks
-	numArtillery = self.numTaskForceArtillery
+	if #landFactory:getQueue() > 0 then return BTNodeResult.RUNNING end
 
-	if currNumBuiltWarMechs >= numWarMechs and currNumBuiltTanks >= numTanks and currNumBuiltArtillery >= numArtillery then
-		return true
+	for i = 1, numAttackableSpawnPoints do
+		for j = 1, #self.taskForceData do
+			for k = 1, self.taskForceData[j].numUnits do
+				landFactory:appendToQueue(self.taskForceData[j].buildId)
+			end
+		end
 	end
 
-	landFactory = currLandFactories[1]:toFactory()
-
-	self:buildTaskforceUnitGroup(numWarMechs, currNumWarMechs, landFactory, 0)
-	self:buildTaskforceUnitGroup(numTanks, currNumTanks, landFactory, 1)
-	self:buildTaskforceUnitGroup(numArtillery, currNumArtillery, landFactory, 2)
-
-	return false
+	return BTNodeResult.RUNNING
 end
 
-function Player:enemiesCloseBy()
-	--if self.taskForceClearing then return true end
+function Player:formTaskForce(arguments)
+	if self.taskForces[arguments.tfId] then return BTNodeResult.SUCCESS end
+	--elseif arguments.spId == self:getSpawnPointId() + 1 then return BTNodeResult.FAILURE
 
-	self:selectUnits(self:getUnitsByClass(UnitClass.WAR_MECH, self.numTaskForceWarMechs))
-	self:selectUnits(self:getUnitsByClass(UnitClass.TANK, self.numTaskForceTanks))
-	self:selectUnits(self:getUnitsByClass(UnitClass.ARTILLERY, self.numTaskForceArtillery))
-	taskForce = self:getSelectedUnits()
+	unitGroups = {}
 
-	uns = {}
+	for i = 1, #self.taskForceData do
+		unitGroups[i] = self:getUnitsByClass(self.taskForceData[i].class, -1)
+		enoughGroupUnits = (#unitGroups[i] - (arguments.tfId - 1) * self.taskForceData[i].numUnits >= self.taskForceData[i].numUnits)
+
+		if not enoughGroupUnits then return BTNodeResult.FAILURE end
+	end
+
+	self.taskForces[arguments.tfId] = {units = {}, attacking = false, clearing = false, spawnPointId = arguments.spId}
+
+	for i = 1, #self.taskForceData do
+		unitGroup = {}
+
+		subArrId = (arguments.tfId - 1) * self.taskForceData[i].numUnits + 1
+		table.move(unitGroups[i], subArrId, subArrId + self.taskForceData[i].numUnits, 1, unitGroup)
+		table.move(unitGroup, 1, #unitGroup, #self.taskForces[arguments.tfId].units + 1, self.taskForces[arguments.tfId].units)
+	end
+
+	return BTNodeResult.SUCCESS
+end
+
+function Player:clearNearEnemies(arguments)
+	taskForce = self.taskForces[arguments.tfId]
+
+	if taskForce.clearing then return BTNodeResult.SUCCESS end
+
+	self:selectUnits(taskForce.units)
+
+	targetUnits = {}
 	players = Game.getSingleton():getPlayers()
 
 	for i = 1, #players do
 		if players[i] == self or players[i]:getTeam() == self:getTeam() then goto continue end
 
-		un = players[i]:getUnits()
-		uns = table.move(un, 1, #un, #uns + 1, uns)
+		plUnits = players[i]:getUnits()
+		targetUnits = table.move(plUnits, 1, #plUnits, #targetUnits + 1, targetUnits)
 
 		::continue::
 	end
 
 	targUnit = nil
 
-	for i = 1, #uns do
-		for j = 1, #taskForce do
-			if taskForce[j]:getPos():getDistanceFrom(uns[i]:getPos()) < taskForce[j]:getLineOfSight() then
-				targUnit = uns[i]
+	for i = 1, #targetUnits do
+		for j = 1, #taskForce.units do
+			tfUnit = taskForce.units[j]
+
+			if tfUnit:getPos():getDistanceFrom(targetUnits[i]:getPos()) < tfUnit:getLineOfSight() then
+				targUnit = targetUnits[i]
 				break
 			end
 		end
@@ -234,94 +265,58 @@ function Player:enemiesCloseBy()
 		if targUnit then break end
 	end
 
-	if not self.taskForceClearing and targUnit then
-		print('clearing...')
-		self.taskForceClearing = true
-
+	if not taskForce.clearing and targUnit then
 		self:deselectUnits()
-		self:selectUnits(taskForce)
+		self:selectUnits(taskForce.units)
 		self:issueOrder(2, Vector3:new(0, 0, 0), {Target:new(targUnit, Vector3:new(0, 0, 0))}, false)
-	elseif self.taskForceClearing and not targUnit then
-		print('clearing finished...')
-		self.taskForceClearing = false
+
+		self.taskForces[arguments.tfId].clearing = true
+	elseif taskForce.clearing and not targUnit then
+		self.taskForces[arguments.tfId].clearing = false
 	end
 
-	return self.taskForceClearing
+	taskForce = self.taskForces[arguments.tfId]
+	return taskForce.clearing and BTNodeResult.RUNNING or BTNodeResult.SUCCESS
 end
 
-function Player:attackSpawnPoint()
-	if self.movingToHostileSpawnPoint then return true end
-	print('advancing')
+function Player:attackSpawnPoint(arguments)
+	taskForce = self.taskForces[arguments.tfId]
 
-	taskForceMechs = self:getUnitsByClass(UnitClass.WAR_MECH, self.numTaskForceWarMechs)
-	taskForceTanks = self:getUnitsByClass(UnitClass.TANK, self.numTaskForceTanks)
-	taskForceArtillery = self:getUnitsByClass(UnitClass.ARTILLERY, self.numTaskForceArtillery)
+	if taskForce.attacking then return BTNodeResult.RUNNING end
 
 	self:deselectUnits()
-	self:selectUnits(taskForceMechs)
-	self:selectUnits(taskForceTanks)
-	self:selectUnits(taskForceArtillery)
+	self:selectUnits(taskForce.units)
 
-	taskForce = self:getSelectedUnits()
+	for i = 1, #taskForce.units do taskForce.units[i]:setState(0) end
 
-	for i = 1, #taskForce do
-		taskForce[i]:setState(0)
-	end
-
-	map = Map.getSingleton()
-	numSpawnPoints = map:getNumSpawnPoints()
-	enemySpawnPoint = nil
-	players = Game.getSingleton():getPlayers()
-
-	for i = 1, numSpawnPoints do
-		if i - 1 ~= self:getSpawnPointId() then
-			enemySpawnPoint = map:getSpawnPoint(players[i]:getSpawnPointId())
-			break
-		end
-	end
-
+	enemySpawnPoint = Map.getSingleton():getSpawnPoint(taskForce.spawnPointId)
 	self:issueOrder(2, Vector3:new(0, 0, 0), {Target:new(nil, enemySpawnPoint)}, false)
-	self.movingToHostileSpawnPoint = true
+	self.taskForces[arguments.tfId].attacking = true
 
-	return true
+	return BTNodeResult.RUNNING
 end
 
-Player.behaviour = {
-	type = BTNodeType.SEQUENCE,
-	children = {
-		{type = BTNodeType.FUNCTION, func = 'buildFort'},
-		{type = BTNodeType.FUNCTION, func = 'trainEngineers'},
-		{
-			type = BTNodeType.PARALLEL,
-			numMinSuccesses = 3,
+function Player:generateTaskforceActions()
+	numSpawnPoints = Map.getSingleton():getNumSpawnPoints()
+	actionsTable = {}
+
+	taskForceId = 1
+	for i = 1, numSpawnPoints do
+		if i - 1 == self:getSpawnPointId() then goto continue end
+
+		actionsTable[#actionsTable + 1] = {
+			type = BTNodeType.SEQUENCE,
 			children = {
-				{
-					type = BTNodeType.SEQUENCE, 
-					children = {
-						{type = BTNodeType.FUNCTION, func = 'buildLandFactory'},
-						{type = BTNodeType.FUNCTION, func = 'buildHarvester'},
-					}
-				},
-				{type = BTNodeType.FUNCTION, func = 'buildRefinery'},
-				{
-					type = BTNodeType.SEQUENCE, 
-					children = {
-						{type = BTNodeType.FUNCTION, func = 'buildExtractor'},
-						{type = BTNodeType.FUNCTION, func = 'startHarvesting'},
-					}
-				}
+				{type = BTNodeType.FUNCTION, func = 'formTaskForce', args = {tfId = taskForceId, spId = i - 1}},
+				{type = BTNodeType.FUNCTION, func = 'clearNearEnemies', args = {tfId = taskForceId}},
+				{type = BTNodeType.FUNCTION, func = 'attackSpawnPoint', args = {tfId = taskForceId}},
 			}
-		},
-		--[[
-		{type = BTNodeType.FUNCTION, func = 'startHarvesting'},
-		{type = BTNodeType.FUNCTION, func = 'buildTaskforce'},
-		{
-			type = BTNodeType.SELECTOR, 
-			children = {
-				{type = BTNodeType.FUNCTION, func = 'enemiesCloseBy'},
-				{type = BTNodeType.FUNCTION, func = 'attackSpawnPoint'}
-			}
-		},
-		]]--
-	}
-}
+		}
+
+		taskForceId = taskForceId + 1
+
+		::continue::
+	end
+
+	return actionsTable
+end
