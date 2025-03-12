@@ -39,7 +39,6 @@ namespace battleship{
 			inline Ability getAbility(int id){return abilities[id];}
 		private:
 			Game(){}
-			void resetLuaGameObjects();
 			void endGame(bool);
 			std::vector<int> parseTechTable(int, std::string, std::string, std::string);
 
