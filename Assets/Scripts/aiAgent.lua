@@ -2,8 +2,8 @@ BTNodeType = {SELECTOR = 0, SEQUENCE = 1, PARALLEL = 2, FUNCTION = 3}
 BTNodeResult = {SUCCESS = 0, RUNNING = 1, FAILURE = 2}
 
 function executeBtNode(agent, btNode)
-	numParallelSuccesses = 0
-	numParallelRunnings = 0
+	local numParallelSuccesses = 0
+	local numParallelRunnings = 0
 
 	for i = 1, #btNode.children do
 		if btNode.children[i].type == BTNodeType.FUNCTION then
@@ -17,13 +17,13 @@ function executeBtNode(agent, btNode)
 		if btNode.type == BTNodeType.SELECTOR then
 			failOnEnd = (i == #btNode.children and res == BTNodeResult.FAILURE)
 
-			if res == BTNodeResult.RUNNING or res == BTNodeResult.SUCCESS or failOnEnd then
+			if res ~= BTNodeResult.FAILURE or failOnEnd then
 				return res
 			end
 		elseif btNode.type == BTNodeType.SEQUENCE then
 			succeedOnEnd = (i == #btNode.children and res == BTNodeResult.SUCCESS)
 
-			if res == BTNodeResult.RUNNING or res == BTNodeResult.FAILURE or succeedOnEnd then
+			if res ~= BTNodeResult.SUCCESS or succeedOnEnd then
 				return res
 			end
 		elseif btNode.type == BTNodeType.PARALLEL then
@@ -35,8 +35,15 @@ function executeBtNode(agent, btNode)
 			end
 
 			if i == #btNode.children then
-				if numParallelRunnings > 0 then return BTNodeResult.RUNNING
-				else return numParallelSuccesses <= btNode.numMinSuccesses and BTNodeResult.SUCCESS or BTNodeResult.FAILURE end
+				if numParallelRunnings == 0 then
+					successful = nil
+
+					if numParallelSuccesses == #btNode.children or (btNode.numMinSuccesses and numParallelSuccesses >= btNode.numMinSuccesses) then
+						successful = true
+					end
+
+					return successful and BTNodeResult.SUCCESS or BTNodeResult.FAILURE
+				elseif numParallelRunnings > 0 then return BTNodeResult.RUNNING end
 			end
 		end
 	end

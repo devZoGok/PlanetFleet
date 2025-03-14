@@ -6,7 +6,6 @@ for i = 1, #game.players do
 			{type = BTNodeType.FUNCTION, func = 'trainEngineers'},
 			{
 				type = BTNodeType.PARALLEL,
-				numMinSuccesses = 3,
 				children = {
 					{
 						type = BTNodeType.SEQUENCE, 
@@ -27,7 +26,6 @@ for i = 1, #game.players do
 			},
 			{
 				type = BTNodeType.PARALLEL, 
-				numMinSuccesses = 2,
 				children = {
 					{type = BTNodeType.FUNCTION, func = 'buildTaskForces'},
 					{

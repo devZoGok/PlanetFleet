@@ -151,22 +151,14 @@ function Player:startHarvesting()
 		end
 	end
 
-	extractors = self:getUnitsByClass(UnitClass.EXTRACTOR, 1)
-	if #extractors == 0 then return BTNodeResult.FAILURE end
+	extractor = self:getUnitsByClass(UnitClass.EXTRACTOR, 1)[1]
+	if not extractor then return BTNodeResult.FAILURE end
 
 	self:deselectUnits()
 	self:selectUnits({harvesters[1]})
-	self:issueOrder(7, Vector3:new(0, 0, 0), {Target:new(extractors[1], Vector3:new(0, 0, 0))}, false)
+	self:issueOrder(7, Vector3:new(0, 0, 0), {Target:new(extractor, Vector3:new(0, 0, 0))}, false)
 
 	return BTNodeResult.SUCCESS
-end
-
-function Player:buildTaskforceUnitGroup(numUnits, currNumUnits, factory, buId)
-	if currNumUnits < numUnits then
-		for i = 1, numUnits - currNumUnits do
-			factory:appendToQueue(buId)
-		end
-	end
 end
 
 function Player:buildTaskForces(arguments)
@@ -207,7 +199,6 @@ end
 
 function Player:formTaskForce(arguments)
 	if self.taskForces[arguments.tfId] then return BTNodeResult.SUCCESS end
-	--elseif arguments.spId == self:getSpawnPointId() + 1 then return BTNodeResult.FAILURE
 
 	unitGroups = {}
 
