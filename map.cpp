@@ -374,14 +374,20 @@ namespace battleship{
 		}
 	}
 
+	int Map::getNumMapSpawnPoints(string name){
+		if(name != "")
+			generateView().script_file(GameManager::getSingleton()->getPath() + "Models/Maps/" + name + "/" + name + ".lua");
+
+		sol::table spawnPointsTbl = generateView()["map"]["spawnPoints"];
+		return spawnPointsTbl.size();
+	}
+
 	void Map::loadSpawnPoints(){
 		sol::state_view SOL_LUA_VIEW = generateView();
-		string spawnPointInd = "spawnPoints";
-		sol::table spawnPointsTbl = SOL_LUA_VIEW[mapTable][spawnPointInd];
-		int numSpawnPoints = spawnPointsTbl.size();
+		int numSpawnPoints = getNumMapSpawnPoints();
 
 		for(int i = 0; i < numSpawnPoints; i++){
-			sol::table posTable = SOL_LUA_VIEW[mapTable][spawnPointInd][i + 1];
+			sol::table posTable = SOL_LUA_VIEW[mapTable]["spawnPoints"][i + 1];
 			spawnPoints.push_back(Vector3(posTable["x"], posTable["y"], posTable["z"]));
 		}
 	}
@@ -397,9 +403,8 @@ namespace battleship{
 		assetManager->load(path + vfxPrefix, true);
 		assetManager->load(path + gameObjPrefix, true);
 
+		int numPlayers = Game::getSingleton()->getNumPlayers();
 		string playerInd = "players";
-		SOL_LUA_VIEW.script("numPlayers = #" + mapTable + "." + playerInd);
-		int numPlayers = SOL_LUA_VIEW["numPlayers"];
 
 		for(int i = 0; i < numPlayers; i++){
 			string resDepInd = "resourceDeposits";

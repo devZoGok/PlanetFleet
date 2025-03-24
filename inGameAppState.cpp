@@ -45,41 +45,19 @@ namespace battleship{
 		Console::execute(wstringToString(textbox->getText()));
 	}
 
-    InGameAppState::InGameAppState(vector<string> difficultyLevels, vector<string> factions) : AbstractAppState(
+    InGameAppState::InGameAppState() : AbstractAppState(
 						AppStateType::IN_GAME_STATE,
 					 	configData::calcSumBinds(AppStateType::IN_GAME_STATE, true),
 					 	configData::calcSumBinds(AppStateType::IN_GAME_STATE, false),
-					 	GameManager::getSingleton()->getPath() + scripts[(int)ScriptFiles::OPTIONS]){
-        this->playerId = 1;
-        this->difficultyLevels = difficultyLevels;
-        this->factions = factions;
-    }
-
-    InGameAppState::~InGameAppState() {
-    }
+					 	GameManager::getSingleton()->getPath() + scripts[(int)ScriptFiles::OPTIONS]
+					),
+					playerId(0){}
 
     void InGameAppState::onAttached() {
         AbstractAppState::onAttached();
 
-        for (int i = 0; i < factions.size(); i++) {
-            int faction, difficulty;
-
-            if (i == 0)
-                difficulty = -1;
-            else {
-                if (difficultyLevels[i - 1] == "Easy")
-                    difficulty = 0;
-                else if (difficultyLevels[i - 1] == "Medium")
-                    difficulty = 1;
-                else
-                    difficulty = 2;
-            }
-
-            faction = factions[i][0] - 48;
-        }
-
 		Camera *cam = Root::getSingleton()->getCamera();
-		cam->setPosition(Map::getSingleton()->getSpawnPoint(playerId - 1) + Vector3(1, 1, 1) * configData::CAMERA_DISTANCE);
+		cam->setPosition(Map::getSingleton()->getSpawnPoint(playerId) + Vector3(1, 1, 1) * configData::CAMERA_DISTANCE);
 		cam->lookAt(Vector3(0, -1, -1).norm(), Vector3(0, 1, -1).norm());
 
         mainPlayer = Game::getSingleton()->getPlayer(playerId);

@@ -65,6 +65,8 @@ namespace battleship{
 		LAND_TEXTURES,
 		CPU_DIFFICULTIES,
 		FACTIONS,
+		COLORS,
+		TEAMS,
 		CONSOLE,
 		TRADE_OFFERS
 	};
@@ -82,6 +84,7 @@ namespace battleship{
 					std::vector<vb01::Node*> = std::vector<vb01::Node*>{},
 					std::vector<vb01::Text*> = std::vector<vb01::Text*>{}
 				);
+			void parseLuaScript(std::string); 
 		private:
 			ConcreteGuiManager();
 			vb01Gui::Button* parseButton(int);

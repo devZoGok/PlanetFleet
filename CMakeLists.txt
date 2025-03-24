@@ -22,7 +22,7 @@ set(MENU_BUTTONS mainMenuButton.cpp singlePlayerButton.cpp exitButton.cpp backBu
 set(MAP_EDITOR_BUTTONS mapEditorButton.cpp newMapButton.cpp loadMapButton.cpp exportButton.cpp)
 set(BUTTONS statsButton.cpp activeStateButton.cpp minimapButton.cpp ${TRADING_BUTTONS} ${OPTIONS_BUTTONS} ${MENU_BUTTONS} ${MAP_EDITOR_BUTTONS} ${UNIT_BUTTONS})
 
-set(LISTBOXES skyboxTextureListbox.cpp landTextureListbox.cpp gameObjectListbox.cpp)
+set(LISTBOXES skyboxTextureListbox.cpp landTextureListbox.cpp gameObjectListbox.cpp mapListbox.cpp)
 set(GUI tooltip.cpp concreteGuiManager.cpp ${BUTTONS} ${LISTBOXES})
 
 set(STATES activeGameState.cpp inGameAppState.cpp guiAppState.cpp mapEditorAppState.cpp)

@@ -3,6 +3,8 @@
 #include "concreteGuiManager.h"
 #include "gameManager.h"
 
+#include <solUtil.h>
+
 #include <button.h>
 #include <checkbox.h>
 #include <slider.h>
@@ -14,21 +16,37 @@ namespace battleship{
 	using namespace vb01;
 	using namespace vb01Gui;
 	using namespace std;
+	using namespace gameBase;
 
-	MapListbox::MapListbox(Vector2 pos, Vector2 size, std::vector<string> &lines, int maxDisplay, string fontPath, bool closeable) : Listbox(pos, size, lines, maxDisplay, fontPath, closeable){}
+	MapListbox::MapListbox(Vector3 pos, Vector2 size, std::vector<string> &lines, int maxDisplay, bool adg, string fontPath, bool closeable) : 
+		Listbox(pos, size, lines, maxDisplay, fontPath, closeable), 
+		addPlayerGui(adg) {}
 
 	void MapListbox::onClose(){
-		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
+		if(addPlayerGui){
+			ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
 
-		Listbox *mapListbox = guiManager->getListboxes()[0];
-		int selectedMap = mapListbox->getSelectedOption();
-		string mapName = wstringToString(mapListbox->getContents()[selectedMap]);
-		string mapPath = GameManager::getSingleton()->getPath() + "Models/Maps/" + mapName + "/" + mapName + ".lua";
-		int numSpawnPoints = Map::getNumSpawnPointsByMap(mapPath);
+			for(Listbox *listbox : cpuPlayerListboxes)
+				guiManager->removeListbox(listbox);
 
-		guiManager->readLuaScreenScript("singlePlayerMenu.lua");
-		mapListbox = guiManager->getListboxes()[0];
-		vector<Button*> buttons = guiManager->getButtons();
-		guiManager->readLuaScreenScript("playerSelection.lua", buttons, vector<Listbox*>{mapListbox}, vector<Checkbox*>{}, vector<Slider*>{}, vector<Textbox*>{}, vector<Node*>{}, vector<Text*>{}, numSpawnPoints);
+			cpuPlayerListboxes.clear();
+
+			string mapName = wstringToString(getContents()[getSelectedOption()]);
+			int numSpawnPoints = Map::getSingleton()->getNumMapSpawnPoints(mapName);
+			sol::state_view SOL_LUA_VIEW = generateView();
+
+			for(int i = 0; i < numSpawnPoints; i++){
+				int prevNumListboxes = guiManager->getListboxes().size();
+
+				SOL_LUA_VIEW.script("lineId = " + to_string(i));
+		   		guiManager->parseLuaScript("playerSelection.lua");
+
+				std::vector<Listbox*> listboxes = guiManager->getListboxes();
+				int diffNumListboxes = listboxes.size() - prevNumListboxes;
+
+				for(int j = 0; j < diffNumListboxes; j++)
+					cpuPlayerListboxes.push_back(listboxes[listboxes.size() - 1 - j]);
+			}
+		}
 	}
 }

@@ -15,6 +15,7 @@
 #include "newMapButton.h"
 #include "loadMapButton.h"
 #include "exportButton.h"
+#include "mapListbox.h"
 #include "skyboxTextureListbox.h"
 #include "landTextureListbox.h"
 #include "gameObjectListbox.h"
@@ -155,21 +156,9 @@ namespace battleship{
 				button = new ExportButton(pos, size);
 				break;
 			case PLAY:{
-				int did = guiTable["dependencies"][1]["id"];
-				vector<Listbox*> difficultyListboxes = vector<Listbox*>{(Listbox*)guiElements[did].second};
-
-				vector<Listbox*> factionsListboxes;
-				int numPlayers = 2;
-
-				for(int i = 0; i < numPlayers; i++){
-					int did = guiTable["dependencies"][i + 2]["id"];
-					factionsListboxes.push_back((Listbox*)guiElements[did].second);
-				}
-
-				int mid = guiTable["dependencies"][4]["id"];
-				Listbox *mapListbox = (Listbox*)guiElements[mid].second;
-
-				button = new PlayButton(difficultyListboxes, factionsListboxes, mapListbox, pos, size, name, true);
+				int mid = guiTable["dependencies"][1]["id"];
+				Listbox *mapListbox = (MapListbox*)guiElements[mid].second;
+				button = new PlayButton(mapListbox, pos, size, name, true);
 				break;
 			}
 			case RESUME:
@@ -293,12 +282,24 @@ namespace battleship{
 		int numMaxDisplay = guiTable["numMaxDisplay"];
 		ListboxType listboxType = (ListboxType)guiTable["listboxType"];
 
-		vector<string> lines;
 		int maxDisplay, numLines;
 		bool closable;
-		Listbox *listbox = nullptr;
+		vector<string> lines;
+		sol::optional<sol::table> linesOpt = guiTable["lines"];
 
+		if(linesOpt != sol::nullopt){
+			sol::table linesTbl = guiTable["lines"];
+
+			for(int i = 0; i < linesTbl.size(); i++)
+		   		lines.push_back(guiTable["lines"][i + 1]);
+		}
+
+		Listbox *listbox = nullptr;
 		string fontPath = fontBasePath + "batang.ttf";
+		sol::optional<string> nameOpt = guiTable["name"];
+		string name = "";
+
+		if(nameOpt != sol::nullopt) name = guiTable["name"];
 
 		switch(listboxType){
 			case CONTROLS:{
@@ -326,14 +327,16 @@ namespace battleship{
 
 				break;
 			}
-			case MAPS:
+			case MAPS:{
 				lines = readDir(GameManager::getSingleton()->getPath() + "Models/Maps/", true);
 				numLines = lines.size();
 				closable = true;
 				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
+				bool addPlayers = guiTable["addPlayerGui"];
 
-				listbox = new Listbox(pos, size, lines, maxDisplay, fontPath, closable);
+				listbox = new MapListbox(pos, size, lines, maxDisplay, addPlayers, fontPath, closable);
 				break;
+			}
 			case VEHICLES:
 			case STRUCTURES:
 			case RESOURCE_DEPOSITS:{
@@ -378,15 +381,9 @@ namespace battleship{
 				listbox = new LandTextureListbox(pos, size, lines, maxDisplay, fontPath);
 				break;
 			case CPU_DIFFICULTIES:
-				lines = vector<string>{"Easy", "Medium", "Hard"};
-				numLines = lines.size();
-				closable = true;
-				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
-
-				listbox = new Listbox(pos, size, lines, maxDisplay, fontPath);
-				break;
 			case FACTIONS:
-				lines = vector<string>{"Empire", "Mutants", "Shapeshifters"};
+			case COLORS:
+			case TEAMS:
 				numLines = lines.size();
 				closable = true;
 				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
@@ -411,6 +408,8 @@ namespace battleship{
 
 		int typeArr[2]{(int)GuiElementType::LISTBOX, (int)listboxType};
 	 	guiElements.push_back(make_pair(typeArr, (void*)listbox));
+
+		listbox->setName(name);
 
 		return listbox;
 	}
@@ -552,7 +551,10 @@ namespace battleship{
 		){
 		removeAllGuiElements(buttonExceptions, listboxExceptions, checkboxExceptions, sliderExceptions, textboxExceptions, guiRecttboxExceptions, textExceptions);
 		guiElements.clear();
+		parseLuaScript(script);
+	}
 
+	void ConcreteGuiManager::parseLuaScript(string script){
 		string basePath = GameManager::getSingleton()->getPath() + "Scripts/Gui/";
 		sol::state_view SOL_LUA_VIEW = generateView();
 		SOL_LUA_VIEW.script_file(basePath + script);

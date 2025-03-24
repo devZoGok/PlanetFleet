@@ -76,6 +76,7 @@ namespace battleship{
 		int getCellId(vb01::Vector3, bool = true);
 		bool isPointWithinTerrainObject(vb01::Vector3, int);
 		void loadPlayerGameObjects();
+		int getNumMapSpawnPoints(std::string = "");
 		inline std::string getMapName(){return mapName;}
 		inline vb01::Node* getNodeParent(){return terrainNode;}
 		inline vb01::Vector3 getCellSize(){return CELL_SIZE;}
