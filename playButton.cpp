@@ -67,7 +67,7 @@ namespace battleship{
 			int team = stoi(teamsListboxes[i]->getContents()[teamsListboxes[i]->getSelectedOption()]);
 
 			string name = (cpuPlayer ? "CPU player #" + to_string(i) : "Player");
-			game->addPlayer(new Player(difficulty, faction, team, color, cpuPlayer, map->getSpawnPoint(i), name));
+			game->addPlayer(new Player(difficulty, faction, team, color, cpuPlayer, i, name));
 		}
 	
 		map->loadPlayerGameObjects();

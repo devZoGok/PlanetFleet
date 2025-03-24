@@ -33,9 +33,20 @@ namespace battleship{
 		return game;
 	}
 
-	void Game::resetLuaGameObjects(){
+	void Game::endGame(bool victory){
+		ended = true;
+
+		StateManager *sm = GameManager::getSingleton()->getStateManager();
+		sm->dettachAppState(sm->getAppStateByType(AppStateType::ACTIVE_STATE));
+
+		togglePause();
+
+		string endGameScreen = (victory ? "victory.lua" : "defeat.lua");
+		ConcreteGuiManager::getSingleton()->readLuaScreenScript(endGameScreen);
+	}
+
+	void Game::update(){
 		sol::state_view SOL_LUA_VIEW = generateView();
-		SOL_LUA_VIEW.script("game.players = {}");
 
 		for(int i = 0; i < players.size(); i++)
 			SOL_LUA_VIEW["game"]["players"][i + 1] = players[i];
@@ -45,22 +56,6 @@ namespace battleship{
 				string plStr = "game.players[" + to_string(i + 1) + "]";
 				SOL_LUA_VIEW.script("executeBtNode(" + plStr + ", " + plStr + ".behaviour)");
 			}
-	}
-
-	void Game::endGame(bool victory){
-		ended = true;
-
-		StateManager *sm = GameManager::getSingleton()->getStateManager();
-		sm->dettachAppState(sm->getAppStateByType(AppStateType::ACTIVE_STATE));
-
-			togglePause();
-
-		string endGameScreen = (victory ? "victory.lua" : "defeat.lua");
-		ConcreteGuiManager::getSingleton()->readLuaScreenScript(endGameScreen);
-	}
-
-	void Game::update(){
-		resetLuaGameObjects();
 
 		int numPlayersWithUnits = 0;
 
@@ -88,7 +83,7 @@ namespace battleship{
 
 
 	void Game::removeAllElements(){
-		resetLuaGameObjects();
+		generateView().script("game.players = {}");
 
 		while(!players.empty()){
 			delete players[0];
