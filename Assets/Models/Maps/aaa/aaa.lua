@@ -9,19 +9,21 @@ numPlayers = 1,
 numSpawnPoints = 1,
 spawnPoints = {
 {x = 0.000000, y = 0.000000, z = 0.000000},
-{x = 0.000000, y = 0.000000, z = 0.000000},
+{x = -170.000000, y = 0.000000, z = 170.000000},
 },
 players = {
 {
-resourceDeposits = {},
+resourceDeposits = {
+	{id = 0, pos = {x = -150.000000, y = 0.000000, z = 150.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, initAmmount = 1000},
+},
 units = {
-	{id = UnitId.LAB, pos = {x = 100.000000, y = 0.000000, z = 10.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
+	{id = UnitId.WAR_MECH, pos = {x = 100.000000, y = 0.000000, z = 10.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
 }
 },
 {
 	resourceDeposits = {},
 	units = {
-		{id = UnitId.WAR_MECH, pos = {x = -210.000000, y = 0.000000, z = 210.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}},
+		{id = UnitId.ENGINEER, pos = {x = -170.000000, y = 0.000000, z = 150.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}},
 	}
 }
 },
