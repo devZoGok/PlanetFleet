@@ -1,12 +1,16 @@
 #include <cmath>
+#include <chrono>
+#include <thread>
 
 #include <camera.h>
+#include <quad.h>
 #include <root.h>
 #include <vector.h>
 #include <util.h>
 #include <assetManager.h>
 
 #include <stateManager.h>
+#include <solUtil.h>
 
 #include <glm.hpp>
 #include <ext.hpp>
@@ -16,17 +20,41 @@
 #include "util.h"
 #include "defConfigs.h"
 #include "gameManager.h"
+#include "concreteGuiManager.h"
 #include "guiAppState.h"
 #include "inGameAppState.h"
+#include "loadingAppState.h"
 #include "mapEditorButton.h"
 
 using namespace std;
+using namespace std::this_thread;
+using namespace std::chrono;
 using namespace glm;
 using namespace vb01;
 using namespace vb01Gui;
 
 namespace battleship{
 	using namespace configData;
+
+	void handleLoadingGui(LoadingAppState *loadState){
+		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
+		guiManager->readLuaScreenScript("loadingScreen.lua");
+
+		sol::state_view SOL_LUA_VIEW = generateView();
+		string vfxPrefix = SOL_LUA_VIEW["vfxPrefix"], gameObjPrefix = SOL_LUA_VIEW["gameObjPrefix"];
+
+		AssetManager *assetManager = AssetManager::getSingleton();
+		string path = GameManager::getSingleton()->getPath();
+		vector<string> assets = vector<string>{path + DEFAULT_TEXTURE};
+
+		assetManager->readDir(path + vfxPrefix, assets, true);
+		assetManager->readDir(path + gameObjPrefix, assets, true);
+
+		loadState->setLoadableAssets(assets);
+
+		StateManager *stateManager = GameManager::getSingleton()->getStateManager();
+	    stateManager->attachAppState(loadState);
+	}
 
     void makeTitlescreenButtons(GuiAppState *state) {
 		/*

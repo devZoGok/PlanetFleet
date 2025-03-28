@@ -1,6 +1,7 @@
 #include "playButton.h"
 #include "gameManager.h"
 #include "inGameAppState.h"
+#include "loadingAppState.h"
 #include "concreteGuiManager.h"
 #include "game.h"
 
@@ -70,11 +71,6 @@ namespace battleship{
 			game->addPlayer(new Player(difficulty, faction, team, color, cpuPlayer, i, name));
 		}
 	
-		map->loadPlayerGameObjects();
-	
-		guiManager->readLuaScreenScript("inGame.lua");
-	
-		StateManager *stateManager = GameManager::getSingleton()->getStateManager();
-	    stateManager->attachAppState(new InGameAppState());
+		handleLoadingGui(new LoadingAppState(new InGameAppState(), "inGame.lua"));
 	}
 }

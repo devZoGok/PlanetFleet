@@ -25,7 +25,7 @@ set(BUTTONS statsButton.cpp activeStateButton.cpp minimapButton.cpp ${TRADING_BU
 set(LISTBOXES skyboxTextureListbox.cpp landTextureListbox.cpp gameObjectListbox.cpp mapListbox.cpp)
 set(GUI tooltip.cpp concreteGuiManager.cpp ${BUTTONS} ${LISTBOXES})
 
-set(STATES activeGameState.cpp inGameAppState.cpp guiAppState.cpp mapEditorAppState.cpp)
+set(STATES activeGameState.cpp inGameAppState.cpp guiAppState.cpp mapEditorAppState.cpp loadingAppState.cpp)
 set(UTIL util.cpp binds.h)
 set(CONTROLLERS gameObjectFrameController.cpp cameraController.cpp)
 set(CONSOLE console.cpp abstractCommand.cpp addUnitCommand.cpp addResourceCommand.cpp addTechnologyCommand.cpp toggleDebugCommand.cpp)

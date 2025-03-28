@@ -59,6 +59,8 @@ namespace battleship{
     void InGameAppState::onAttached() {
         AbstractAppState::onAttached();
 
+		Map::getSingleton()->loadPlayerGameObjects();
+
 		Camera *cam = Root::getSingleton()->getCamera();
 		cam->setPosition(Map::getSingleton()->getSpawnPoint(playerId) + Vector3(1, 1, 1) * configData::CAMERA_DISTANCE);
 		cam->lookAt(Vector3(0, -1, -1).norm(), Vector3(0, 1, -1).norm());
