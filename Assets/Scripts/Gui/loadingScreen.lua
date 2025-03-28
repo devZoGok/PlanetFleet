@@ -17,7 +17,7 @@ gui = {
 		guiType = GuiType.GUI_RECTANGLE,
 		pos = {x = initPos.x, y = initPos.y + Size.y, z = initPos.z},
 		size = Size,
-		color = {x = 0, y = 0, z = 0, w = 1}
+		color = {x = .3, y = .3, z = .3, w = 1}
 	},
 	{
 		guiType = GuiType.GUI_RECTANGLE,

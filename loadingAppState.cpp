@@ -27,8 +27,8 @@ namespace battleship{
 	{}
 
 	void LoadingAppState::onDettached(){
-		GameManager::getSingleton()->getStateManager()->attachAppState(newState);
 		ConcreteGuiManager::getSingleton()->readLuaScreenScript(newScreen);
+		GameManager::getSingleton()->getStateManager()->attachAppState(newState);
 
         AbstractAppState::onDettached();
 	}

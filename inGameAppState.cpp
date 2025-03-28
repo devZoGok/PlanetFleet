@@ -48,18 +48,21 @@ namespace battleship{
 		Console::execute(wstringToString(textbox->getText()));
 	}
 
-    InGameAppState::InGameAppState() : AbstractAppState(
+    InGameAppState::InGameAppState(std::string mn) : AbstractAppState(
 						AppStateType::IN_GAME_STATE,
 					 	configData::calcSumBinds(AppStateType::IN_GAME_STATE, true),
 					 	configData::calcSumBinds(AppStateType::IN_GAME_STATE, false),
 					 	GameManager::getSingleton()->getPath() + scripts[(int)ScriptFiles::OPTIONS]
 					),
+					mapName(mn),
 					playerId(0){}
 
     void InGameAppState::onAttached() {
         AbstractAppState::onAttached();
 
-		Map::getSingleton()->loadPlayerGameObjects();
+		Map *map = Map::getSingleton();
+		map->load(mapName);
+		map->loadPlayerGameObjects();
 
 		Camera *cam = Root::getSingleton()->getCamera();
 		cam->setPosition(Map::getSingleton()->getSpawnPoint(playerId) + Vector3(1, 1, 1) * configData::CAMERA_DISTANCE);
