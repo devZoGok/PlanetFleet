@@ -19,6 +19,8 @@ namespace vb01Gui{
 
 namespace battleship{
 	class GameObject;
+	class Unit;
+	class UnitButton;
 
     class ActiveGameState : public gameBase::AbstractAppState {
     public:
@@ -60,6 +62,7 @@ namespace battleship{
         void issueOrder(Order::TYPE, std::vector<Order::Target>, bool);
         bool isInLineOfSight(vb01::Vector3, float, Unit*);
 		void enableUnitState(Unit::State);
+		void addUnitGui();
 		inline bool canSelectHoveredOnGameObj(){return gameObjHoveredOn && gameObjHoveredOn->isSelectable() && gameObjHoveredOn->getPlayer() == mainPlayer;}
 
 		CursorState cursorState = CursorState::NORMAL;
@@ -69,9 +72,10 @@ namespace battleship{
 		GameObject *gameObjHoveredOn = nullptr;
 		vb01::Node *dragboxNode = nullptr;
 		vb01::Vector2 clickPoint;
-        std::vector<Unit*> unitGroups[9];
+        std::vector<Unit*> unitGroups[9], prevSelectedUnits;
 		std::vector<Order::Target> targets;
 		std::vector<vb01Gui::Button*> buttons;
+		std::vector<UnitButton*> unitButtons;
         bool isSelectionBox = false;
 		bool shiftPressed = false;
 		bool controlPressed = false;

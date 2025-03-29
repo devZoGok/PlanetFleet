@@ -27,6 +27,7 @@
 #include "gameObjectFrameController.h"
 #include "gameObjectFactory.h"
 #include "cameraController.h"
+#include "unitButton.h"
 #include "concreteGuiManager.h"
 
 using namespace vb01;
@@ -181,6 +182,13 @@ namespace battleship{
 		}
 
         renderUnits();
+
+		vector<Unit*> currSelectedUnits = mainPlayer->getSelectedUnits();
+
+		if(prevSelectedUnits != currSelectedUnits){
+			addUnitGui();
+			prevSelectedUnits = currSelectedUnits;
+		}
 
 		if(fc->isRotating() || fc->isPlacingOnSurface() || fc->isPlacingVertically())
 			fc->update();
@@ -351,14 +359,6 @@ namespace battleship{
 				if(!u->getLosLightNode()) u->initLosLight();
 
 				model->setVisible(true);
-
-            	Vector2 pos = u->getScreenPos();
-				string guiScreen = u->getGuiScreen();
-
-				if(!selUnits.empty() && u == selUnits[0] && guiScreen != "" && guiScreen != unitGuiScreen){
-					guiManager->readLuaScreenScript(u->getGuiScreen(), buttons, listboxes, checkboxes, sliders, textboxes, guiRects, texts);
-					unitGuiScreen = guiScreen;
-				}
             }
 			else{
 				if(u->getLosLightNode()) u->destroyLosLight();
@@ -456,6 +456,40 @@ namespace battleship{
 
 		for(Unit *unit : selectedUnits)
 			unit->setState(state);
+	}
+
+	//TODO replace script path literal
+	void ActiveGameState::addUnitGui(){
+		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
+
+		for(UnitButton *button : unitButtons)
+			guiManager->removeButton((Button*)button);
+
+		unitButtons.clear();
+
+		vector<Unit*> currSelectedUnits = mainPlayer->getSelectedUnits();
+
+		if(!currSelectedUnits.empty()){
+			int mainUnitId = currSelectedUnits[0]->getId();
+
+			sol::state_view SOL_LUA_VIEW = generateView();
+			string path = GameManager::getSingleton()->getPath();
+
+			SOL_LUA_VIEW.script_file(path + "Scripts/Gui/unitGui.lua");
+			sol::table posTbl = SOL_LUA_VIEW["buttonInitPos"], sizeTbl = SOL_LUA_VIEW["buttonSize"];
+			Vector3 initPos = Vector3(posTbl["x"], posTbl["y"], posTbl["z"]);
+			Vector2 size = Vector2(sizeTbl["x"], sizeTbl["y"]);
+
+			string fp = path + "Fonts/batang.ttf";
+
+			for(int i = 0; i < 2; i++){
+				for(int j = 0; j < 2; j++){
+					UnitButton *button = new UnitButton(initPos + Vector3(i * size.x, j * size.y, 0), size, "", fp, -1, "", mainUnitId);
+					guiManager->addButton(button);
+					unitButtons.push_back(button);
+				}
+			}
+		}
 	}
     
     void ActiveGameState::onAction(int bind, bool isPressed) {
