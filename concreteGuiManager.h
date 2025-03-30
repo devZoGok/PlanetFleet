@@ -38,9 +38,7 @@ namespace battleship{
 		MAIN_MENU,
 		CONSOLE_COMMAND_OK,
 		BUILD,
-		LAND_FACTORY_TRAIN,
-		NAVAL_FACTORY_TRAIN,
-		FORT_TRAIN,
+		TRAIN,
 		STATISTICS,
 		RESEARCH,
 		BUY_REFINEDS,
@@ -75,6 +73,16 @@ namespace battleship{
 		public:
 			static ConcreteGuiManager* getSingleton();
 			void readLuaScreenScript(
+					std::string,
+					std::vector<vb01Gui::Button*> = std::vector<vb01Gui::Button*>{},
+					std::vector<vb01Gui::Listbox*> = std::vector<vb01Gui::Listbox*>{},
+					std::vector<vb01Gui::Checkbox*> = std::vector<vb01Gui::Checkbox*>{},
+					std::vector<vb01Gui::Slider*> = std::vector<vb01Gui::Slider*>{},
+					std::vector<vb01Gui::Textbox*> = std::vector<vb01Gui::Textbox*>{},
+					std::vector<vb01::Node*> = std::vector<vb01::Node*>{},
+					std::vector<vb01::Text*> = std::vector<vb01::Text*>{}
+				);
+			void readLuaScreenScriptDel(
 					std::string,
 					std::vector<vb01Gui::Button*> = std::vector<vb01Gui::Button*>{},
 					std::vector<vb01Gui::Listbox*> = std::vector<vb01Gui::Listbox*>{},

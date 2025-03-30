@@ -74,8 +74,7 @@ namespace battleship{
 		vb01::Vector2 clickPoint;
         std::vector<Unit*> unitGroups[9], prevSelectedUnits;
 		std::vector<Order::Target> targets;
-		std::vector<vb01Gui::Button*> buttons;
-		std::vector<UnitButton*> unitButtons;
+		std::vector<vb01Gui::Button*> buttons, unitButtons;
         bool isSelectionBox = false;
 		bool shiftPressed = false;
 		bool controlPressed = false;

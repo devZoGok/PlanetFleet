@@ -458,38 +458,22 @@ namespace battleship{
 			unit->setState(state);
 	}
 
-	//TODO replace script path literal
 	void ActiveGameState::addUnitGui(){
-		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
-
-		for(UnitButton *button : unitButtons)
-			guiManager->removeButton((Button*)button);
-
-		unitButtons.clear();
-
 		vector<Unit*> currSelectedUnits = mainPlayer->getSelectedUnits();
 
-		if(!currSelectedUnits.empty()){
-			int mainUnitId = currSelectedUnits[0]->getId();
+		if(currSelectedUnits.empty()) return;
 
-			sol::state_view SOL_LUA_VIEW = generateView();
-			string path = GameManager::getSingleton()->getPath();
+		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
 
-			SOL_LUA_VIEW.script_file(path + "Scripts/Gui/unitGui.lua");
-			sol::table posTbl = SOL_LUA_VIEW["buttonInitPos"], sizeTbl = SOL_LUA_VIEW["buttonSize"];
-			Vector3 initPos = Vector3(posTbl["x"], posTbl["y"], posTbl["z"]);
-			Vector2 size = Vector2(sizeTbl["x"], sizeTbl["y"]);
+		sol::state_view SOL_LUA_VIEW = generateView();
+		SOL_LUA_VIEW.script("_mainUnitId = " + to_string(currSelectedUnits[0]->getId()));
+		guiManager->readLuaScreenScriptDel("unitGui.lua", unitButtons);
 
-			string fp = path + "Fonts/batang.ttf";
+		SOL_LUA_VIEW.script("numGui = #gui");
+		int numButtons = SOL_LUA_VIEW["numGui"];
 
-			for(int i = 0; i < 2; i++){
-				for(int j = 0; j < 2; j++){
-					UnitButton *button = new UnitButton(initPos + Vector3(i * size.x, j * size.y, 0), size, "", fp, -1, "", mainUnitId);
-					guiManager->addButton(button);
-					unitButtons.push_back(button);
-				}
-			}
-		}
+		for(int i = 0; i < numButtons; i++)
+			unitButtons.push_back(guiManager->getButtons()[guiManager->getButtons().size() - (i + 1)]);
 	}
     
     void ActiveGameState::onAction(int bind, bool isPressed) {

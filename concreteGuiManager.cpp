@@ -181,37 +181,11 @@ namespace battleship{
 				break;
 			}
 			case BUILD:
-			{
-				int unitId = SOL_LUA_STATE["UnitId"]["ENGINEER"];
-				int strId = SOL_LUA_STATE["units"][unitId + 1]["buildableUnits"][guiId + 1]["id"];
-				string buttonName = SOL_LUA_STATE["units"][strId + 1]["name"];
-				button = new BuildButton(pos, size, buttonName, (int)guiTable["trigger"], imagePath, unitId, guiId);
+				button = new BuildButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)SOL_LUA_STATE["UnitId"]["ENGINEER"], guiId);
 				break;
-			}
-			case LAND_FACTORY_TRAIN:
-			{
-				int facId = SOL_LUA_STATE["UnitId"]["LAND_FACTORY"];
-				int unitId = SOL_LUA_STATE["units"][facId + 1]["buildableUnits"][guiId + 1]["id"];
-				string buttonName = SOL_LUA_STATE["units"][unitId + 1]["name"];
-				button = new TrainButton(pos, size, buttonName, (int)guiTable["trigger"], imagePath, facId, guiId);
+			case TRAIN:
+				button = new TrainButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["factoryId"], guiId);
 				break;
-			}
-			case NAVAL_FACTORY_TRAIN:
-			{
-				int facId = SOL_LUA_STATE["UnitId"]["NAVAL_FACTORY"];
-				int unitId = SOL_LUA_STATE["units"][facId + 1]["buildableUnits"][guiId + 1]["id"];
-				string buttonName = SOL_LUA_STATE["units"][unitId + 1]["name"];
-				button = new TrainButton(pos, size, buttonName, (int)guiTable["trigger"], imagePath, facId, guiId);
-				break;
-			}
-			case FORT_TRAIN:
-			{
-				int facId = SOL_LUA_STATE["UnitId"]["FORT"];
-				int unitId = SOL_LUA_STATE["units"][facId + 1]["buildableUnits"][guiId + 1]["id"];
-				string buttonName = SOL_LUA_STATE["units"][unitId + 1]["name"];
-				button = new TrainButton(pos, size, buttonName, (int)guiTable["trigger"], imagePath, facId, guiId);
-				break;
-			}
 			case STATISTICS:
 				button = new StatsButton(pos, size, name, (int)guiTable["trigger"], imagePath);
 				break;
@@ -547,10 +521,32 @@ namespace battleship{
 			vector<Checkbox*> checkboxExceptions,
 			vector<Slider*> sliderExceptions,
 			vector<Textbox*> textboxExceptions,
-			vector<Node*> guiRecttboxExceptions,
+			vector<Node*> guiRectboxExceptions,
 			vector<Text*> textExceptions
 		){
-		removeAllGuiElements(buttonExceptions, listboxExceptions, checkboxExceptions, sliderExceptions, textboxExceptions, guiRecttboxExceptions, textExceptions);
+		removeAllGuiElements(buttonExceptions, listboxExceptions, checkboxExceptions, sliderExceptions, textboxExceptions, guiRectboxExceptions, textExceptions);
+		guiElements.clear();
+		parseLuaScript(script);
+	}
+
+	void ConcreteGuiManager::readLuaScreenScriptDel(
+			string script,
+			vector<Button*> buttons,
+			vector<Listbox*> listboxs,
+			vector<Checkbox*> checkboxs,
+			vector<Slider*> sliders,
+			vector<Textbox*> textboxs,
+			vector<Node*> guiRectboxs,
+			vector<Text*> texts
+		){
+		for(Button *b : buttons) removeButton(b);
+		for(Listbox *l : listboxs) removeListbox(l);
+		for(Checkbox *c : checkboxs) removeCheckbox(c);
+		for(Slider *s : sliders) removeSlider(s);
+		for(Textbox *t : textboxs) removeTextbox(t);
+		for(Node *r : guiRectboxs) removeGuiRectangle(r);
+		for(Text *t : texts) removeText(t);
+
 		guiElements.clear();
 		parseLuaScript(script);
 	}
