@@ -50,6 +50,8 @@ namespace battleship{
 		TRADING_SCREEN,
 		TRADE_OFFER,
 		RESOURCE_AMMOUNT,
+		UNIT_STATE,
+		ORDER,
 		MINIMAP
 	};
 	enum ListboxType {

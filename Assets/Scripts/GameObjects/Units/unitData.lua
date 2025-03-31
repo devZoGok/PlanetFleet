@@ -1,4 +1,15 @@
---TYPE = {ATTACK = 0, BUILD = 1, MOVE = 2, GARRISON = 3, EJECT = 4, PATROL = 5, LAUNCH = 6};
+OrderType = {
+	HALT = -1, 
+	ATTACK = 0, 
+	BUILD = 1, 
+	MOVE = 2, 
+	GARRISON = 3, 
+	EJECT = 4, 
+	PATROL = 5, 
+	LAUNCH = 6, 
+	SUPPLY = 7, 
+	HACK = 8
+}
 UnitId = {
 	WAR_MECH = 0,
 	TANK = 1,
@@ -263,6 +274,7 @@ units = {
 			{id = UnitId.EXTRACTOR, buildable = true, trigger = 69},
 			{id = UnitId.REFINERY, buildable = true, trigger = 82},
 		},
+		abilityButtons = {{buttonType = ButtonType.ORDER, name = 'Hack', orderType = OrderType.HACK}},
 		unitClass = UnitClass.ENGINEER,
 		unitType = UnitType.HOVER,
 		armor = {ArmorType.MECHANIC},
@@ -818,6 +830,12 @@ units = {
 	{
 		unitClass = UnitClass.TRADE_CENTER,
 		unitType = UnitType.LAND,
+		abilityButtons = {
+			{buttonType = ButtonType.BUY_REFINEDS, name = 'Buy ref', trigger = 73},
+			{buttonType = ButtonType.SELL_REFINEDS, name = 'Sell ref', trigger = 79},
+			{buttonType = ButtonType.BUY_RESEARCH, name = 'Buy rsch', trigger = 75},
+			{buttonType = ButtonType.SELL_RESEARCH, name = 'Sell rsch', trigger = 76}
+		},
 		isVehicle = false,
 		health = 500,
 		buildTime = 1000,
@@ -830,13 +848,13 @@ units = {
 		basePath = PATH .. structurePrefix .. 'TradeCenters/',
 		meshPath = 'tradeCenter.xml',
 		albedoPath = 'tradeCenter.jpg',
-		--guiScreen = 'tradingCenterCommands.lua',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
 		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 	},
 	{
 		unitClass = UnitClass.LAB,
 		unitType = UnitType.LAND,
+		abilityButtons = {{buttonType = ButtonType.ACTIVE_GAME_STATE, name = 'Tech tree', guiScreen = 'techTree.lua'}},
 		isVehicle = false,
 		health = 500,
 		buildTime = 1000,
@@ -852,7 +870,6 @@ units = {
 		basePath = PATH .. structurePrefix .. 'Labs/',
 		meshPath = 'lab2.xml',
 		albedoPath = 'lab.jpg',
-		--guiScreen = 'researchStructCommands.lua',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
 		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 	},

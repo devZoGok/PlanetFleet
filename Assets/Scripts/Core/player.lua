@@ -11,7 +11,6 @@ Player.taskForceData = {
 
 Player.taskForces = {}
 
---TODO use enum-like values instead of literals for order types
 --TODO simplify building construction
 function Player:buildFort(arguments)
 	forts = self:getUnitsByClass(UnitClass.FORT, 1)
@@ -47,7 +46,7 @@ function Player:buildFort(arguments)
 	angle = self.baseDir:getAngleBetween(Vector3:new(0, 0, 1)) * (right and -1 or 1)
 	fort = GameObjectFactory.createUnit(self, UnitId.FORT, sp, Quaternion:new(angle, Vector3:new(0, 1, 0)), 0)
 	self:addUnit(fort)
-	self:issueOrder(1, Vector3:new(0, 0, 0), {Target:new(fort, Vector3:new(0, 0, 0))}, false)
+	self:issueOrder(OrderType.BUILD, Vector3:new(0, 0, 0), {Target:new(fort, Vector3:new(0, 0, 0))}, false)
 
 	return BTNodeResult.RUNNING
 end
@@ -85,7 +84,7 @@ function Player:buildStructure(engineer, buildingId, buildPos, buildAngle)
 		
 		building = GameObjectFactory.createUnit(self, buildingId, buildPos, Quaternion:new(1, 0, 0, 0), 0)
 		self:addUnit(building)
-		self:issueOrder(1, Vector3:new(0, 0, 0), {Target:new(building, Vector3:new(0, 0, 0))}, false)
+		self:issueOrder(OrderType.BUILD, Vector3:new(0, 0, 0), {Target:new(building, Vector3:new(0, 0, 0))}, false)
 	end
 
 	building = self:getUnitsByClass(unitClass, 1)[1]
@@ -156,7 +155,7 @@ function Player:startHarvesting()
 
 	self:deselectUnits()
 	self:selectUnits({harvesters[1]})
-	self:issueOrder(7, Vector3:new(0, 0, 0), {Target:new(extractor, Vector3:new(0, 0, 0))}, false)
+	self:issueOrder(OrderType.SUPPLY, Vector3:new(0, 0, 0), {Target:new(extractor, Vector3:new(0, 0, 0))}, false)
 
 	return BTNodeResult.SUCCESS
 end
@@ -259,7 +258,7 @@ function Player:clearNearEnemies(arguments)
 	if not taskForce.clearing and targUnit then
 		self:deselectUnits()
 		self:selectUnits(taskForce.units)
-		self:issueOrder(2, Vector3:new(0, 0, 0), {Target:new(targUnit, Vector3:new(0, 0, 0))}, false)
+		self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(targUnit, Vector3:new(0, 0, 0))}, false)
 
 		self.taskForces[arguments.tfId].clearing = true
 	elseif taskForce.clearing and not targUnit then
@@ -281,7 +280,7 @@ function Player:attackSpawnPoint(arguments)
 	for i = 1, #taskForce.units do taskForce.units[i]:setState(0) end
 
 	enemySpawnPoint = Map.getSingleton():getSpawnPoint(taskForce.spawnPointId)
-	self:issueOrder(2, Vector3:new(0, 0, 0), {Target:new(nil, enemySpawnPoint)}, false)
+	self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, enemySpawnPoint)}, false)
 	self.taskForces[arguments.tfId].attacking = true
 
 	return BTNodeResult.RUNNING

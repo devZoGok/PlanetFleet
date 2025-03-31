@@ -36,7 +36,9 @@ ButtonType = {
 	TRADING_SCREEN = 32,
 	TRADE_OFFER = 33,
 	RESOURCE_AMMOUNT = 34,
-	MINIMAP = 35
+	UNIT_STATE = 35,
+	ORDER = 36,
+	MINIMAP = 37,
 }
 
 ListboxType = {

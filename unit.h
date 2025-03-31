@@ -53,7 +53,7 @@ namespace battleship{
         std::vector<Target> targets;
 
 		Order(){}
-		Order(TYPE t, std::vector<Target> targ, vb01::Vector3 dir, int lid = -1, bool pa = true) : type(t), playerAssigned(pa), lineId(lid), targets(targ), direction(dir){}
+		Order(TYPE t, std::vector<Target> targ, vb01::Vector3 dir = vb01::Vector3::VEC_ZERO, int lid = -1, bool pa = true) : type(t), playerAssigned(pa), lineId(lid), targets(targ), direction(dir){}
     };
     
     enum class MoveDir {LEFT, UP, FORW};
@@ -138,6 +138,7 @@ namespace battleship{
 		void initLosLight();
 		void destroyLosLight();
 		inline void setState(State s){state = s;}
+		inline State getState(){return state;}
 		inline Engineer* toEngineer(){return (Engineer*)this;}
 		inline Structure* toStructure(){return (Structure*)this;}
 		inline Factory* toFactory(){return (Factory*)this;}

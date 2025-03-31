@@ -3,6 +3,7 @@
 #include <quad.h>
 
 #include "concreteGuiManager.h"
+#include "unit.h"
 #include "gameManager.h"
 #include "singlePlayerButton.h"
 #include "mapEditorButton.h"
@@ -32,6 +33,8 @@
 #include "tradingScreenButton.h"
 #include "offerButton.h"
 #include "resourceAmmountButton.h"
+#include "orderButton.h"
+#include "stateToggleButton.h"
 #include "minimapButton.h"
 
 namespace battleship{
@@ -181,10 +184,10 @@ namespace battleship{
 				break;
 			}
 			case BUILD:
-				button = new BuildButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)SOL_LUA_STATE["UnitId"]["ENGINEER"], guiId);
+				button = new BuildButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["engineerId"], (int)guiTable["slotId"]);
 				break;
 			case TRAIN:
-				button = new TrainButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["factoryId"], guiId);
+				button = new TrainButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["factoryId"], (int)guiTable["slotId"]);
 				break;
 			case STATISTICS:
 				button = new StatsButton(pos, size, name, (int)guiTable["trigger"], imagePath);
@@ -225,6 +228,12 @@ namespace battleship{
 				break;
 			case RESOURCE_AMMOUNT:
 				button = new ResourceAmmountButton(pos, size, name, (int)guiTable["ammount"], (int)guiTable["trigger"], imagePath);
+				break;
+			case ORDER:
+				button = new OrderButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["orderType"]);
+				break;
+			case UNIT_STATE:
+				button = new StateToggleButton(pos, size, name, (int)guiTable["trigger"], imagePath);
 				break;
 			case MINIMAP:{
 				string minimapPath = GameManager::getSingleton()->getPath() + "Models/Maps/" + Map::getSingleton()->getMapName() + "/minimap.jpg";
