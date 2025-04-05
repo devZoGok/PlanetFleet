@@ -13,6 +13,11 @@ resIconBasePath = 'Icons/Resources/'
 pointerTex = 'pointer.png'
 attackTex = 'attack.png'
 garrisonTex = 'garrison.png'
+supplyTex = 'supply.png'
+hackTex = 'hack.png'
+noGarrisonTex = 'noGarrison.png'
+noSupplyTex = 'noSupply.png'
+noHackTex = 'noHack.png'
 
 gui = {
 	{

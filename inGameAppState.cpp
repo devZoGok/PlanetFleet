@@ -100,7 +100,7 @@ namespace battleship{
     void InGameAppState::onAction(int bind, bool isPressed) {
         switch((Bind)bind){
 			case Bind::TOGGLE_MAIN_MENU: 
-            	if(isPressed && !GameObjectFrameController::getSingleton()->isPlacingOnSurface())
+            	if(isPressed && !(GameObjectFrameController::getSingleton()->isPlacingOnSurface() || activeState->isForceCursorState()))
 					Game::getSingleton()->togglePause();
             break;
         }

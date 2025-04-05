@@ -24,6 +24,14 @@ namespace battleship{
 
     class ActiveGameState : public gameBase::AbstractAppState {
     public:
+		enum CursorState{
+			NORMAL,
+			ATTACK,
+			GARRISON,
+			SUPPLY,
+			HACK
+		};
+
         ActiveGameState(GuiAppState*, int);
         ~ActiveGameState();
         void onAttached();
@@ -32,6 +40,8 @@ namespace battleship{
         void onAction(int, bool);
         void onAnalog(int, float);
 		void onRawMouseWheelScroll(bool);
+		inline CursorState getCursorState(){return cursorState;}
+		inline void setCursorState(CursorState cs){this->cursorState = cs;}
 		inline void addButton(vb01Gui::Button *b){buttons.push_back(b);}
 		inline std::vector<vb01Gui::Button*> getButtons(){return buttons;}
         inline Player* getPlayer(){return mainPlayer;}
@@ -39,14 +49,9 @@ namespace battleship{
 		inline void setBuildableStructSelected(bool bss){this->buildableStructSelected = bss;}
 		inline bool isBuildableStructSelected(){return buildableStructSelected;}
 		inline float getDepth(){return depth;}
+		inline void setForceCursorState(bool force){this->forceCursorState = force;}
+		inline bool isForceCursorState(){return forceCursorState;}
     private:
-		enum CursorState{
-			NORMAL,
-			ATTACK,
-			GARRISON,
-			SUPPLY
-		};
-
 		bool selectedUnitsAmongst(std::vector<Unit*>);
 		void updateGameObjHoveredOn();
 		void initCursor();
@@ -83,12 +88,14 @@ namespace battleship{
 		bool buildableStructSelected = false;
 		bool selectingPatrolPoints = false;
 		bool selectingDestOrient = false;
+		bool forceCursorState = false;
+		bool orderPossible = false;
         int playerId, zooms = 0;
 	   	const int NUM_MAX_ZOOMS = 10;
 		float depth = 1;
 		vb01::s64 lastSelectMouseClicked = 0, lastOrderMouseClicked = 0;
 		vb01::Node *cursorNode = nullptr;
-		vb01::Texture *pointerTex = nullptr, *attackTex = nullptr, *garrisonTex = nullptr;
+		vb01::Texture *pointerTex = nullptr, *attackTex = nullptr, *garrisonTex = nullptr, *noGarrisonTex = nullptr, *supplyTex = nullptr, *noSupplyTex = nullptr, *hackTex = nullptr, *noHackTex = nullptr;
     };
 }
 

@@ -18,7 +18,8 @@ namespace battleship{
 	{}
 
 	void OrderButton::onClick(){
-		Player *player = ((ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE))->getPlayer();
+		ActiveGameState *activeState = ((ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE));
+		Player *player = activeState->getPlayer();
 		vector<Unit*> units = player->getSelectedUnits();
 
 		if(orderId > -1){
@@ -32,6 +33,25 @@ namespace battleship{
 				}
 				default:
 				{
+					ActiveGameState::CursorState cs;
+
+					switch((Order::TYPE)orderId){
+						case Order::TYPE::ATTACK:
+							cs = ActiveGameState::CursorState::ATTACK;
+							break;
+						case Order::TYPE::GARRISON:
+							cs = ActiveGameState::CursorState::GARRISON;
+							break;
+						case Order::TYPE::SUPPLY:
+							cs = ActiveGameState::CursorState::SUPPLY;
+							break;
+						case Order::TYPE::HACK:
+							cs = ActiveGameState::CursorState::HACK;
+							break;
+					}
+
+					activeState->setCursorState(cs);
+					activeState->setForceCursorState(true);
 					break;
 				}
 			}
