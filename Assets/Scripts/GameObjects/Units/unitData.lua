@@ -353,6 +353,7 @@ units = {
 	},
 	{
 		weapons = {},
+		abilityButtons = {{buttonType = ButtonType.ORDER, name = 'Supply', orderType = OrderType.SUPPLY}},
 		unitClass = UnitClass.RESOURCE_ROVER,
 		unitType = UnitType.HOVER,
 		armor = {ArmorType.CAST},

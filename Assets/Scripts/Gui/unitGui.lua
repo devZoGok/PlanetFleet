@@ -2,7 +2,7 @@ res = graphics.resolution
 sz = 210
 
 resTextScale = {x = .5, y = .5}
-buttonInitPos = {x = sz, y = res.y - .75 * sz, z = 0}
+buttonInitPos = {x = sz, y = res.y - .65 * sz, z = 0}
 buttonSize = {x = 50, y = 50}
 buttonSpace = {x = 10, y = 10}
 
