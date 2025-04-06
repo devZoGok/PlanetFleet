@@ -15,6 +15,7 @@ function generateButton(numGui, buttonData)
 		size = buttonSize,
 		guiType = GuiType.BUTTON,
 		name = buttonData.name,
+		imagePath = buttonData.imagePath,
 		buttonType = buttonData.buttonType,
 		trigger = (buttonData.trigger or -1),
 		orderType = buttonData.orderType,
@@ -30,10 +31,10 @@ end
 function generateGui(unitId)
 	local gui = {}
 	vehicleButtonData = {
-		{buttonType = ButtonType.UNIT_STATE, name = 'Change unit state'},
+		{buttonType = ButtonType.UNIT_STATE, imagePath = 'Icons/Buttons/chase.png'},
 		{buttonType = ButtonType.ORDER, orderType = OrderType.GARRISON, name = 'Garrison'},
 		{buttonType = ButtonType.ORDER, orderType = OrderType.PATROL, name = 'Patrol'},
-		{buttonType = ButtonType.ORDER, orderType = OrderType.HALT, name = 'Halt'}
+		{buttonType = ButtonType.ORDER, orderType = OrderType.HALT, name = 'Halt'},
 	}
 	structureButtonData = {
 		{buttonType = ButtonType.UNIT_STATE, name = 'Change unit state'},
