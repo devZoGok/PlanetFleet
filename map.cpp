@@ -12,6 +12,7 @@
 #include <stateManager.h>
 
 #include "map.h"
+#include "util.h"
 #include "game.h"
 #include "player.h"
 #include "gameObject.h"
@@ -394,16 +395,8 @@ namespace battleship{
 
 	//TODO move minimap loading elsewhere
 	void Map::loadPlayerGameObjects(){
-		AssetManager *assetManager = AssetManager::getSingleton();
-		string path = GameManager::getSingleton()->getPath();
-		assetManager->load(path + DEFAULT_TEXTURE);
-
-		sol::state_view SOL_LUA_VIEW = generateView();
-		string vfxPrefix = SOL_LUA_VIEW["vfxPrefix"], gameObjPrefix = SOL_LUA_VIEW["gameObjPrefix"];
-		assetManager->load(path + vfxPrefix, true);
-		assetManager->load(path + gameObjPrefix, true);
-
 		int numPlayers = Game::getSingleton()->getNumPlayers();
+		sol::state_view SOL_LUA_VIEW = generateView();
 		string playerInd = "players";
 
 		for(int i = 0; i < numPlayers; i++){

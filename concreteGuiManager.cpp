@@ -509,6 +509,7 @@ namespace battleship{
 		return guiRectangle;
 	}
 
+	//TODO distinguish between floats and vector-like tables for scale
 	Text* ConcreteGuiManager::parseText(int guiId){
 		sol::state_view SOL_LUA_STATE = generateView();
 		sol::table guiTable = SOL_LUA_STATE["gui"][guiId + 1];

@@ -1,6 +1,7 @@
 #include "playButton.h"
 #include "gameManager.h"
 #include "inGameAppState.h"
+#include "loadingAppState.h"
 #include "concreteGuiManager.h"
 #include "game.h"
 
@@ -17,7 +18,6 @@ namespace battleship{
 	PlayButton::PlayButton(Listbox *ml, Vector3 pos, Vector2 size, string name, bool separate) : Button(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", GLFW_KEY_P, separate), mapListbox(ml) {}
 	
 	void PlayButton::onClick() {
-	
 		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
 		vector<Listbox*> factionsListboxes, difficultiesListboxes, colorsListboxes, teamsListboxes;
 
@@ -35,10 +35,7 @@ namespace battleship{
 
 		int selectedMap = mapListbox->getSelectedOption();
 		string mapName = wstringToString(mapListbox->getContents()[selectedMap]);
-
-		Map *map = Map::getSingleton();
-		map->load(mapName);
-		int numPlayers = map->getNumSpawnPoints();
+		int numPlayers = Map::getSingleton()->getNumMapSpawnPoints(mapName);
 	
 		for(int i = 0; i < numPlayers; i++){
 			int factionChoice = factionsListboxes[i]->getSelectedOption();
@@ -70,11 +67,6 @@ namespace battleship{
 			game->addPlayer(new Player(difficulty, faction, team, color, cpuPlayer, i, name));
 		}
 	
-		map->loadPlayerGameObjects();
-	
-		guiManager->readLuaScreenScript("inGame.lua");
-	
-		StateManager *stateManager = GameManager::getSingleton()->getStateManager();
-	    stateManager->attachAppState(new InGameAppState());
+		handleLoadingGui(new LoadingAppState(new InGameAppState(mapName), "inGame.lua"));
 	}
 }

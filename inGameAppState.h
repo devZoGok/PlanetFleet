@@ -39,7 +39,7 @@ namespace battleship{
         private:
         };
 
-        InGameAppState();
+        InGameAppState(std::string);
         ~InGameAppState(){}
         void onAttached();
         void onDettached();
@@ -53,6 +53,7 @@ namespace battleship{
         std::vector<std::string> modelPaths;
         Player *mainPlayer;
         int playerId;
+		std::string mapName = "";
         ActiveGameState* activeState;
     };
 }
