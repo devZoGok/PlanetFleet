@@ -37,7 +37,6 @@ function generateGui(unitId)
 		{buttonType = ButtonType.ORDER, orderType = OrderType.HALT, name = 'Halt'},
 	}
 	structureButtonData = {
-		{buttonType = ButtonType.UNIT_STATE, name = 'Change unit state'},
 		{buttonType = ButtonType.ORDER, orderType = OrderType.HALT, name = 'Halt'}
 	}
 
