@@ -19,9 +19,19 @@ namespace vb01Gui{
 
 namespace battleship{
 	class GameObject;
+	class Unit;
+	class UnitButton;
 
     class ActiveGameState : public gameBase::AbstractAppState {
     public:
+		enum CursorState{
+			NORMAL,
+			ATTACK,
+			GARRISON,
+			SUPPLY,
+			HACK
+		};
+
         ActiveGameState(GuiAppState*, int);
         ~ActiveGameState();
         void onAttached();
@@ -30,6 +40,8 @@ namespace battleship{
         void onAction(int, bool);
         void onAnalog(int, float);
 		void onRawMouseWheelScroll(bool);
+		inline CursorState getCursorState(){return cursorState;}
+		inline void setCursorState(CursorState cs){this->cursorState = cs;}
 		inline void addButton(vb01Gui::Button *b){buttons.push_back(b);}
 		inline std::vector<vb01Gui::Button*> getButtons(){return buttons;}
         inline Player* getPlayer(){return mainPlayer;}
@@ -37,14 +49,9 @@ namespace battleship{
 		inline void setBuildableStructSelected(bool bss){this->buildableStructSelected = bss;}
 		inline bool isBuildableStructSelected(){return buildableStructSelected;}
 		inline float getDepth(){return depth;}
+		inline void setForceCursorState(bool force){this->forceCursorState = force;}
+		inline bool isForceCursorState(){return forceCursorState;}
     private:
-		enum CursorState{
-			NORMAL,
-			ATTACK,
-			GARRISON,
-			SUPPLY
-		};
-
 		bool selectedUnitsAmongst(std::vector<Unit*>);
 		void updateGameObjHoveredOn();
 		void initCursor();
@@ -60,6 +67,7 @@ namespace battleship{
         void issueOrder(Order::TYPE, std::vector<Order::Target>, bool);
         bool isInLineOfSight(vb01::Vector3, float, Unit*);
 		void enableUnitState(Unit::State);
+		void addUnitGui();
 		inline bool canSelectHoveredOnGameObj(){return gameObjHoveredOn && gameObjHoveredOn->isSelectable() && gameObjHoveredOn->getPlayer() == mainPlayer;}
 
 		CursorState cursorState = CursorState::NORMAL;
@@ -69,9 +77,9 @@ namespace battleship{
 		GameObject *gameObjHoveredOn = nullptr;
 		vb01::Node *dragboxNode = nullptr;
 		vb01::Vector2 clickPoint;
-        std::vector<Unit*> unitGroups[9];
+        std::vector<Unit*> unitGroups[9], prevSelectedUnits;
 		std::vector<Order::Target> targets;
-		std::vector<vb01Gui::Button*> buttons;
+		std::vector<vb01Gui::Button*> buttons, unitButtons;
         bool isSelectionBox = false;
 		bool shiftPressed = false;
 		bool controlPressed = false;
@@ -80,12 +88,14 @@ namespace battleship{
 		bool buildableStructSelected = false;
 		bool selectingPatrolPoints = false;
 		bool selectingDestOrient = false;
+		bool forceCursorState = false;
+		bool orderPossible = false;
         int playerId, zooms = 0;
 	   	const int NUM_MAX_ZOOMS = 10;
 		float depth = 1;
 		vb01::s64 lastSelectMouseClicked = 0, lastOrderMouseClicked = 0;
 		vb01::Node *cursorNode = nullptr;
-		vb01::Texture *pointerTex = nullptr, *attackTex = nullptr, *garrisonTex = nullptr;
+		vb01::Texture *pointerTex = nullptr, *attackTex = nullptr, *garrisonTex = nullptr, *noGarrisonTex = nullptr, *supplyTex = nullptr, *noSupplyTex = nullptr, *hackTex = nullptr, *noHackTex = nullptr;
     };
 }
 

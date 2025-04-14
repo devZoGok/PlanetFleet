@@ -27,24 +27,6 @@ namespace battleship{
 	}
 
 	void ActiveStateButton::onClick(){
-		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
-
-		vector<Listbox*> listboxes{};
-		vector<Checkbox*> checkboxes{};
-		vector<Slider*> sliders{};
-		vector<Textbox*> textboxes{};
-		vector<Node*> guiRects{
-			guiManager->getGuiRectangle("refineds"),
-			guiManager->getGuiRectangle("wealth"),
-			guiManager->getGuiRectangle("research"),
-		};
-		vector<Text*> texts{
-			guiManager->getText("depth"),
-			guiManager->getText("refineds"),
-			guiManager->getText("wealth"),
-			guiManager->getText("research")
-		};
-
-		guiManager->readLuaScreenScript(guiScreen, buttons, listboxes, checkboxes, sliders, textboxes, guiRects, texts);
+		ConcreteGuiManager::getSingleton()->parseLuaScript(guiScreen);
 	}
 }
