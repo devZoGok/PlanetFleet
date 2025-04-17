@@ -42,8 +42,10 @@ namespace battleship{
 		void onRawMouseWheelScroll(bool);
 		inline CursorState getCursorState(){return cursorState;}
 		inline void setCursorState(CursorState cs){this->cursorState = cs;}
-		inline void addButton(vb01Gui::Button *b){buttons.push_back(b);}
-		inline std::vector<vb01Gui::Button*> getButtons(){return buttons;}
+		inline void addButton(vb01Gui::Button *b){guiButtons.push_back(b);}
+		inline std::vector<vb01Gui::Button*> getGuiButtons(){return guiButtons;}
+		inline std::vector<vb01::Node*> getGuiRects(){return guiRects;}
+		inline std::vector<vb01::Text*> getGuiTexts(){return guiTexts;}
         inline Player* getPlayer(){return mainPlayer;}
         inline std::vector<Unit*>& getUnitGroup(int i){return unitGroups[i];}
 		inline void setBuildableStructSelected(bool bss){this->buildableStructSelected = bss;}
@@ -51,6 +53,10 @@ namespace battleship{
 		inline float getDepth(){return depth;}
 		inline void setForceCursorState(bool force){this->forceCursorState = force;}
 		inline bool isForceCursorState(){return forceCursorState;}
+		inline void setTradingScreen(bool ts){this->tradingScreen = ts;}
+		inline bool isTradingScreen(){return tradingScreen;}
+		inline void setOfferScreen(bool os){this->offerScreen = os;}
+		inline bool isOfferScreen(){return offerScreen;}
     private:
 		bool selectedUnitsAmongst(std::vector<Unit*>);
 		void updateGameObjHoveredOn();
@@ -75,11 +81,13 @@ namespace battleship{
         GuiAppState *guiState;
 		std::string unitGuiScreen = "";
 		GameObject *gameObjHoveredOn = nullptr;
-		vb01::Node *dragboxNode = nullptr;
 		vb01::Vector2 clickPoint;
         std::vector<Unit*> unitGroups[9], prevSelectedUnits;
 		std::vector<Order::Target> targets;
-		std::vector<vb01Gui::Button*> buttons, unitButtons;
+		vb01::Node *dragboxNode = nullptr;
+		std::vector<vb01::Node*> guiRects;
+		std::vector<vb01::Text*> guiTexts;
+		std::vector<vb01Gui::Button*> guiButtons, unitButtons;
         bool isSelectionBox = false;
 		bool shiftPressed = false;
 		bool controlPressed = false;
@@ -90,6 +98,8 @@ namespace battleship{
 		bool selectingDestOrient = false;
 		bool forceCursorState = false;
 		bool orderPossible = false;
+		bool tradingScreen = false;
+		bool offerScreen = false;
         int playerId, zooms = 0;
 	   	const int NUM_MAX_ZOOMS = 10;
 		float depth = 1;

@@ -243,6 +243,12 @@ namespace battleship{
 			fc->removeGameObjectFrames();
 		}
 
+		if(!tradingScreen){
+			guiTexts = guiManager->getTexts();
+			guiRects = guiManager->getGuiRectangles();
+			guiButtons = guiManager->getButtons();
+		}
+
         renderUnits();
 
 		vector<Unit*> currSelectedUnits = mainPlayer->getSelectedUnits();
@@ -540,11 +546,9 @@ namespace battleship{
 	}
     
     void ActiveGameState::onAction(int bind, bool isPressed) {
+		if(tradingScreen || !ConcreteGuiManager::getSingleton()->findClickedButtons().empty()) return;
+
 		GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
-
-		if(!ConcreteGuiManager::getSingleton()->findClickedButtons().empty())
-			return;
-
 		vector<Unit*> selectedUnits = mainPlayer->getSelectedUnits();
 
         switch((Bind)bind){

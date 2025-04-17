@@ -16,9 +16,8 @@ gui = {
 	},
 	{
 		guiType = GuiType.BUTTON,
-		buttonType = ButtonType.ACTIVE_GAME_STATE,
+		buttonType = ButtonType.ACTIVE_STATE_BACK,
 		name = 'Back',
-		guiScreen = 'activeGameState.lua',
 		pos = {x = HubPos.x + HubSize.x - buttonSize.x - HubMargin.right, y = HubPos.y + HubSize.y - buttonSize.y - HubMargin.bottom, z = .11},
 		size = buttonSize,
 		trigger = 10

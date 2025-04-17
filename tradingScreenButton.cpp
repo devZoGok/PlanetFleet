@@ -27,9 +27,11 @@ namespace battleship{
 		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
 		Game *game = Game::getSingleton();
 
+		StateManager *stateManager = GameManager::getSingleton()->getStateManager();
+		ActiveGameState *activeState = (ActiveGameState*)stateManager->getAppStateByType((int)AppStateType::ACTIVE_STATE);
+		activeState->setOfferScreen(true);
+
 		if(listbox->getNumLines() > 0){
-			StateManager *stateManager = GameManager::getSingleton()->getStateManager();
-			ActiveGameState *activeState = (ActiveGameState*)stateManager->getAppStateByType((int)AppStateType::ACTIVE_STATE);
 			Player *mainPlayer = activeState->getPlayer();
 			
 			TradeOffer *tradeOffer = game->findTradeOffers(mainPlayer, game->getPlayer(playerId))[listbox->getSelectedOption()];
