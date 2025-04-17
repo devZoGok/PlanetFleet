@@ -534,7 +534,6 @@ namespace battleship{
 			vector<Text*> textExceptions
 		){
 		removeAllGuiElements(buttonExceptions, listboxExceptions, checkboxExceptions, sliderExceptions, textboxExceptions, guiRectboxExceptions, textExceptions);
-		guiElements.clear();
 		parseLuaScript(script);
 	}
 
@@ -556,11 +555,12 @@ namespace battleship{
 		for(Node *r : guiRectboxs) removeGuiRectangle(r);
 		for(Text *t : texts) removeText(t);
 
-		guiElements.clear();
 		parseLuaScript(script);
 	}
 
 	void ConcreteGuiManager::parseLuaScript(string script){
+		guiElements.clear();
+
 		string basePath = GameManager::getSingleton()->getPath() + "Scripts/Gui/";
 		sol::state_view SOL_LUA_VIEW = generateView();
 		SOL_LUA_VIEW.script_file(basePath + script);
