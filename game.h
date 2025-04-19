@@ -27,9 +27,7 @@ namespace battleship{
 			void initTechnologies();
 			float calcAbilFromTech(Ability::Type, std::vector<int>, int, int);
 			bool isUnitUnlocked(std::vector<int>, int);
-			std::vector<TradeOffer*> findTradeOffers(Player*, Player*);
 			inline void setDebug(bool d){this->debug = d;}
-			inline void addTradeOffer(TradeOffer *to){tradeOffers.push_back(to);}
 			inline void addPlayer(Player *pl){players.push_back(pl);}
 			inline bool isDebug(){return debug;}
 			inline std::vector<Player*>& getPlayers(){return players;}
@@ -46,7 +44,6 @@ namespace battleship{
 			std::vector<Technology> technologies;
 			std::vector<Ability> abilities;
 			std::vector<Player*> players;
-			std::vector<TradeOffer*> tradeOffers;
 	};
 }
 

@@ -2,6 +2,7 @@
 #define PLAYER_H
 
 #include <vector>
+#include <algorithm>
 
 #include "gameManager.h"
 #include "trader.h"
@@ -11,6 +12,7 @@ namespace battleship{
 	class ResourceDeposit;
 	class Projectile;
 	class Unit;
+	struct TradeOffer;
 
 	enum class ResourceType{REFINEDS, WEALTH, RESEARCH};
 
@@ -32,7 +34,8 @@ namespace battleship{
 		void addTechnology(int);
 		int getResource(ResourceType);
 		void updateResource(ResourceType, int, bool);
-		void build(int, vb01::Vector3, vb01::Quaternion, bool);
+		void addTradeOffer(Player*, TradeOffer*);
+		std::vector<TradeOffer*> getTradeOffers(Player*);
 		inline Trader* getTrader(){return trader;}
 		inline void deselectUnits(){selectedUnits.clear();}
 		inline Unit* getSelectedUnit(int id){return selectedUnits[id];}
@@ -87,8 +90,10 @@ namespace battleship{
 		std::vector<ResourceDeposit*> resourceDeposits;
         vb01::Vector3 color;
 		vb01::Material *colorMaterial = nullptr;
+		std::vector<std::pair<Player*, std::vector<TradeOffer*>>> tradeOffers;
 
 		int getOrderLineId(Order::TYPE, vb01::Vector3, vb01::Vector3);
+		void initTradeOffersVec();
     };
 }
 

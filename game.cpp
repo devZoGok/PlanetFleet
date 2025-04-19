@@ -276,14 +276,4 @@ namespace battleship{
 
 		return false;
 	}
-
-	vector<TradeOffer*> Game::findTradeOffers(Player *pl1, Player *pl2){
-		vector<TradeOffer*> offers;
-
-		for(TradeOffer *to : tradeOffers)
-			if((to->initPlayer == pl1 || to->recPlayer == pl1) && (to->initPlayer == pl2 || to->recPlayer == pl2))
-				offers.push_back(to);
-
-		return offers;
-	}
 }

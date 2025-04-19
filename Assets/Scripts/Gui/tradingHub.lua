@@ -7,6 +7,9 @@ HubMargin = {top = 10, left = 10, right = 10, bottom = 10}
 buttonSize = {x = 100, y = 20}
 textboxSize = {x = 200, y = 25}
 
+warIcon = 'Icons/PlayerStates/war.png'
+allianceIcon = 'Icons/PlayerStates/alliance.png'
+
 gui = {
 	{
 		guiType = GuiType.GUI_RECTANGLE,

@@ -37,6 +37,7 @@ namespace battleship{
 
 			SOL_LUA_VIEW.script("lineId = " + to_string(lineId));
 			SOL_LUA_VIEW.script("playerId = " + to_string(i));
+			SOL_LUA_VIEW.script(string("relationsIcon = ") + (players[i]->getTeam() == mainPlayer->getTeam() ? "allianceIcon" : "warIcon"));
 			guiManager->parseLuaScript("tradingPlayerGuiTray.lua");
 
 			vector<Button*> guiButtons = guiManager->getButtons();
@@ -47,7 +48,7 @@ namespace battleship{
 
 			int numListboxes = guiManager->getListboxes().size();
 			Listbox *listbox = guiManager->getListboxes()[numListboxes - 1];
-			int numOffers = game->findTradeOffers(mainPlayer, players[i]).size();
+			int numOffers = mainPlayer->getTradeOffers(players[i]).size();
 
 			for(int j = 0; j < numOffers; j++)
 				listbox->addLine(L"TRADE_OFFER_" + to_wstring(j));

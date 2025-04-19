@@ -24,6 +24,8 @@ namespace battleship{
 	{}
 
 	void TradingScreenButton::onClick(){
+		generateView().script("playerId = " + to_string(playerId));
+
 		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
 		Game *game = Game::getSingleton();
 
@@ -34,17 +36,17 @@ namespace battleship{
 		if(listbox->getNumLines() > 0){
 			Player *mainPlayer = activeState->getPlayer();
 			
-			TradeOffer *tradeOffer = game->findTradeOffers(mainPlayer, game->getPlayer(playerId))[listbox->getSelectedOption()];
+			TradeOffer *tradeOffer = mainPlayer->getTradeOffers(game->getPlayer(playerId))[listbox->getSelectedOption()];
 
 			ActiveStateButton::onClick();
 			vector<Textbox*> textboxes = guiManager->getTextboxes();
 			
-			textboxes[0]->setEntry(to_wstring(tradeOffer->recRefineds));
-			textboxes[1]->setEntry(to_wstring(tradeOffer->initRefineds));
-			textboxes[2]->setEntry(to_wstring(tradeOffer->recWealth));
-			textboxes[3]->setEntry(to_wstring(tradeOffer->initWealth));
-			textboxes[4]->setEntry(to_wstring(tradeOffer->recResearch));
-			textboxes[5]->setEntry(to_wstring(tradeOffer->initResearch));
+			textboxes[0]->setEntry(to_wstring(tradeOffer->buyRefineds));
+			textboxes[1]->setEntry(to_wstring(tradeOffer->sellRefineds));
+			textboxes[2]->setEntry(to_wstring(tradeOffer->buyWealth));
+			textboxes[3]->setEntry(to_wstring(tradeOffer->sellWealth));
+			textboxes[4]->setEntry(to_wstring(tradeOffer->buyResearch));
+			textboxes[5]->setEntry(to_wstring(tradeOffer->sellResearch));
 		}
 		else
 			ActiveStateButton::onClick();

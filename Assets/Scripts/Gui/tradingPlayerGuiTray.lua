@@ -4,8 +4,6 @@ buttonSize = {x = 100, y = 20}
 textboxSize = {x = 200, y = 20}
 
 height = HubPos.y + HubMargin.top + lineId * 30
-warIcon = 'Icons/PlayerStates/war.png'
-allianceIcon = 'Icons/PlayerStates/alliance.png'
 
 gui = {
 	{
@@ -23,7 +21,7 @@ gui = {
 		guiType = GuiType.GUI_RECTANGLE,
 		pos = {x = HubPos.x + HubMargin.left + 100, y = height, z = .11},
 		size = {x = 50, y = 50},
-		imagePath = warIcon
+		imagePath = relationsIcon
 	},
 	{
 		pos = {x = HubPos.x + HubMargin.left + 200, y = height + 25, z = .11},

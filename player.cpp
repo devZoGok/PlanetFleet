@@ -1,9 +1,11 @@
 #include <solUtil.h>
+#include <stateManager.h>
 
 #include "player.h"
+#include "game.h"
 #include "structure.h"
 #include "projectile.h"
-#include "stateManager.h"
+#include "tradeOffer.h"
 #include "activeGameState.h"
 #include "resourceDeposit.h"
 
@@ -213,11 +215,30 @@ namespace battleship{
 		}
 	}
 
-	void Player::build(int id, Vector3 pos, Quaternion rot, bool additionalOrder){
-		/*
-		Unit *buildStruct = GameObjectFactory::createUnit(this, id, pos, rot);
-		addUnit(buildStruct);
-		issueOrder(Order::TYPE::BUILD, vector<Order::Target>{Order::Target(buildStruct)}, additionalOrder);
-		*/
+	void Player::initTradeOffersVec(){
+		vector<Player*> players = Game::getSingleton()->getPlayers();
+
+		for(Player *pl : players){
+			if(this == pl) continue;
+
+			if(team == pl->getTeam())
+				tradeOffers.push_back(make_pair(pl, vector<TradeOffer*>{}));
+		}
+	}
+
+	void Player::addTradeOffer(Player *player, TradeOffer *offer){
+		if(tradeOffers.empty()) initTradeOffersVec();
+
+		for(pair<Player*, vector<TradeOffer*>> &offers : tradeOffers)
+			if(offers.first == player)
+				offers.second.push_back(offer);
+	}
+
+	vector<TradeOffer*> Player::getTradeOffers(Player *player){
+		for(pair<Player*, vector<TradeOffer*>> offers : tradeOffers)
+			if(offers.first == player)
+				return offers.second;
+
+		return vector<TradeOffer*>{};
 	}
 }
