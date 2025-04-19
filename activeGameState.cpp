@@ -147,7 +147,15 @@ namespace battleship{
 
 			bool supply = (
 					gameObjUnit && 
-					((Unit*)gameObjHoveredOn)->getUnitClass() == UnitClass::EXTRACTOR &&
+					(
+						(
+							((Unit*)gameObjHoveredOn)->getUnitClass() == UnitClass::EXTRACTOR && 
+							((Extractor*)gameObjHoveredOn)->getDeposit()->getAmmount()
+						) | 
+						((Unit*)gameObjHoveredOn)->getUnitClass() == UnitClass::TRADE_CENTER | 
+						((Unit*)gameObjHoveredOn)->getUnitClass() == UnitClass::REFINERY | 
+						((Unit*)gameObjHoveredOn)->getUnitClass() == UnitClass::LAB
+					) &&
 					mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::RESOURCE_ROVER
 			);
 
@@ -157,7 +165,7 @@ namespace battleship{
 					cursorState = CursorState::GARRISON;
 				}
 				else if(supply){
-					orderPossible = (ownGameObj && ((Extractor*)gameObjHoveredOn)->getDeposit()->getAmmount());
+					orderPossible = ownGameObj;
 					cursorState = CursorState::SUPPLY;
 				}
 				else if(gameObjUnit && !ownGameObj)
@@ -169,7 +177,7 @@ namespace battleship{
 				if(cursorState == CursorState::GARRISON)
 					orderPossible = (ownGameObj && gameObjTransport && canGarrison);
 				else if(cursorState == CursorState::SUPPLY)
-					orderPossible = (ownGameObj && supply && ((Extractor*)gameObjHoveredOn)->getDeposit()->getAmmount());
+					orderPossible = (ownGameObj && supply);
 				else if(cursorState == CursorState::HACK)
 					orderPossible = (!ownGameObj && gameObjUnit && mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::ENGINEER);
 				else if(gameObjUnit)

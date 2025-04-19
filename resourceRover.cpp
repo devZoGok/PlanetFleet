@@ -18,6 +18,8 @@ namespace battleship{
 		Vector2 size = Vector2(lenHpBar, 10);
 		loadBackground = Unit::createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 0, 1));
 		loadForeground = Unit::createBar(Vector2::VEC_ZERO, size,  Vector4(1, 1, 0, 1));
+
+		initProperties();
 	}
 
 	ResourceRover::~ResourceRover(){
@@ -26,7 +28,6 @@ namespace battleship{
 	}
 
 	void ResourceRover::initProperties(){
-		Vehicle::initProperties();
 		Game *game = Game::getSingleton();
 		vector<int> currTechs = player->getTechnologies();
 
@@ -36,54 +37,93 @@ namespace battleship{
 		loadRate = unitTable["loadRate"]; loadRate += game->calcAbilFromTech(Ability::Type::LOAD_RATE, currTechs, (int)GameObject::type, id);
 	}
 
+	//TODO equate rover load and extractor draw rates
+	void ResourceRover::collectRefineds(Order order, float minDist){
+		vector<Unit*> units = player->getUnits();
+		vector<Structure*> extractors, refineries;
+
+		for(Unit *unit : units){
+			if(unit->getUnitClass() == UnitClass::EXTRACTOR && ((Extractor*)unit)->getDeposit()->getAmmount() > 0)
+				extractors.push_back((Structure*)unit);
+			else if(unit->getUnitClass() == UnitClass::REFINERY)
+				refineries.push_back((Structure*)unit);
+		}
+
+		nearestExtractor = (Extractor*)getClosestUnit(extractors);
+		nearestRefinery = getClosestUnit(refineries);
+
+		if(nearestExtractor && nearestExtractor->getPos().getDistanceFrom(pos) <= minDist){
+			ResourceDeposit *deposit = nearestExtractor->getDeposit();
+
+			if(canLoad() && deposit->getAmmount() > 0){
+				if(nearestExtractor->canDraw()){
+					nearestExtractor->draw();
+					load[(int)ResourceType::REFINEDS] += loadSpeed;
+					lastLoadTime = getTime();
+				}
+			}
+			else if(calcTotalLoad() == capacity && nearestRefinery)
+				preparePathpoints(order, nearestRefinery->getPos(), true);
+		}
+		else if(!nearestExtractor){
+			if(nearestRefinery && load[(int)ResourceType::REFINEDS] > 0)
+				preparePathpoints(order, nearestRefinery->getPos(), true);
+			else
+				removeOrder(0);
+		}
+
+		if(nearestRefinery && nearestRefinery->getPos().getDistanceFrom(pos) <= minDist){
+			if(canUnload((int)ResourceType::REFINEDS)){
+				load[(int)ResourceType::REFINEDS] -= loadSpeed;
+				player->updateResource(ResourceType::REFINEDS, loadSpeed, true);
+				lastLoadTime = getTime();
+			}
+			else if(load[(int)ResourceType::REFINEDS] == 0 && nearestExtractor)
+				preparePathpoints(order, nearestExtractor->getPos());
+		}
+	}
+
+	void ResourceRover::transferResource(Structure *targStruct, float minDist){
+		bool closeEnough = (pos.getDistanceFrom(targStruct->getPos()) <= minDist);
+		ResourceType resType;
+
+		switch(targStruct->getUnitClass()){
+			case UnitClass::TRADE_CENTER:
+				resType = ResourceType::WEALTH;
+				break;
+			case UnitClass::REFINERY:
+				resType = ResourceType::REFINEDS;
+				break;
+			case UnitClass::LAB:
+				resType = ResourceType::RESEARCH;
+				break;
+		}
+
+		if(closeEnough){
+			if(player == targStruct->getPlayer() && canLoad() && player->getResource(resType) > 0){
+				player->updateResource(resType, -loadSpeed, true);
+				load[(int)resType] += loadSpeed;
+				lastLoadTime = getTime();
+			}
+			else if(player != targStruct->getPlayer() && canUnload((int)resType)){
+				targStruct->getPlayer()->updateResource(resType, loadSpeed, true);
+				load[(int)resType] -= loadSpeed;
+				lastLoadTime = getTime();
+			}
+		}
+	}
+
 	void ResourceRover::supply(Order order){
 		float minDist = .5 * Map::getSingleton()->getCellSize().x;
-
+		
 		if(!pathPoints.empty())
 			navigate(minDist);
 		else{
-			vector<Unit*> units = player->getUnits();
-			vector<Structure*> extractors, refineries;
+			Unit *targUnit = order.targets[0].unit;
 
-			for(Unit *unit : units){
-				if(unit->getUnitClass() == UnitClass::EXTRACTOR && ((Extractor*)unit)->getDeposit()->getAmmount() > 0)
-					extractors.push_back((Structure*)unit);
-				else if(unit->getUnitClass() == UnitClass::REFINERY)
-					refineries.push_back((Structure*)unit);
-			}
-
-			nearestExtractor = (Extractor*)getClosestUnit(extractors);
-			nearestRefinery = getClosestUnit(refineries);
-
-			if(nearestExtractor && nearestExtractor->getPos().getDistanceFrom(pos) <= minDist){
-				ResourceDeposit *deposit = nearestExtractor->getDeposit();
-
-				if(canLoad() && deposit->getAmmount() > 0){
-					if(nearestExtractor->canDraw()){
-						nearestExtractor->draw();
-						load += loadSpeed;
-						lastLoadTime = getTime();
-					}
-				}
-				else if(load == capacity && nearestRefinery)
-					preparePathpoints(order, nearestRefinery->getPos(), true);
-			}
-			else if(!nearestExtractor){
-				if(nearestRefinery && load > 0)
-					preparePathpoints(order, nearestRefinery->getPos(), true);
-				else
-					removeOrder(0);
-			}
-
-			if(nearestRefinery && nearestRefinery->getPos().getDistanceFrom(pos) <= minDist){
-				if(canUnload()){
-					load -= loadSpeed;
-					player->updateResource(ResourceType::REFINEDS, 1, true);
-					lastLoadTime = getTime();
-				}
-				else if(load == 0 && nearestExtractor)
-					preparePathpoints(order, nearestExtractor->getPos());
-			}
+			if(targUnit->getUnitClass() == UnitClass::EXTRACTOR)
+				collectRefineds(order, minDist);
+			else transferResource((Structure*)targUnit, minDist);
 		}
 	}
 
@@ -100,7 +140,7 @@ namespace battleship{
 		vector<Player*> selectingPlayers = getSelectingPlayers();
 		bool mainPlayerSelecting = (activeState && find(selectingPlayers.begin(), selectingPlayers.end(), mainPlayer) != selectingPlayers.end());
 
-		Unit::displayUnitStats(loadForeground, loadBackground, load, capacity, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
+		Unit::displayUnitStats(loadForeground, loadBackground, calcTotalLoad(), capacity, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
 	}
 
 	Unit* ResourceRover::getClosestUnit(vector<Structure*> structs){
