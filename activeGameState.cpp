@@ -193,7 +193,7 @@ namespace battleship{
 
 					cursorState = CursorState::SUPPLY;
 				}
-				else if(gameObjUnit && !ownGameObj)
+				else if(gameObjUnit && !(ownGameObj || alliedGameObj))
 					cursorState = CursorState::ATTACK;
 				else
 					cursorState = CursorState::NORMAL;
@@ -201,8 +201,15 @@ namespace battleship{
 			else{
 				if(cursorState == CursorState::GARRISON)
 					orderPossible = (ownGameObj && gameObjTransport && canGarrison);
-				else if(cursorState == CursorState::SUPPLY)
-					orderPossible = (roverSelected && (ownExtractor));
+				else if(cursorState == CursorState::SUPPLY){
+					bool canLoad = (rover->calcTotalLoad() < rover->getCapacity());
+					bool transfer = (
+						(refinery && ((ownGameObj && canLoad) || (alliedGameObj && sellRefs && rover->getLoad((int)ResourceType::REFINEDS) > 0))) ||
+						(tradeCenter && ((ownGameObj && canLoad) || (alliedGameObj && sellWealth && rover->getLoad((int)ResourceType::WEALTH) > 0))) ||
+						(lab && ((ownGameObj && canLoad) || (alliedGameObj && sellTech && rover->getLoad((int)ResourceType::RESEARCH) > 0)))
+					);
+					orderPossible = (roverSelected && (ownExtractor || transfer));
+				}
 				else if(cursorState == CursorState::HACK)
 					orderPossible = (!ownGameObj && gameObjUnit && mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::ENGINEER);
 				else if(gameObjUnit)
