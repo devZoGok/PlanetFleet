@@ -40,7 +40,7 @@ namespace battleship{
 		if(researchQueue.empty()){
 			if(health > .3 * maxHealth && player->getResource(ResourceType::REFINEDS) >= researchCost && canUpdateResearch()){
 				player->updateResource(ResourceType::RESEARCH, generationSpeed, true);
-				player->updateResource(ResourceType::REFINEDS, researchCost, true);
+				player->updateResource(ResourceType::REFINEDS, -researchCost, true);
 				lastUpdateTime = getTime();
 			}
 
