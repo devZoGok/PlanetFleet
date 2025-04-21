@@ -35,6 +35,6 @@ namespace battleship{
 		ActiveGameState *activeState = (ActiveGameState*)stateManager->getAppStateByType((int)AppStateType::ACTIVE_STATE);
 		Player *mainPlayer = activeState->getPlayer();
 
-		mainPlayer->addTradeOffer(Game::getSingleton()->getPlayer(playerId), new TradeOffer(true, true, buyRef, sellRef, buyWealth, sellWealth, buyRes, sellRes));
+		mainPlayer->addTradeOffer(Game::getSingleton()->getPlayer(playerId), new TradeOffer(buyRef, sellRef, buyWealth, sellWealth, buyRes, sellRes));
 	}
 }

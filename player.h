@@ -14,6 +14,7 @@ namespace battleship{
 	class Unit;
 	struct TradeOffer;
 
+	const int NUM_RESOURCES = 3;
 	enum class ResourceType{REFINEDS, WEALTH, RESEARCH};
 
     class Player {
@@ -31,11 +32,12 @@ namespace battleship{
 		void selectUnits(std::vector<Unit*>);
 		std::vector<Unit*> getUnitsById(int, int = -1);
 		std::vector<Unit*> getUnitsByClass(UnitClass, int = -1);
-		void addTechnology(int);
-		int getResource(ResourceType);
-		void updateResource(ResourceType, int, bool);
+		void addTechnology(int id){technologies.push_back(id);}
+		void updateTradedResource(Player*, ResourceType, int, bool, bool);
 		void addTradeOffer(Player*, TradeOffer*);
 		std::vector<TradeOffer*> getTradeOffers(Player*);
+		inline int getResource(ResourceType rt){return resources[(int)rt];}
+		inline void updateResource(ResourceType rt, int amount, bool add){resources[(int)rt] = (add ? resources[(int)rt] + amount : amount);}
 		inline Trader* getTrader(){return trader;}
 		inline void deselectUnits(){selectedUnits.clear();}
 		inline Unit* getSelectedUnit(int id){return selectedUnits[id];}
@@ -75,10 +77,17 @@ namespace battleship{
 		inline vb01::Material* getColorMaterial(){return colorMaterial;}
 		inline std::vector<int> getTechnologies(){return technologies;}
     private:
+		struct TradedResource{
+			ResourceType type;
+			int taken = 0, given = 0, received = 0, hadTaken = 0;
+
+			TradedResource(ResourceType t) : type(t){}
+		};
+
 		bool cpuPlayer = false;
 		std::vector<int> technologies;
 		int luaPlayerId;
-        int refineds = 0, wealth = 0, research = 0;
+        int resources[3]{0, 0, 0};
 		int faction, difficulty, team;
 		int vehiclesBuilt = 0, vehiclesDestroyed = 0, vehiclesLost = 0;
 		int structuresBuilt = 0, structuresDestroyed = 0, structuresLost = 0;
@@ -91,9 +100,11 @@ namespace battleship{
         vb01::Vector3 color;
 		vb01::Material *colorMaterial = nullptr;
 		std::vector<std::pair<Player*, std::vector<TradeOffer*>>> tradeOffers;
+		std::vector<std::pair<Player*, std::vector<TradedResource>>> tradedResources;
 
 		int getOrderLineId(Order::TYPE, vb01::Vector3, vb01::Vector3);
-		void initTradeOffersVec();
+		void initTradingVecs();
+		void updateTradeOffers();
     };
 }
 

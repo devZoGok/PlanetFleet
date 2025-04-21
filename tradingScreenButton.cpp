@@ -41,12 +41,12 @@ namespace battleship{
 			ActiveStateButton::onClick();
 			vector<Textbox*> textboxes = guiManager->getTextboxes();
 			
-			textboxes[0]->setEntry(to_wstring(tradeOffer->buyRefineds));
-			textboxes[1]->setEntry(to_wstring(tradeOffer->sellRefineds));
-			textboxes[2]->setEntry(to_wstring(tradeOffer->buyWealth));
-			textboxes[3]->setEntry(to_wstring(tradeOffer->sellWealth));
-			textboxes[4]->setEntry(to_wstring(tradeOffer->buyResearch));
-			textboxes[5]->setEntry(to_wstring(tradeOffer->sellResearch));
+			textboxes[0]->setEntry(to_wstring(tradeOffer->tradeResources[0][0]));
+			textboxes[1]->setEntry(to_wstring(tradeOffer->tradeResources[0][1]));
+			textboxes[2]->setEntry(to_wstring(tradeOffer->tradeResources[1][0]));
+			textboxes[3]->setEntry(to_wstring(tradeOffer->tradeResources[1][1]));
+			textboxes[4]->setEntry(to_wstring(tradeOffer->tradeResources[2][0]));
+			textboxes[5]->setEntry(to_wstring(tradeOffer->tradeResources[2][1]));
 		}
 		else
 			ActiveStateButton::onClick();
