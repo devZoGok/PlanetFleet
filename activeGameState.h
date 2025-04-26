@@ -29,6 +29,8 @@ namespace battleship{
 			ATTACK,
 			GARRISON,
 			SUPPLY,
+			LOAD,
+			UNLOAD,
 			HACK
 		};
 

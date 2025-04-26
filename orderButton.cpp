@@ -45,6 +45,12 @@ namespace battleship{
 						case Order::TYPE::SUPPLY:
 							cs = ActiveGameState::CursorState::SUPPLY;
 							break;
+						case Order::TYPE::LOAD:
+							cs = ActiveGameState::CursorState::LOAD;
+							break;
+						case Order::TYPE::UNLOAD:
+							cs = ActiveGameState::CursorState::UNLOAD;
+							break;
 						case Order::TYPE::HACK:
 							cs = ActiveGameState::CursorState::HACK;
 							break;

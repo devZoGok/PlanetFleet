@@ -37,7 +37,7 @@ namespace battleship{
 	class Projectile;
     
     struct Order {
-        enum class TYPE {ATTACK, BUILD, MOVE, GARRISON, EJECT, PATROL, LAUNCH, SUPPLY, HACK};
+        enum class TYPE {ATTACK, BUILD, MOVE, GARRISON, EJECT, PATROL, LAUNCH, SUPPLY, LOAD, UNLOAD, HACK};
 			struct Target{
 				Unit *unit = nullptr;
 				vb01::Vector3 pos;
@@ -53,9 +53,14 @@ namespace battleship{
         std::vector<Target> targets;
 
 		Order(){}
-		Order(TYPE t, std::vector<Target> targ, vb01::Vector3 dir = vb01::Vector3::VEC_ZERO, int lid = -1, bool pa = true) : type(t), playerAssigned(pa), lineId(lid), targets(targ), direction(dir){}
+		Order(TYPE t, std::vector<Target> targ, vb01::Vector3 dir = vb01::Vector3::VEC_ZERO, int lid = -1, bool pa = true) :
+		   	type(t), 
+			playerAssigned(pa), 
+			lineId(lid), 
+			targets(targ), 
+			direction(dir){}
     };
-    
+
     enum class MoveDir {LEFT, UP, FORW};
     enum class Corner {FRONT_LEFT, FRONT_RIGHT, REAR_LEFT, REAR_RIGHT};
     enum class UnitType {UNDERWATER, SEA_LEVEL, HOVER, LAND, AIR, NONE = -1};
@@ -205,6 +210,8 @@ namespace battleship{
         virtual void patrol(Order){}
         virtual void launch(Order);
 		virtual void supply(Order){}
+		virtual void load(Order){}
+		virtual void unload(Order){}
 		virtual void hack(Order){}
 		float calculateRotation(vb01::Vector3, float, float);
 		void removeBar(vb01::Node*);

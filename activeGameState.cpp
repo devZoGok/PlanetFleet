@@ -148,17 +148,17 @@ namespace battleship{
 					}
 
 			vector<TradeOffer*> offers = (gameObjHoveredOn && alliedGameObj ? mainPlayer->getTradeOffers(gameObjHoveredOn->getPlayer()) : vector<TradeOffer*>{});
-			bool tradeResource[NUM_RESOURCES][2], trade = false;
+			bool tradeResource[NUM_RESOURCES], trade = false;
+			int unloadFlag = (int)shiftPressed;
 
-			for(TradeOffer *offer : offers)
-				for(int i = 0; i < NUM_RESOURCES; i++)
-					for(int j = 0; j < 2; j++){
-						if(!tradeResource[i][j] && offer->tradeResources[i][j] > 0){
-							tradeResource[i][j] = true;
-							trade = true;
-						}
-						else tradeResource[i][j] = false;
-					}
+			for(int i = 0; i < NUM_RESOURCES && !offers.empty(); i++){
+				if(offers[0]->tradeResources[i][unloadFlag] > 0){
+					tradeResource[i] = true;
+					trade = true;
+				}
+				else
+					tradeResource[i] = false;
+			}
 
 			int objClass = (gameObjUnit ? int(((Unit*)gameObjHoveredOn)->getUnitClass()) : -1);
 			bool tradeCenter = ((UnitClass)objClass == UnitClass::TRADE_CENTER);
@@ -179,34 +179,30 @@ namespace battleship{
 					cursorState = CursorState::SUPPLY;
 				}
 				else if(roverSelected && (tradeCenter || refinery || lab) && (ownGameObj || (alliedGameObj && trade))){
-					bool canLoad = (rover && rover->calcTotalLoad() < rover->getCapacity());
-					bool tradeRes;
+					bool tradeRes = false;
 					int resId;
-
+					
 					switch((UnitClass)objClass){
 						case UnitClass::TRADE_CENTER:
-							tradeRes = (tradeResource[(int)ResourceType::WEALTH][0] || tradeResource[(int)ResourceType::WEALTH][1]);
+							tradeRes = tradeResource[(int)ResourceType::WEALTH];
 							resId = (int)ResourceType::WEALTH;
 							break;
 						case UnitClass::REFINERY:
-							tradeRes = (tradeResource[(int)ResourceType::REFINEDS][0] || tradeResource[(int)ResourceType::REFINEDS][1]);
+							tradeRes = tradeResource[(int)ResourceType::REFINEDS];
 							resId = (int)ResourceType::REFINEDS;
 							break;
 						case UnitClass::LAB:
-							tradeRes = (tradeResource[(int)ResourceType::RESEARCH][0] || tradeResource[(int)ResourceType::RESEARCH][1]);
+							tradeRes = tradeResource[(int)ResourceType::RESEARCH];
 							resId = (int)ResourceType::RESEARCH;
 							break;
 					}
+					
+					bool canLoad = (rover && rover->calcTotalLoad() < rover->getCapacity());
+					orderPossible = (unloadFlag ? rover->getLoad(resId) > 0 : canLoad);
 
-					orderPossible = (
-							(ownGameObj && canLoad) || 
-							(
-								alliedGameObj && 
-								tradeRes && 
-								(rover->calcTotalLoad() < rover->getCapacity() || rover->getLoad(resId) > 0)
-							)
-					);
-					cursorState = CursorState::SUPPLY;
+					if(alliedGameObj) orderPossible = tradeRes && orderPossible;
+
+					cursorState = (unloadFlag ? CursorState::UNLOAD : CursorState::LOAD);
 				}
 				else if(gameObjUnit && !(ownGameObj || alliedGameObj))
 					cursorState = CursorState::ATTACK;
@@ -216,18 +212,20 @@ namespace battleship{
 			else{
 				if(cursorState == CursorState::GARRISON)
 					orderPossible = (ownGameObj && gameObjTransport && canGarrison);
-				else if(cursorState == CursorState::SUPPLY){
-					bool tradeRefs = (tradeResource[(int)ResourceType::REFINEDS][0] || tradeResource[(int)ResourceType::REFINEDS][1]);
-					bool tradeWealth = (tradeResource[(int)ResourceType::WEALTH][0] || tradeResource[(int)ResourceType::WEALTH][1]);
-					bool tradeTech = (tradeResource[(int)ResourceType::RESEARCH][0] || tradeResource[(int)ResourceType::RESEARCH][1]);
-
+				else if(cursorState == CursorState::SUPPLY)
+					orderPossible = (roverSelected && ownExtractor);
+				else if(cursorState == CursorState::LOAD || cursorState == CursorState::UNLOAD){
+					bool tradeRefs = tradeResource[(int)ResourceType::REFINEDS];
+					bool tradeWealth = tradeResource[(int)ResourceType::WEALTH];
+					bool tradeTech = tradeResource[(int)ResourceType::RESEARCH];
+					
 					bool canLoad = (rover->calcTotalLoad() < rover->getCapacity());
-					bool transfer = (
+					bool loadResource = (
 						(refinery && ((ownGameObj && canLoad) || (alliedGameObj && tradeRefs && rover->getLoad((int)ResourceType::REFINEDS) > 0))) ||
 						(tradeCenter && ((ownGameObj && canLoad) || (alliedGameObj && tradeWealth && rover->getLoad((int)ResourceType::WEALTH) > 0))) ||
 						(lab && ((ownGameObj && canLoad) || (alliedGameObj && tradeTech && rover->getLoad((int)ResourceType::RESEARCH) > 0)))
 					);
-					orderPossible = (roverSelected && (ownExtractor || transfer));
+					orderPossible = (roverSelected && loadResource);
 				}
 				else if(cursorState == CursorState::HACK)
 					orderPossible = (!ownGameObj && gameObjUnit && mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::ENGINEER);
@@ -249,6 +247,8 @@ namespace battleship{
 				tex = (orderPossible ? garrisonTex : noGarrisonTex);
 				break;
 			case CursorState::SUPPLY:
+			case CursorState::LOAD:
+			case CursorState::UNLOAD:
 				tex = (orderPossible ? supplyTex : noSupplyTex);
 				break;
 			case CursorState::HACK:
@@ -551,6 +551,7 @@ namespace battleship{
     }
 
 	//TODO fix ejectable unit selection with multiple transports selected
+	//TODO replace shiftPressed with a dedicated buy flag
     void ActiveGameState::issueOrder(Order::TYPE type, vector<Order::Target> targets, bool addOrder) {
 		depth = 1;
 		Vector3 destDir =  Vector3::VEC_ZERO;
@@ -674,6 +675,12 @@ namespace battleship{
 						}
 						else if(cursorState == CursorState::SUPPLY){
 							if(orderPossible) issueOrder(Order::TYPE::SUPPLY, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
+						}
+						else if(cursorState == CursorState::LOAD){
+							if(orderPossible) issueOrder(Order::TYPE::LOAD, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
+						}
+						else if(cursorState == CursorState::UNLOAD){
+							if(orderPossible) issueOrder(Order::TYPE::UNLOAD, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
 						}
 						else if(cursorState == CursorState::ATTACK){
 							if(controlPressed && !gameObjHoveredOn){

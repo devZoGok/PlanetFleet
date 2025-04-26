@@ -41,29 +41,34 @@ namespace battleship{
 
 		vector<Unit*> units = this->units; 
 		for(Unit *u : units){
-			if(!u->isRemove())
-				u->update();
-			else
-				removeUnit(u);
+			if(!u->isRemove()) u->update();
+			else removeUnit(u);
 		}
 
 		vector<Projectile*> projectiles = this->projectiles; 
 		for(Projectile *proj : projectiles){
-			if(!proj->isRemove())
-				proj->update();
-			else
-				removeProjectile(proj);
+			if(!proj->isRemove()) proj->update();
+			else removeProjectile(proj);
 		}
 
-		for(ResourceDeposit *rd : resourceDeposits)
-			rd->update();
+		for(ResourceDeposit *rd : resourceDeposits) rd->update();
 		
-		updateTradeOffers();
+		for(pair<Player*, vector<TradeOffer*>> &pair : tradeOffers){
+			if(pair.second.empty()) continue;
+
+			bool fulfiled = true;
+
+			for(int i = 0; i < NUM_RESOURCES && fulfiled; i++){
+				bool b = (pair.second[0]->tradeResources[i][0] == pair.second[0]->deliveredResources[i][0]);
+				bool s = (pair.second[0]->tradeResources[i][1] == pair.second[0]->deliveredResources[i][1]);
+
+				if(!(b && s)) fulfiled = false;
+			}
+
+			if(fulfiled)
+				pair.second.erase(pair.second.begin());
+		}
     }
-
-	void Player::updateTradeOffers(){
-
-	}
 
 	int Player::getOrderLineId(Order::TYPE type, Vector3 startPos, Vector3 endPos){
 		Vector3 color;
@@ -82,6 +87,8 @@ namespace battleship{
 				break;
       	    case Order::TYPE::BUILD:
       	    case Order::TYPE::SUPPLY:
+      	    case Order::TYPE::LOAD:
+      	    case Order::TYPE::UNLOAD:
 				color = Vector3(1, 1, 0);
       	        break;
       	    case Order::TYPE::HACK:

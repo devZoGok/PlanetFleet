@@ -629,6 +629,12 @@ namespace battleship{
                 case Order::TYPE::SUPPLY:
                     supply(order);
                     break;
+                case Order::TYPE::LOAD:
+                    load(order);
+                    break;
+                case Order::TYPE::UNLOAD:
+                    unload(order);
+                    break;
                 case Order::TYPE::HACK:
                     hack(order);
                     break;
@@ -702,6 +708,8 @@ namespace battleship{
 					return false;
 				}
 		    case Order::TYPE::SUPPLY:
+		    case Order::TYPE::LOAD:
+		    case Order::TYPE::UNLOAD:
 				return unitClass == UnitClass::RESOURCE_ROVER;
 		    case Order::TYPE::HACK:
 				{

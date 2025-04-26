@@ -104,7 +104,6 @@ namespace battleship{
 
 		int getOrderLineId(Order::TYPE, vb01::Vector3, vb01::Vector3);
 		void initTradingVecs();
-		void updateTradeOffers();
     };
 }
 
