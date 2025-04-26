@@ -626,14 +626,11 @@ namespace battleship{
                 case Order::TYPE::LAUNCH:
                     launch(order);
                     break;
-                case Order::TYPE::SUPPLY:
-                    supply(order);
                     break;
                 case Order::TYPE::LOAD:
-                    load(order);
-                    break;
+                case Order::TYPE::SUPPLY:
                 case Order::TYPE::UNLOAD:
-                    unload(order);
+                    handleResources(order);
                     break;
                 case Order::TYPE::HACK:
                     hack(order);

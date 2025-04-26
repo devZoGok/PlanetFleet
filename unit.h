@@ -209,9 +209,7 @@ namespace battleship{
         virtual void move(Order){}
         virtual void patrol(Order){}
         virtual void launch(Order);
-		virtual void supply(Order){}
-		virtual void load(Order){}
-		virtual void unload(Order){}
+		virtual void handleResources(Order){}
 		virtual void hack(Order){}
 		float calculateRotation(vb01::Vector3, float, float);
 		void removeBar(vb01::Node*);

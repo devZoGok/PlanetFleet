@@ -37,7 +37,7 @@ namespace battleship{
 		loadRate = unitTable["loadRate"]; loadRate += game->calcAbilFromTech(Ability::Type::LOAD_RATE, currTechs, (int)GameObject::type, id);
 	}
 
-	void ResourceRover::handleTransfer(Structure *targStruct, float minDist, bool loadResource){
+	void ResourceRover::loadResources(Structure *targStruct, float minDist, bool loadResource){
 		bool closeEnough = (pos.getDistanceFrom(targStruct->getPos()) <= minDist);
 		if(!closeEnough) return;
 
@@ -94,19 +94,6 @@ namespace battleship{
 		}
 	}
 
-	void ResourceRover::transfer(Order order, bool loadResource){
-		float minDist = .5 * Map::getSingleton()->getCellSize().x;
-		
-		if(!pathPoints.empty())
-			navigate(minDist);
-		else
-			handleTransfer((Structure*)order.targets[0].unit, minDist, loadResource);
-	}
-
-	void ResourceRover::load(Order order){transfer(order, true);}
-
-	void ResourceRover::unload(Order order){transfer(order, false);}
-
 	//TODO equate rover load and extractor draw rates
 	void ResourceRover::collectRefineds(Order order, float minDist){
 		vector<Unit*> units = player->getUnits();
@@ -153,13 +140,15 @@ namespace battleship{
 		}
 	}
 
-	void ResourceRover::supply(Order order){
+	void ResourceRover::handleResources(Order order){
 		float minDist = .5 * Map::getSingleton()->getCellSize().x;
 		
 		if(!pathPoints.empty())
 			navigate(minDist);
-		else
+		else if(order.type == Order::TYPE::SUPPLY)
 			collectRefineds(order, minDist);
+		else
+			loadResources((Structure*)order.targets[0].unit, minDist, order.type == Order::TYPE::LOAD);
 	}
 
 	void ResourceRover::update(){

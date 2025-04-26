@@ -22,11 +22,8 @@ namespace battleship{
 		private:
 			void initProperties();
 			void collectRefineds(Order, float);
-			void supply(Order);
-			void handleTransfer(Structure*, float, bool);
-			void transfer(Order, bool);
-			void load(Order);
-			void unload(Order);
+			void loadResources(Structure*, float, bool);
+			void handleResources(Order);
 			Unit* getClosestUnit(std::vector<Structure*>);
 
 			vb01::s64 lastLoadTime = 0;
