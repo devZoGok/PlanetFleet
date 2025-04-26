@@ -5,20 +5,22 @@
 
 namespace battleship{
 	struct TradeOffer{
-		Player *initPlayer = nullptr, *recPlayer = nullptr;
-		int initRefineds = 0, recRefineds = 0, initWealth = 0, recWealth = 0, initResearch = 0, recResearch = 0;
-		bool initPlAgreed = true, recPlAgreed = false;
+		bool sellerAggrees = true, sellerDelivers = true, buyerAggrees = true, buyerDelivers = false;
+		int tradeResources[NUM_RESOURCES][2], deliveredResources[NUM_RESOURCES][2];
 
-		TradeOffer(Player *ip, Player *rp, int ir, int rr, int iw, int rw, int it, int rt) : 
-			initPlayer(ip), 
-			recPlayer(rp), 
-			initRefineds(ir), 
-			recRefineds(rr), 
-			initWealth(iw), 
-			recWealth(rw), 
-			initResearch(it), 
-			recResearch(rr)
-		{}
+		TradeOffer(int br, int sr, int bw, int sw, int bt, int st){
+			tradeResources[(int)ResourceType::REFINEDS][0] = br;
+			tradeResources[(int)ResourceType::REFINEDS][1] = sr;
+			tradeResources[(int)ResourceType::WEALTH][0] = bw;
+			tradeResources[(int)ResourceType::WEALTH][1] = sw;
+			tradeResources[(int)ResourceType::RESEARCH][0] = bt;
+			tradeResources[(int)ResourceType::RESEARCH][1] = st;
+
+			for(int i = 0; i < NUM_RESOURCES; i++){
+				deliveredResources[i][0] = 0;
+				deliveredResources[i][1] = 0;
+			}
+		}
 	};
 }
 

@@ -111,21 +111,13 @@ gui = {
 	createResourceTrayGui(false, 2, ResourceTrayGuiId.TEXTBOX),
 	createResourceTrayGui(false, 2, ResourceTrayGuiId.INCREMENT),
 	createResourceTrayGui(false, 2, ResourceTrayGuiId.DECREMENT),
-	createResourceTrayGui(true, 3, ResourceTrayGuiId.ICON, IconPath.TIME),
-	createResourceTrayGui(true, 3, ResourceTrayGuiId.TEXTBOX),
-	createResourceTrayGui(true, 3, ResourceTrayGuiId.INCREMENT),
-	createResourceTrayGui(true, 3, ResourceTrayGuiId.DECREMENT),
-	createResourceTrayGui(false, 3, ResourceTrayGuiId.ICON, IconPath.TIME),
-	createResourceTrayGui(false, 3, ResourceTrayGuiId.TEXTBOX),
-	createResourceTrayGui(false, 3, ResourceTrayGuiId.INCREMENT),
-	createResourceTrayGui(false, 3, ResourceTrayGuiId.DECREMENT),
 
 	{
 		guiType = GuiType.BUTTON,
 		buttonType = ButtonType.PLAYER_TRADE,
 		name = 'Back',
 		guiScreen = 'tradingHub.lua',
-		pos = {x = HubPos.x + HubSize.x - 2 * buttonSize.x - HubMargin.right, y = HubPos.y + HubSize.y - buttonSize.y - HubMargin.bottom, z = .2},
+		pos = {x = HubPos.x + HubSize.x - 3 * buttonSize.x - HubMargin.right, y = HubPos.y + HubSize.y - buttonSize.y - HubMargin.bottom, z = .2},
 		size = buttonSize,
 		trigger = 10
 	},

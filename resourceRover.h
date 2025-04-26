@@ -14,15 +14,20 @@ namespace battleship{
 			ResourceRover(Player*, int, vb01::Vector3, vb01::Quaternion, Unit::State = Unit::State::STAND_GROUND);
 			~ResourceRover();
 			void update();
+			inline int getLoad(int id){return cargo[id];}
+			inline int calcTotalLoad(){return cargo[0] + cargo[1] + cargo[2];}
+			inline int getCapacity(){return capacity;}
+			inline bool canLoad(){return vb01::getTime() - lastLoadTime > loadRate && calcTotalLoad() < capacity;}
+			inline bool canUnload(int id){return vb01::getTime() - lastLoadTime > loadRate && cargo[id] > 0;}
 		private:
 			void initProperties();
-			void supply(Order);
+			void collectRefineds(Order, float);
+			void loadResources(Structure*, float, bool);
+			void handleResources(Order);
 			Unit* getClosestUnit(std::vector<Structure*>);
-			inline bool canLoad(){return vb01::getTime() - lastLoadTime > loadRate && load < capacity;}
-			inline bool canUnload(){return vb01::getTime() - lastLoadTime > loadRate && load > 0;}
 
 			vb01::s64 lastLoadTime = 0;
-			int load = 0, capacity, loadRate, loadSpeed;
+			int cargo[3]{0, 0, 0}, capacity, loadRate, loadSpeed;
 			Extractor *nearestExtractor = nullptr; 
 			Unit *nearestRefinery = nullptr;
 			vb01::Node *loadBackground = nullptr, *loadForeground = nullptr;

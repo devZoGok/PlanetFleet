@@ -1,9 +1,11 @@
 #include <solUtil.h>
+#include <stateManager.h>
 
 #include "player.h"
+#include "game.h"
 #include "structure.h"
 #include "projectile.h"
-#include "stateManager.h"
+#include "tradeOffer.h"
 #include "activeGameState.h"
 #include "resourceDeposit.h"
 
@@ -20,9 +22,10 @@ namespace battleship{
 		cpuPlayer(cpuPl), 
 		spawnPointId(sp), 
 		name("pl"), 
-		refineds(30000), 
 		trader(new Trader())
 	{
+		resources[0] = 30000;
+
 		colorMaterial = new Material(Root::getSingleton()->getLibPath() + "texture");
 		colorMaterial->addBoolUniform("lightingEnabled", true);
 		colorMaterial->addBoolUniform("texturingEnabled", false);
@@ -38,22 +41,33 @@ namespace battleship{
 
 		vector<Unit*> units = this->units; 
 		for(Unit *u : units){
-			if(!u->isRemove())
-				u->update();
-			else
-				removeUnit(u);
+			if(!u->isRemove()) u->update();
+			else removeUnit(u);
 		}
 
 		vector<Projectile*> projectiles = this->projectiles; 
 		for(Projectile *proj : projectiles){
-			if(!proj->isRemove())
-				proj->update();
-			else
-				removeProjectile(proj);
+			if(!proj->isRemove()) proj->update();
+			else removeProjectile(proj);
 		}
 
-		for(ResourceDeposit *rd : resourceDeposits)
-			rd->update();
+		for(ResourceDeposit *rd : resourceDeposits) rd->update();
+		
+		for(pair<Player*, vector<TradeOffer*>> &pair : tradeOffers){
+			if(pair.second.empty()) continue;
+
+			bool fulfiled = true;
+
+			for(int i = 0; i < NUM_RESOURCES && fulfiled; i++){
+				bool b = (pair.second[0]->tradeResources[i][0] == pair.second[0]->deliveredResources[i][0]);
+				bool s = (pair.second[0]->tradeResources[i][1] == pair.second[0]->deliveredResources[i][1]);
+
+				if(!(b && s)) fulfiled = false;
+			}
+
+			if(fulfiled)
+				pair.second.erase(pair.second.begin());
+		}
     }
 
 	int Player::getOrderLineId(Order::TYPE type, Vector3 startPos, Vector3 endPos){
@@ -73,6 +87,8 @@ namespace battleship{
 				break;
       	    case Order::TYPE::BUILD:
       	    case Order::TYPE::SUPPLY:
+      	    case Order::TYPE::LOAD:
+      	    case Order::TYPE::UNLOAD:
 				color = Vector3(1, 1, 0);
       	        break;
       	    case Order::TYPE::HACK:
@@ -184,40 +200,48 @@ namespace battleship{
 		return ucUnits;
 	}
 
-	void Player::addTechnology(int techId){
-		technologies.push_back(techId);
-	}
+	void Player::updateTradedResource(Player *player, ResourceType type, int amount, bool selfDistributed, bool increased){
+		for(pair<Player*, vector<TradedResource>> pair : tradedResources)
+			if(pair.first == player){
+				TradedResource &tr = pair.second[(int)type];
 
-	int Player::getResource(ResourceType type){
-		switch(type){
-			case ResourceType::REFINEDS:
-				return refineds;
-			case ResourceType::WEALTH:
-				return wealth;
-			case ResourceType::RESEARCH:
-				return research;
+				if(selfDistributed) (increased ? tr.taken : tr.given) += amount;
+				else (increased ? tr.received : tr.hadTaken) += amount;
+
+				break;
+			}
+	} 
+
+	void Player::initTradingVecs(){
+		vector<Player*> players = Game::getSingleton()->getPlayers();
+
+		for(Player *pl : players){
+			if(this == pl) continue;
+
+			if(team == pl->getTeam()){
+				tradeOffers.push_back(make_pair(pl, vector<TradeOffer*>{}));
+				tradedResources.push_back(make_pair(pl, vector<TradedResource>{
+							TradedResource(ResourceType::REFINEDS), 
+							TradedResource(ResourceType::WEALTH), 
+							TradedResource(ResourceType::RESEARCH)
+				}));
+			}
 		}
 	}
 
-	void Player::updateResource(ResourceType type, int ammount, bool add){
-		switch(type){
-			case ResourceType::REFINEDS:
-				refineds = (add ? refineds + ammount : ammount);
-				break;
-			case ResourceType::WEALTH:
-				wealth = (add ? wealth + ammount : ammount);
-				break;
-			case ResourceType::RESEARCH:
-				research = (add ? research + ammount : ammount);
-				break;
-		}
+	void Player::addTradeOffer(Player *player, TradeOffer *offer){
+		if(tradeOffers.empty()) initTradingVecs();
+
+		for(pair<Player*, vector<TradeOffer*>> &offers : tradeOffers)
+			if(offers.first == player)
+				offers.second.push_back(offer);
 	}
 
-	void Player::build(int id, Vector3 pos, Quaternion rot, bool additionalOrder){
-		/*
-		Unit *buildStruct = GameObjectFactory::createUnit(this, id, pos, rot);
-		addUnit(buildStruct);
-		issueOrder(Order::TYPE::BUILD, vector<Order::Target>{Order::Target(buildStruct)}, additionalOrder);
-		*/
+	vector<TradeOffer*> Player::getTradeOffers(Player *player){
+		for(pair<Player*, vector<TradeOffer*>> offers : tradeOffers)
+			if(offers.first == player)
+				return offers.second;
+
+		return vector<TradeOffer*>{};
 	}
 }

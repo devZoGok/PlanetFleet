@@ -36,6 +36,7 @@
 #include "orderButton.h"
 #include "stateToggleButton.h"
 #include "minimapButton.h"
+#include "activeStateBackButton.h"
 
 namespace battleship{
 	using namespace std;
@@ -207,9 +208,8 @@ namespace battleship{
 			case SELL_RESEARCH:
 				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)SOL_LUA_STATE["UnitId"]["TRADE_CENTER"], TradeButton::Type::SELL_RESEARCH);
 				break;
-			case ACTIVE_GAME_STATE:
-				guiScreen = guiTable["guiScreen"];
-				button = new ActiveStateButton(pos, size, guiScreen, name, fontBasePath + "batang.ttf", (int)guiTable["trigger"], imagePath);
+			case ACTIVE_STATE_BACK:
+				button = new ActiveStateBackButton(pos, size, name);
 				break;
 			case PLAYER_TRADE:
 				guiScreen = guiTable["guiScreen"];
@@ -534,7 +534,6 @@ namespace battleship{
 			vector<Text*> textExceptions
 		){
 		removeAllGuiElements(buttonExceptions, listboxExceptions, checkboxExceptions, sliderExceptions, textboxExceptions, guiRectboxExceptions, textExceptions);
-		guiElements.clear();
 		parseLuaScript(script);
 	}
 
@@ -556,11 +555,12 @@ namespace battleship{
 		for(Node *r : guiRectboxs) removeGuiRectangle(r);
 		for(Text *t : texts) removeText(t);
 
-		guiElements.clear();
 		parseLuaScript(script);
 	}
 
 	void ConcreteGuiManager::parseLuaScript(string script){
+		guiElements.clear();
+
 		string basePath = GameManager::getSingleton()->getPath() + "Scripts/Gui/";
 		sol::state_view SOL_LUA_VIEW = generateView();
 		SOL_LUA_VIEW.script_file(basePath + script);

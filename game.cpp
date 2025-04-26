@@ -101,13 +101,13 @@ namespace battleship{
 
         if (!paused) {
             gm->getStateManager()->dettachAppState(activeState);
-			guiManager->readLuaScreenScript("gamePaused.lua", activeState->getButtons());
+			guiManager->readLuaScreenScript("gamePaused.lua", activeState->getGuiButtons());
         } 
         else {
 			for(string f : configData::scripts)
 				generateView().script_file(gm->getPath() + f);
 
-			guiManager->readLuaScreenScript("inGame.lua", activeState->getButtons());
+			guiManager->readLuaScreenScript("inGame.lua", activeState->getGuiButtons());
 			sol::state_view SOL_LUA_VIEW = generateView();
 			string gop = SOL_LUA_VIEW["gameObjPrefix"], vfxp = SOL_LUA_VIEW["vfxPrefix"];
 			AssetManager::getSingleton()->load(gm->getPath() + gop, true);
@@ -275,15 +275,5 @@ namespace battleship{
 		}
 
 		return false;
-	}
-
-	vector<TradeOffer*> Game::findTradeOffers(Player *pl1, Player *pl2){
-		vector<TradeOffer*> offers;
-
-		for(TradeOffer *to : tradeOffers)
-			if((to->initPlayer == pl1 || to->recPlayer == pl1) && (to->initPlayer == pl2 || to->recPlayer == pl2))
-				offers.push_back(to);
-
-		return offers;
 	}
 }
