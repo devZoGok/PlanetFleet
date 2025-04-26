@@ -1,14 +1,16 @@
 OrderType = {
-	HALT = -1, 
-	ATTACK = 0, 
-	BUILD = 1, 
-	MOVE = 2, 
-	GARRISON = 3, 
-	EJECT = 4, 
-	PATROL = 5, 
-	LAUNCH = 6, 
-	SUPPLY = 7, 
-	HACK = 8
+	HALT = -1,
+	ATTACK = 0,
+	BUILD = 1,
+	MOVE = 2,
+	GARRISON = 3,
+	EJECT = 4,
+	PATROL = 5,
+	LAUNCH = 6,
+	SUPPLY = 7,
+	LOAD = 8,
+	UNLOAD = 9,
+	HACK = 10
 }
 UnitId = {
 	WAR_MECH = 0,
@@ -353,7 +355,11 @@ units = {
 	},
 	{
 		weapons = {},
-		abilityButtons = {{buttonType = ButtonType.ORDER, name = 'Supply', orderType = OrderType.SUPPLY}},
+		abilityButtons = {
+			{buttonType = ButtonType.ORDER, name = 'Supply', orderType = OrderType.SUPPLY},
+			{buttonType = ButtonType.ORDER, name = 'Load', orderType = OrderType.LOAD},
+			{buttonType = ButtonType.ORDER, name = 'Unload', orderType = OrderType.UNLOAD},
+		},
 		unitClass = UnitClass.RESOURCE_ROVER,
 		unitType = UnitType.HOVER,
 		armor = {ArmorType.CAST},

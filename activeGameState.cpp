@@ -148,17 +148,16 @@ namespace battleship{
 					}
 
 			vector<TradeOffer*> offers = (gameObjHoveredOn && alliedGameObj ? mainPlayer->getTradeOffers(gameObjHoveredOn->getPlayer()) : vector<TradeOffer*>{});
-			bool tradeResource[NUM_RESOURCES], trade = false;
-			int unloadFlag = (int)shiftPressed;
+			bool tradeResource[NUM_RESOURCES][2], trade = false;
 
-			for(int i = 0; i < NUM_RESOURCES && !offers.empty(); i++){
-				if(offers[0]->tradeResources[i][unloadFlag] > 0){
-					tradeResource[i] = true;
-					trade = true;
+			for(int i = 0; i < NUM_RESOURCES; i++)
+				for(int j = 0; j < 2; j++){
+					if(!offers.empty() && offers[0]->tradeResources[i][j] > 0){
+						tradeResource[i][j] = true;
+						trade = true;
+					}
+					else tradeResource[i][j] = false;
 				}
-				else
-					tradeResource[i] = false;
-			}
 
 			int objClass = (gameObjUnit ? int(((Unit*)gameObjHoveredOn)->getUnitClass()) : -1);
 			bool tradeCenter = ((UnitClass)objClass == UnitClass::TRADE_CENTER);
@@ -168,6 +167,7 @@ namespace battleship{
 
 			bool roverSelected = (mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::RESOURCE_ROVER);
 			ResourceRover *rover = (roverSelected ? (ResourceRover*)mainPlayer->getSelectedUnit(0) : nullptr);
+			int unloadFlag = (int)shiftPressed;
 
 			if(!forceCursorState){
 				if(gameObjUnit && gameObjTransport){
@@ -184,15 +184,15 @@ namespace battleship{
 					
 					switch((UnitClass)objClass){
 						case UnitClass::TRADE_CENTER:
-							tradeRes = tradeResource[(int)ResourceType::WEALTH];
+							tradeRes = tradeResource[(int)ResourceType::WEALTH][unloadFlag];
 							resId = (int)ResourceType::WEALTH;
 							break;
 						case UnitClass::REFINERY:
-							tradeRes = tradeResource[(int)ResourceType::REFINEDS];
+							tradeRes = tradeResource[(int)ResourceType::REFINEDS][unloadFlag];
 							resId = (int)ResourceType::REFINEDS;
 							break;
 						case UnitClass::LAB:
-							tradeRes = tradeResource[(int)ResourceType::RESEARCH];
+							tradeRes = tradeResource[(int)ResourceType::RESEARCH][unloadFlag];
 							resId = (int)ResourceType::RESEARCH;
 							break;
 					}
@@ -215,17 +215,26 @@ namespace battleship{
 				else if(cursorState == CursorState::SUPPLY)
 					orderPossible = (roverSelected && ownExtractor);
 				else if(cursorState == CursorState::LOAD || cursorState == CursorState::UNLOAD){
-					bool tradeRefs = tradeResource[(int)ResourceType::REFINEDS];
-					bool tradeWealth = tradeResource[(int)ResourceType::WEALTH];
-					bool tradeTech = tradeResource[(int)ResourceType::RESEARCH];
+					int ulf = int(cursorState == CursorState::UNLOAD);
+					bool tradeRefs = tradeResource[(int)ResourceType::REFINEDS][ulf];
+					bool tradeWealth = tradeResource[(int)ResourceType::WEALTH][ulf];
+					bool tradeTech = tradeResource[(int)ResourceType::RESEARCH][ulf];
 					
 					bool canLoad = (rover->calcTotalLoad() < rover->getCapacity());
 					bool loadResource = (
-						(refinery && ((ownGameObj && canLoad) || (alliedGameObj && tradeRefs && rover->getLoad((int)ResourceType::REFINEDS) > 0))) ||
-						(tradeCenter && ((ownGameObj && canLoad) || (alliedGameObj && tradeWealth && rover->getLoad((int)ResourceType::WEALTH) > 0))) ||
-						(lab && ((ownGameObj && canLoad) || (alliedGameObj && tradeTech && rover->getLoad((int)ResourceType::RESEARCH) > 0)))
+							cursorState == CursorState::LOAD ? canLoad : (
+								rover->getLoad((int)ResourceType::REFINEDS) > 0 ||
+								rover->getLoad((int)ResourceType::WEALTH) > 0 ||
+								rover->getLoad((int)ResourceType::RESEARCH) > 0
+							)
 					);
-					orderPossible = (roverSelected && loadResource);
+
+					bool transferResource = (
+						(refinery && loadResource && (ownGameObj || (alliedGameObj && tradeRefs))) ||
+						(tradeCenter && loadResource && (ownGameObj || (alliedGameObj && tradeWealth))) ||
+						(lab && loadResource && (ownGameObj || (alliedGameObj && tradeTech)))
+					);
+					orderPossible = (roverSelected && transferResource);
 				}
 				else if(cursorState == CursorState::HACK)
 					orderPossible = (!ownGameObj && gameObjUnit && mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::ENGINEER);
