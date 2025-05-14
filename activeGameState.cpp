@@ -204,7 +204,7 @@ namespace battleship{
 
 					cursorState = (unloadFlag ? CursorState::UNLOAD : CursorState::LOAD);
 				}
-				else if(gameObjUnit && !(ownGameObj || alliedGameObj))
+				else if(controlPressed || gameObjUnit && !(ownGameObj || alliedGameObj))
 					cursorState = CursorState::ATTACK;
 				else
 					cursorState = CursorState::NORMAL;

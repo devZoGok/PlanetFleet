@@ -7,8 +7,9 @@
 #include "resourceDeposit.h"
 #include "pointDefense.h"
 #include "extractor.h"
-#include "cruiseMissile.h"
 #include "researchStruct.h"
+#include "cruiseMissile.h"
+#include "shell.h"
 #include "defConfigs.h"
 
 #include <solUtil.h>
@@ -52,6 +53,8 @@ namespace battleship{
 		int projectileClass = SOL_LUA_VIEW["projectiles"][id + 1]["projectileClass"];
 
 		switch((ProjectileClass)projectileClass){
+			case ProjectileClass::SHELL:
+				return new Shell(unit, id, pos, rot);
 			case ProjectileClass::CRUISE_MISSILE:
 			{
 				Order::Target target = unit->getOrder(0).targets[0];

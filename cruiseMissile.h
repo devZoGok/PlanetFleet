@@ -15,7 +15,7 @@ namespace battleship{
 
 			void pitch(float, vb01::Vector3);
 			void cruise();
-			void checkSurfaceCollision();
+			void checkCollision();
 	};
 }
 

@@ -12,7 +12,7 @@ namespace vb01{
 }
 
 namespace battleship {
-	enum class ProjectileClass{CRUISE_MISSILE, TORPEDO};
+	enum class ProjectileClass{SHELL, CRUISE_MISSILE, TORPEDO};
 	class Unit;
 
     class Projectile : public GameObject{
@@ -24,11 +24,11 @@ namespace battleship {
 	private:
 		void initProperties();
 		void initSound();
-        void checkCollision();
     protected:
 		virtual void reinit();
 		virtual void checkUnitCollision();
 		virtual void checkSurfaceCollision();
+		void checkCollision();
 
         float speed, rayLength, explosionRadius, rotAngle;
         int directHitDamage, explosionDamage;

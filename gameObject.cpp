@@ -45,8 +45,11 @@ namespace battleship{
     }
 
     void GameObject::orientAt(Quaternion rotQuat){
-		model->setOrientation(rotQuat);
 		rot = rotQuat;
+		model->setOrientation(rotQuat);
+		leftVec = model->getGlobalAxis(0);
+		upVec = model->getGlobalAxis(1);
+		dirVec = model->getGlobalAxis(2);
     }
 
 	//TODO remove neccessity to create a material for an invisible mesh

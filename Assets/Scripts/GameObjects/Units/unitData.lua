@@ -160,11 +160,17 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
+				type = WeaponClass.SHELL, 
+				projectile = {id = ProjectileId.SHELL, pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				rateOfFire = 1000, 
 				damage = 200, 
 				maxRange = 25,
 				fireFx = {
+					{
+						vfx = false,
+						duration = 300,
+						path = PATH .. 'Sounds/Units/Tanks/attack.ogg', 
+					},
 					{
 						vfx = true,
 						duration = 50,
@@ -172,19 +178,14 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						parent = 'Turret',
+						parent = 'CannonBarrel',
 						pos = {x = 0.06, y = 5.82, z = 11.4},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
-					},
-					{
-						vfx = false,
-						duration = 300,
-						path = PATH .. 'Sounds/Units/Tanks/attack.ogg', 
 					}
 				},
-				landHitFx = {explosionVfx, explosionSfx},
-				unitHitFx = {explosionVfx, explosionSfx}
+				--landHitFx = {explosionVfx, explosionSfx},
+				--unitHitFx = {explosionVfx, explosionSfx}
 			}
 		},
 		unitClass = UnitClass.TANK,

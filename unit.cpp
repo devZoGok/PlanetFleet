@@ -279,7 +279,7 @@ namespace battleship{
 			Vector3 upVec = unit->getUpVec();
 			Vector3 dirVec = unit->getDirVec();
 			Vector3 p = unit->getPos() + leftVec * projPos.x + upVec * projPos.y + dirVec * projPos.z;
-			Quaternion r = unit->getRot() * projRot;
+			Quaternion r = projRot * unit->getRot();
 			unit->getPlayer()->addProjectile(GameObjectFactory::createProjectile(unit, projId, p, r));
 		}
 

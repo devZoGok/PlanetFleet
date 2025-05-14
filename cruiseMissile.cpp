@@ -47,19 +47,8 @@ namespace battleship{
 			flightStage = FlightStage::DESCENT;
 	}
 
-	void CruiseMissile::checkSurfaceCollision(){
-		Map *map = Map::getSingleton();
-		int cellId = map->getCellId(pos, false);
-
-		if((pos + dirVec * rayLength).y <= map->getCells()[cellId].pos.y){
-			Game::getSingleton()->explode(pos, explosionDamage, explosionRadius, explosionSfx);
-			remove = true;
-		}
-	}
-
 	void CruiseMissile::update(){
-		GameObject::update();
-		placeAt(pos + dirVec * speed);
+		Projectile::update();
 
 		switch(flightStage){
 			case FlightStage::ASCENT:
@@ -73,6 +62,10 @@ namespace battleship{
 				break;
 		}
 
+		checkCollision();
+	}
+
+	void CruiseMissile::checkCollision(){
 		if(!remove && flightStage == FlightStage::DESCENT){
 		   	checkSurfaceCollision();
 			if(remove) return;

@@ -73,12 +73,6 @@ namespace battleship{
     void Projectile::update() {
 		GameObject::update();
 		placeAt(pos + speed * dirVec);
-
-        if(!remove){
-			checkSurfaceCollision();
-			if(remove) return;
-			checkUnitCollision();
-		}
     }
 
 	void Projectile::checkUnitCollision(){
@@ -112,8 +106,18 @@ namespace battleship{
 		Map *map = Map::getSingleton();
 		int cellId = map->getCellId(pos, false);
 
-		if(map->getCells()[cellId].type == Map::Cell::LAND)
+		if((pos + dirVec * rayLength).y <= map->getCells()[cellId].pos.y){
+			Game::getSingleton()->explode(pos, explosionDamage, explosionRadius, explosionSfx);
 			remove = true;
+		}
+	}
+
+	void Projectile::checkCollision(){
+        if(!remove){
+			checkSurfaceCollision();
+			if(remove) return;
+			checkUnitCollision();
+		}
 	}
 
     void Projectile::debug(){
