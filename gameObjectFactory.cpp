@@ -8,6 +8,7 @@
 #include "pointDefense.h"
 #include "extractor.h"
 #include "researchStruct.h"
+#include "missile.h"
 #include "cruiseMissile.h"
 #include "shell.h"
 #include "defConfigs.h"
@@ -52,15 +53,16 @@ namespace battleship{
 		sol::state_view SOL_LUA_VIEW = generateView();
 		int projectileClass = SOL_LUA_VIEW["projectiles"][id + 1]["projectileClass"];
 
+		Order::Target target = unit->getOrder(0).targets[0];
+		Vector3 targetPos = (target.unit ? target.unit->getPos() : target.pos);
+
 		switch((ProjectileClass)projectileClass){
 			case ProjectileClass::SHELL:
 				return new Shell(unit, id, pos, rot);
 			case ProjectileClass::CRUISE_MISSILE:
-			{
-				Order::Target target = unit->getOrder(0).targets[0];
-				Vector3 targetPos = (target.unit ? target.unit->getPos() : target.pos);
 				return new CruiseMissile(unit, targetPos, pos, rot);
-			}
+			case ProjectileClass::MISSILE:
+				return new Missile(unit, id, targetPos, pos, rot);
 			default:
 				return new Projectile(unit, id, pos, rot);
 		}

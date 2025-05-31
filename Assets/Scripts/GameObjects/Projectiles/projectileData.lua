@@ -1,5 +1,5 @@
-ProjectileId = {SHELL = 0, CRUISE_MISSILE = 1, TORPEDO = 2}
-ProjectileClass = {SHELL = 0, CRUISE_MISSILE = 1, TORPEDO = 2}
+ProjectileId = {SHELL = 0, CRUISE_MISSILE = 1, MISSILE = 2, TORPEDO = 3}
+ProjectileClass = {SHELL = 0, CRUISE_MISSILE = 1, MISSILE = 2, TORPEDO = 3}
 G = 9.8
 
 projectiles = {
@@ -27,6 +27,19 @@ projectiles = {
 		name = "Cruise missile",
 	    basePath = PATH .. "Models/GameObjects/Projectiles/Missiles/",
 		meshPath = "cruiseMissile.xml",
+		albedoPath = 'cruiseMissile.jpg'
+	},
+	{
+		projectileClass = ProjectileClass.MISSILE,
+		size = {x = 3, y = 7., z = 1.27},
+		speed = .5,
+		rotAngle = .1,
+		explosion = {damage = 70, radius = 12, sfx = PATH .. 'Sounds/SFX/Explosions/explosion02.ogg'},
+		directHitDamage = 250,
+		rayLength = 3,
+		name = "Missile",
+	    basePath = PATH .. "Models/GameObjects/Projectiles/Missiles/",
+		meshPath = "missile.xml",
 		albedoPath = 'cruiseMissile.jpg'
 	},
 	{

@@ -11,10 +11,8 @@ namespace battleship{
 
 	Shell::Shell(Unit *un, int id, Vector3 pos, Quaternion rot) : 
 		Projectile(un, id, pos, rot), 
-		initTime(getTime())
-	{
-		initDir = dirVec;
-	}
+		initTime(getTime()),
+		initDir(dirVec) {}
 
 	void Shell::update(){
 		float currTime = float(getTime() - initTime) / 1000;

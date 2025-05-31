@@ -66,10 +66,7 @@ namespace battleship{
 	}
 
 	void CruiseMissile::checkCollision(){
-		if(!remove && flightStage == FlightStage::DESCENT){
-		   	checkSurfaceCollision();
-			if(remove) return;
-		   	checkUnitCollision();
-		}
+		if(flightStage == FlightStage::DESCENT)
+			Projectile::checkCollision();
 	}
 }

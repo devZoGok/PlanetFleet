@@ -221,10 +221,10 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 2000, 
 				damage = 5000, 
-				maxRange = 30,
+				maxRange = 70,
 				horizontalNode = {name = 'turret', rotationSpeed = .05, maxFireAngle = .1},
 				verticalNode = {name = 'tubes', rotationSpeed = .05, maxFireAngle = .1},
-				projectile = {id = ProjectileId.SHELL, parent = 'tubes', pos = {x = 0.95, y = 2.16, z = 4.11}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.MISSILE, parent = 'tubes', pos = {x = 0.95, y = 2.16, z = 4.11}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = true,
@@ -240,8 +240,8 @@ units = {
 					},
 					{
 						vfx = false,
-						duration = 300,
-						path = PATH .. 'Sounds/Units/Tanks/attack.ogg', 
+						duration = 2500,
+						path = PATH .. 'Sounds/Units/Submarines/missile.ogg', 
 					}
 				},
 			}
