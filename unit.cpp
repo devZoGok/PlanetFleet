@@ -35,31 +35,33 @@ namespace battleship{
 	Unit::Weapon::Weapon(Unit *u, sol::table unitTable, int wid) : 
 		unit(u), 
 		id(wid),
-		type((Weapon::Type)unitTable["weapons"][wid + 1]["type"]), 
 		rateOfFire(unitTable["weapons"][wid + 1]["rateOfFire"]),
 		damage(unitTable["weapons"][wid + 1]["damage"].get_or(0))
 	{
 		sol::table weaponTable = unitTable["weapons"][wid + 1];
 		maxRange = weaponTable["maxRange"];
 		orderType = (Order::TYPE)weaponTable["orderType"];
+
 		initProjectileData(weaponTable);
 
-		sol::optional<sol::table> nodeTblOpt = unitTable["weapons"][wid + 1]["node"];
+		sol::optional<sol::table> horNodeTblOpt = unitTable["weapons"][wid + 1]["horizontalNode"];
+		sol::optional<sol::table> vertNodeTblOpt = unitTable["weapons"][wid + 1]["verticalNode"];
 
-		if(nodeTblOpt != sol::nullopt) initNode(weaponTable);
+		if(horNodeTblOpt != sol::nullopt) horNode = initNode(weaponTable, true);
+		if(vertNodeTblOpt != sol::nullopt) vertNode = initNode(weaponTable, false);
 
 		fireFx = initFx(weaponTable, "fireFx", true);
 		if(fireFx) FxManager::getSingleton()->addFx(fireFx);
 	}
 
 
-	void Unit::Weapon::initNode(sol::table weaponTable){
-		sol::table nodeTbl = weaponTable["node"];
+	Node* Unit::Weapon::initNode(sol::table weaponTable, bool horizontal){
+		sol::table nodeTbl = weaponTable[horizontal ? "horizontalNode" : "verticalNode"];
 		maxFireAngle = nodeTbl["maxFireAngle"];
 		rotSpeed = nodeTbl["rotationSpeed"];
 
 		string name = nodeTbl["name"];
-		node = unit->getModel()->findDescendant(name, true);
+		return unit->getModel()->findDescendant(name, true);
 	}
 
 	void Unit::Weapon::initProjectileData(sol::table weaponTable){
@@ -85,6 +87,14 @@ namespace battleship{
 				minRange *= 2;
 			}
 
+			projPar = unit->getModel();
+			sol::optional<string> parNameOpt = weaponTable[projTableKey]["parent"];
+
+			if(parNameOpt != sol::nullopt){
+				string parName = weaponTable[projTableKey]["parent"];
+				projPar = unit->getModel()->findDescendant(parName, true);
+			}
+
 			sol::table posTable = weaponTable[projTableKey]["pos"];
 			projPos = Vector3(posTable["x"], posTable["y"], posTable["z"]);
 			sol::table rotTable = weaponTable[projTableKey]["rot"];
@@ -92,18 +102,15 @@ namespace battleship{
 		}
 	}
 
-	//TODO implement node child search by name
 	FxManager::Fx* Unit::Weapon::initFx(sol::table weaponTable, string fxKey, bool attached){
 		sol::optional<sol::table> fxOpt = weaponTable[fxKey];
 
-		if(fxOpt == sol::nullopt)
-			return nullptr;
+		if(fxOpt == sol::nullopt) return nullptr;
 
 		sol::table fxTbl = weaponTable[fxKey];
 		int numComponents = fxTbl.size();
 
-		if(numComponents == 0)
-			return nullptr;
+		if(numComponents == 0) return nullptr;
 
 		vector<FxManager::Fx::Component> fxComponents;
 
@@ -218,14 +225,29 @@ namespace battleship{
 		if(fireFx) fm->removeFx(fireFx);
 	}
 
-	//TODO replace unit pos with absolute weapon pos for withinAngle
-	void Unit::Weapon::update(){
-		if(node){
-			dirVec = rot * unit->getDirVec();
-			leftVec = rot * unit->getLeftVec();
-			upVec = rot * unit->getUpVec();
+	Vector3 Unit::Weapon::calcOrientVec(int id){
+		Vector3 orientVec;
+
+		switch(id){
+			case 0:
+				orientVec = unit->getDirVec();
+				break;
+			case 1:
+				orientVec = unit->getLeftVec();
+				break;
+			case 2:
+				orientVec = unit->getUpVec();
+				break;
 		}
 
+		if(horNode) orientVec = horNode->getOrientation() * orientVec;
+		if(vertNode) orientVec = vertNode->getOrientation() * orientVec;
+
+		return orientVec;
+	}
+
+	//TODO replace unit pos with absolute weapon pos for withinAngle
+	void Unit::Weapon::update(){
 		int numOrders = unit->getNumOrders();
 		int ordTp = (numOrders > 0 ? (int)unit->getOrder(0).type : -1);
 		Unit *targUnit = (ordTp != -1 ? unit->getOrder(0).targets[0].unit : nullptr);
@@ -235,7 +257,9 @@ namespace battleship{
 			float targDist = unit->getPos().getDistanceFrom(targPos);
 
 			bool withinRange = (minRange <= targDist && targDist <= maxRange);
-			bool withinAngle = (node ? Vector3(dirVec.x, 0, dirVec.z).norm().getAngleBetween((targPos - unit->getPos()).norm()) <= maxFireAngle : true);
+
+			Vector3 dirVec = calcOrientVec(0);
+			bool withinAngle = (horNode ? Vector3(dirVec.x, 0, dirVec.z).norm().getAngleBetween((targPos - unit->getPos()).norm()) <= maxFireAngle : true);
 
 			if((Order::TYPE)ordTp == Order::TYPE::ATTACK && withinRange && withinAngle)
 				fire(unit->getOrder(0));
@@ -305,37 +329,35 @@ namespace battleship{
 			}
 		}
 		else{
-			Vector3 leftVec = unit->getLeftVec();
-			Vector3 upVec = unit->getUpVec();
-			Vector3 dirVec = unit->getDirVec();
-
-			Quaternion r = projRot * unit->getRot();
-			Vector3 p = unit->getPos() + leftVec * projPos.x + upVec * projPos.y + dirVec * projPos.z;
-
-			if(node){
-				r = node->localToGlobalOrientation(projRot);
-				p = node->localToGlobalPosition(projPos);
-			}
-
+			Quaternion r = projPar->localToGlobalOrientation(projRot);
+			Vector3 p = projPar->localToGlobalPosition(projPos);
 			unit->getPlayer()->addProjectile(GameObjectFactory::createProjectile(unit, projId, p, r));
 		}
 
 		lastFireTime = getTime();
 	}
 
-	void Unit::Weapon::trackTarget(Vector3 targPos){
-		if(!node) return;
-
+	//TODO improve to allow for vertical alignment 
+	void Unit::Weapon::alignNode(Vector3 targPos, Node *node, bool horizontal){
 		Vector3 targDir = targPos - unit->getPos();
-		Vector3 targDirHor = Vector3(targDir.x, 0, targDir.z).norm();
-		Vector3 dirVecHor = Vector3(dirVec.x, 0, dirVec.z).norm();
+		Vector3 targDirHor = Vector3(targDir.x, 0, targDir.z).norm(), targDirVert;
+
+		Vector3 dirVec = calcOrientVec(0);
+		Vector3 dirVecHor = Vector3(dirVec.x, 0, dirVec.z).norm(), dirVecVert;
+
+		Vector3 leftVec = calcOrientVec(1);
+		bool negate = (Vector3(leftVec.x, 0, leftVec.z).norm().getAngleBetween(targDirHor) < PI / 2);
 
 		float angle = dirVecHor.getAngleBetween(targDirHor);
-		bool right = (Vector3(leftVec.x, 0, leftVec.z).norm().getAngleBetween(targDirHor) < PI / 2);
 		float rotAngle = (rotSpeed < angle ? rotSpeed : angle);
 
-		rot = Quaternion((right ? 1 : -1) * rotAngle, Vector3::VEC_J) * rot;
+		Quaternion rot = Quaternion((negate ? 1 : -1) * rotAngle, unit->getUpVec()) * node->getOrientation();
 		node->setOrientation(rot);
+	}
+
+	void Unit::Weapon::trackTarget(Vector3 targPos){
+		if(horNode) alignNode(targPos, horNode, true);
+		//if(vertNode) alignNode(targPos, vertNode, false);
 	}
 
     Unit::Unit(Player *player, int id, Vector3 pos, Quaternion rot, State st) : GameObject(GameObject::Type::UNIT, id, player, pos, rot), state(st){
@@ -755,25 +777,13 @@ namespace battleship{
 			case Order::TYPE::EJECT:
 				return !garrisonSlots.empty();
 		    case Order::TYPE::LAUNCH:
-				{
-					for(Weapon *weapon : weapons)
-						if(weapon->getType() == Weapon::Type::CRUISE_MISSILE)
-							return true;
-
-					return false;
-				}
+				return !getWeaponsByOrder(Order::TYPE::LAUNCH).empty();
 		    case Order::TYPE::SUPPLY:
 		    case Order::TYPE::LOAD:
 		    case Order::TYPE::UNLOAD:
 				return unitClass == UnitClass::RESOURCE_ROVER;
 		    case Order::TYPE::HACK:
-				{
-					for(Weapon *weapon : weapons)
-						if(weapon->getType() == Weapon::Type::CRUISE_MISSILE)
-							return true;
-
-					return false;
-				}
+				return !getWeaponsByOrder(Order::TYPE::HACK).empty();
 			default:
 				return false;
 		}

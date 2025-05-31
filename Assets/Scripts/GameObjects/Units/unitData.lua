@@ -163,15 +163,11 @@ units = {
 			{
 				type = WeaponClass.SHELL, 
 				orderType = OrderType.ATTACK,
-				projectile = {id = ProjectileId.SHELL, pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				rateOfFire = 1000, 
 				damage = 200, 
 				maxRange = 25,
-				node = {
-					name = 'Turret',
-					rotationSpeed = .05,
-					maxFireAngle = .1
-				},
+				horizontalNode = {name = 'Turret', rotationSpeed = .05, maxFireAngle = .1},
+				projectile = {id = ProjectileId.SHELL, parent = 'Turret', pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = false,
@@ -221,21 +217,25 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
+				type = WeaponClass.SHELL, 
 				orderType = OrderType.ATTACK,
 				rateOfFire = 2000, 
 				damage = 5000, 
 				maxRange = 30,
+				horizontalNode = {name = 'turret', rotationSpeed = .05, maxFireAngle = .1},
+				verticalNode = {name = 'tubes', rotationSpeed = .05, maxFireAngle = .1},
+				projectile = {id = ProjectileId.SHELL, parent = 'tubes', pos = {x = 0.95, y = 2.16, z = 4.11}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = true,
 						duration = 50,
+						parent = 'tubes',
+						pos = {x = 0.95, y = 2.16, z = 4.11},
+						rot = {w = 1, x = 0, y = 0, z = 0},
 						mesh = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						pos = {x = 1, y = 5.8, z = 3.9},
-						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
 					},
 					{
@@ -244,8 +244,6 @@ units = {
 						path = PATH .. 'Sounds/Units/Tanks/attack.ogg', 
 					}
 				},
-				landHitFx = {explosionVfx, explosionSfx},
-				unitHitFx = {explosionVfx, explosionSfx}
 			}
 		},
 		unitClass = UnitClass.ARTILLERY,
