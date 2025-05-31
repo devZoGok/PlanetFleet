@@ -94,6 +94,7 @@ namespace battleship{
 				~Weapon();
 				virtual void update();
 				virtual void fire(Order);
+				void trackTarget(vb01::Vector3);
 				inline Type getType(){return type;}
 				inline int getProjectileId(){return projId;}
 				inline int getRateOfFire(){return rateOfFire;}
@@ -101,18 +102,23 @@ namespace battleship{
 				inline int getMinRange(){return minRange;}
 				inline int getMaxRange(){return maxRange;}
 				inline Unit* getUnit(){return unit;}
+				inline Order::TYPE getOrderType(){return orderType;}
 			private:
 				Type type;
 				int id, projId = -1, rateOfFire, damage = 0;
-				float minRange = 0, maxRange;
+				float minRange = 0, maxRange, rotSpeed, maxFireAngle;
 				vb01::Vector3 projPos;
-				vb01::Quaternion projRot;
+				vb01::Quaternion projRot, rot = vb01::Quaternion::QUAT_W;
 				vb01::s64 lastFireTime = 0;
 				Unit *unit = nullptr;
 				FxManager::Fx *fireFx = nullptr;
+				vb01::Node *node = nullptr;
+				Order::TYPE orderType;
+				vb01::Vector3 upVec = vb01::Vector3(0, 1, 0), dirVec = vb01::Vector3(0, 0, 1), leftVec = vb01::Vector3(1, 0, 0);
 				static std::string LASER_FLAG;
 
 				void initProjectileData(sol::table);
+				void initNode(sol::table);
 				FxManager::Fx* initFx(sol::table, std::string, bool);
 				void useFx(FxManager::Fx*, vb01::Vector3, bool);
 				inline bool canFire(){return vb01::getTime() - lastFireTime > rateOfFire;}
@@ -215,6 +221,7 @@ namespace battleship{
 		void removeBar(vb01::Node*);
 		vb01::Node* createBar(vb01::Vector2, vb01::Vector2, vb01::Vector4);
         void displayUnitStats(vb01::Node*, vb01::Node*, int, int, bool, vb01::Vector2 offset = vb01::Vector2::VEC_ZERO);
+		std::vector<Weapon*> getWeaponsByOrder(Order::TYPE);
 		inline std::vector<Armor> getArmorTypes(){return armorTypes;}
     };
 }

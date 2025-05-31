@@ -316,12 +316,19 @@ namespace battleship{
 		Unit::attack(order);
 		int currNumOrders = orders.size();
 
-		if(weapons.empty() || prevNumOrders != currNumOrders) return;
+		if(prevNumOrders != currNumOrders) return;
 
 		Order::Target target = order.targets[0];
 		Vector3 targVec = (target.unit ? target.unit->getPos() : target.pos) - pos;
 		float distToTarg = targVec.getLength();
-		Weapon *weapon = weapons[0];
+
+		vector<Weapon*> attackWeapons = getWeaponsByOrder(Order::TYPE::ATTACK);
+		Weapon *weapon = attackWeapons[0];
+
+		for(Weapon *w : attackWeapons)
+			if(w->getMaxRange() > weapon->getMaxRange())
+				weapon = w;
+
 		float minDist = weapon->getMaxRange();
 
 		if(order.playerAssigned || (!order.playerAssigned && state == Unit::State::CHASE)){
@@ -333,15 +340,6 @@ namespace battleship{
 		else if(!order.playerAssigned && state == Unit::State::STAND_GROUND && distToTarg > minDist){
 			removeOrder(0);
 			return;
-		}
-
-		float angleToTarg = targVec.norm().getAngleBetween(dirVec);
-
-		if(distToTarg <= weapon->getMaxRange()){
-			if(angleToTarg <= anglePrecision)
-				weapon->fire(order);
-			else if(angleToTarg > anglePrecision)
-				turn(calculateRotation(targVec.norm(), angleToTarg, maxTurnAngle));
 		}
 	}
 

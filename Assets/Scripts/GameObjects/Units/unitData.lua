@@ -90,6 +90,7 @@ units = {
 		weapons = {
 			{
 				type = WeaponClass.HITSCAN,
+				orderType = OrderType.ATTACK,
 				rateOfFire = 100,
 				maxRange = 10,
 				damage = 50,
@@ -161,10 +162,16 @@ units = {
 		weapons = {
 			{
 				type = WeaponClass.SHELL, 
+				orderType = OrderType.ATTACK,
 				projectile = {id = ProjectileId.SHELL, pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				rateOfFire = 1000, 
 				damage = 200, 
 				maxRange = 25,
+				node = {
+					name = 'Turret',
+					rotationSpeed = .05,
+					maxFireAngle = .1
+				},
 				fireFx = {
 					{
 						vfx = false,
@@ -215,6 +222,7 @@ units = {
 		weapons = {
 			{
 				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 2000, 
 				damage = 5000, 
 				maxRange = 30,
@@ -265,7 +273,7 @@ units = {
 	},
 	{
 		weapons = {
-			{type = WeaponClass.HITSCAN, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 20, maxRange = 8},
+			{type = WeaponClass.HITSCAN, orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 20, maxRange = 8},
 		},
 		buildableUnits = {
 			{id = UnitId.LAND_FACTORY, buildable = true, trigger = 76},
@@ -304,7 +312,7 @@ units = {
 		garrisonCategory = 3
 	},
 	{
-		weapons = {{type = WeaponClass.HITSCAN, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 50, maxRange = 20}},
+		weapons = {{type = WeaponClass.HITSCAN, orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 50, maxRange = 20}},
 		unitClass = UnitClass.TRANSPORT,
 		unitType = UnitType.HOVER,
 		isVehicle = true,
@@ -329,7 +337,7 @@ units = {
 		garrisonCategory = 3
 	},
 	{
-		weapons = {{type = WeaponClass.HITSCAN, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/Tanks/attack.ogg', damage = 100, maxRange = 25}},
+		weapons = {{type = WeaponClass.HITSCAN, orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/Tanks/attack.ogg', damage = 100, maxRange = 25}},
 		unitClass = UnitClass.TRANSPORT,
 		unitType = UnitType.HOVER,
 		armor = {ArmorType.MECHANIC},
@@ -390,7 +398,8 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
+				type = WeaponClass.HITSCAN,
+				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				damage = 300, 
 				maxRange = 15,
@@ -442,6 +451,7 @@ units = {
 		weapons = {
 			{
 				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				fireFx = {
 					{
@@ -493,6 +503,7 @@ units = {
 		weapons = {
 			{
 				type = WeaponClass.HITSCAN,
+				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				damage = 300,
 				maxRange = 15,
@@ -543,6 +554,7 @@ units = {
 		weapons = {
 			{
 				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				fireSfx = PATH .. 'Sounds/Units/Cruisers/fire.ogg', 
 				damage = 300,
@@ -594,6 +606,7 @@ units = {
 		weapons = {
 			{
 				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 100, 
 				damage = 80, 
 				maxRange = 100,
@@ -643,6 +656,7 @@ units = {
 		weapons = {
 			{
 				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 450, 
 				damage = 500, 
 				maxRange = 100,
@@ -669,6 +683,7 @@ units = {
 			},
 			{
 				type = WeaponClass.CRUISE_MISSILE, 
+				orderType = OrderType.LAUNCH,
 				projectile = {id = ProjectileId.CRUISE_MISSILE, pos = {x = 0, y = 15, z = 0}, rot = {w = .707, x = -.707, y = 0, z = 0}},
 				rateOfFire = 500, 
 				maxRange = 30, 
@@ -707,6 +722,7 @@ units = {
 		weapons = {
 			{
 				type = WeaponClass.TORPEDO, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				fireFx = {
 					{
@@ -721,6 +737,7 @@ units = {
 			},
 			{
 				type = WeaponClass.CRUISE_MISSILE, 
+				orderType = OrderType.LAUNCH,
 				rateOfFire = 500, 
 				maxRange = 30, 
 				fireFx = {
@@ -759,6 +776,7 @@ units = {
 		weapons = {
 			{
 				type = WeaponClass.TORPEDO, 
+				orderType = OrderType.ATTACK,
 				projectile = {id = ProjectileId.TORPEDO, pos = {x = 0, y = -.27, z = 4.6}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				damage = 200, 
 				maxRange = 20, 
@@ -885,9 +903,15 @@ units = {
 		weapons = {
 			{
 				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 100, 
 				damage = 50, 
 				maxRange = 50,
+				node = {
+					name = 'TurretBody',
+					rotationSpeed = .05,
+					maxFireAngle = .1
+				},
 				fireFx = {
 					{
 						vfx = true,
