@@ -204,7 +204,7 @@ namespace battleship{
 
 					cursorState = (unloadFlag ? CursorState::UNLOAD : CursorState::LOAD);
 				}
-				else if(controlPressed || gameObjUnit && !(ownGameObj || alliedGameObj))
+				else if(gameObjUnit && !(ownGameObj || alliedGameObj))
 					cursorState = CursorState::ATTACK;
 				else
 					cursorState = CursorState::NORMAL;
@@ -238,7 +238,7 @@ namespace battleship{
 				}
 				else if(cursorState == CursorState::HACK)
 					orderPossible = (!ownGameObj && gameObjUnit && mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::ENGINEER);
-				else if(gameObjUnit)
+				else if(controlPressed)
 					cursorState = CursorState::ATTACK;
 				else
 					cursorState = CursorState::NORMAL;
@@ -788,6 +788,7 @@ namespace battleship{
 
 				forceCursorState = isPressed;
 				controlPressed = isPressed;
+				orderPossible = isPressed;
                 break;
 			case Bind::LEFT_SHIFT:
 			{
