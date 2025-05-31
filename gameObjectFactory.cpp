@@ -60,7 +60,7 @@ namespace battleship{
 			case ProjectileClass::SHELL:
 				return new Shell(unit, id, pos, rot);
 			case ProjectileClass::CRUISE_MISSILE:
-				return new CruiseMissile(unit, targetPos, pos, rot);
+				return new CruiseMissile(unit, id, targetPos, pos, rot);
 			case ProjectileClass::MISSILE:
 				return new Missile(unit, id, targetPos, pos, rot);
 			default:

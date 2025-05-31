@@ -12,7 +12,7 @@ namespace battleship{
 	using namespace std;
 	using namespace vb01;
 
-	CruiseMissile::CruiseMissile(Unit *unit, Vector3 tp, Vector3 pos, Quaternion rot) : Projectile(unit, 0, pos, rot), targetPoint(tp), flightStage(FlightStage::ASCENT){
+	CruiseMissile::CruiseMissile(Unit *unit, int id, Vector3 tp, Vector3 pos, Quaternion rot) : Projectile(unit, id, pos, rot), targetPoint(tp), flightStage(FlightStage::ASCENT){
 		Vector3 unitDir = unit->getDirVec(); 
 		Vector3 leftDir = unit->getLeftVec();
 		Vector3 targDir = (Vector3(targetPoint.x, pos.y, targetPoint.z) - pos).norm();

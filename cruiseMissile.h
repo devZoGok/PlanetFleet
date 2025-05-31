@@ -6,7 +6,7 @@
 namespace battleship{
 	class CruiseMissile : public Projectile{
 		public:
-			CruiseMissile(Unit*, vb01::Vector3, vb01::Vector3, vb01::Quaternion);
+			CruiseMissile(Unit*, int, vb01::Vector3, vb01::Vector3, vb01::Quaternion);
 			void update();
 		private:
 			enum class FlightStage{ASCENT, CRUISE, DESCENT};

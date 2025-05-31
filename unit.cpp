@@ -566,15 +566,7 @@ namespace battleship{
 	}
 
 	void Unit::launch(Order order){
-		for(Weapon *weapon : weapons){
-			Vector3 targPos = Vector3(order.targets[0].pos.x, pos.y, order.targets[0].pos.z);
-
-			if(weapon->getProjectileId() == 0 && weapon->getMinRange() < targPos.getDistanceFrom(pos)){
-				weapon->fire(order);
-				break;
-			}
-		}
-
+		getWeaponsByOrder(Order::TYPE::LAUNCH)[0]->fire(order);
 		removeOrder(0);
 	}
 
@@ -796,7 +788,7 @@ namespace battleship{
 			if(w->getOrderType() == type)
 				weaps.push_back(w);
 
-		return weapons;
+		return weaps;
 	}
 
     void Unit::receiveOrder(Order order, bool add) {
