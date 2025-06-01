@@ -198,6 +198,7 @@ namespace battleship{
 
 		std::vector<Player*> getSelectingPlayers();
         void removeOrder(int);
+		virtual bool validateLaunchOrder(){return !getWeaponsByOrder(Order::TYPE::LAUNCH).empty();}
 		virtual bool validateGarrisonOrder(Order){return false;}
 		virtual void targetUnitsAutomatically();
 		virtual void reinit();

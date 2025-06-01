@@ -769,7 +769,7 @@ namespace battleship{
 			case Order::TYPE::EJECT:
 				return !garrisonSlots.empty();
 		    case Order::TYPE::LAUNCH:
-				return !getWeaponsByOrder(Order::TYPE::LAUNCH).empty();
+				return validateLaunchOrder();
 		    case Order::TYPE::SUPPLY:
 		    case Order::TYPE::LOAD:
 		    case Order::TYPE::UNLOAD:

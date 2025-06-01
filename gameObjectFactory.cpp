@@ -2,6 +2,7 @@
 #include "player.h"
 #include "factory.h"
 #include "engineer.h"
+#include "submarine.h"
 #include "resourceRover.h"
 #include "projectile.h"
 #include "resourceDeposit.h"
@@ -44,6 +45,8 @@ namespace battleship{
 				return new Engineer(player, id, pos, rot, Unit::State::STAND_GROUND);
 			case UnitClass::RESOURCE_ROVER:
 				return new ResourceRover(player, id, pos, rot, Unit::State::STAND_GROUND);
+			case UnitClass::SUBMARINE:
+				return new Submarine(player, id, pos, rot, Unit::State::STAND_GROUND);
 			default:
 				return new Vehicle(player, id, pos, rot, Unit::State::STAND_GROUND);
 		}
