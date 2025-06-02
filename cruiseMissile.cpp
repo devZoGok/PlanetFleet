@@ -29,7 +29,7 @@ namespace battleship{
 
 		if(flightStage == FlightStage::ASCENT && pos.y - initPos.y > minHeight){
 			orientAt(Quaternion(angle, leftVec) * rot);
-			if(dirVec.y <= 0) flightStage = FlightStage::CRUISE;
+			if(dirVec.y <= .001) flightStage = FlightStage::CRUISE;
 		}
 		else if(flightStage == FlightStage::DESCENT){
 			Vector3 targDir = (Vector3(targetPoint.x, initPos.y, targetPoint.z) - initPos).norm();
