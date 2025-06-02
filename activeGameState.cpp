@@ -337,7 +337,7 @@ namespace battleship{
 
 	void ActiveGameState::updateGameObjHoveredOn(){
 		vector<GameObject*> gameObjs;
-		vector<Player*> players = Game::getSingleton()->getPlayers();
+		vector<Player*> players = Game::getSingleton()->getPlayers(true);
 
 		for(Player *pl : players){
 			vector<ResourceDeposit*> resDeps = pl->getResourceDeposits();
@@ -482,7 +482,7 @@ namespace battleship{
 
 		vector<Unit*> units;
 
-        for (Player *p : Game::getSingleton()->getPlayers())
+        for (Player *p : Game::getSingleton()->getPlayers(true))
             for (Unit *u : p->getUnits())
                 units.push_back(u);
 

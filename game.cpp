@@ -122,10 +122,10 @@ namespace battleship{
 
 					for(Projectile *proj : pl->getProjectiles())
 						gameObjs.push_back((GameObject*)proj);
-
-					for(ResourceDeposit *dep : pl->getResourceDeposits())
-						gameObjs.push_back((GameObject*)dep);
 				}
+
+				for(ResourceDeposit *dep : civilianPlayer->getResourceDeposits())
+					gameObjs.push_back((GameObject*)dep);
 
 				for(GameObject *obj : gameObjs)
 					obj->reinit();
@@ -275,5 +275,13 @@ namespace battleship{
 		}
 
 		return false;
+	}
+	
+	vector<Player*> Game::getPlayers(bool civPl){
+		vector<Player*> playersVec = players;
+
+		if(civPl) playersVec.push_back(civilianPlayer);
+
+		return playersVec;
 	}
 }

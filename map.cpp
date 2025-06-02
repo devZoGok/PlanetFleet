@@ -48,9 +48,8 @@ namespace battleship{
 		string refIconFile = SOL_STATE_VIEW["refIcon"];
 		string basePath = GameManager::getSingleton()->getPath() + "Textures/Icons/Minimap/";
 
-		for(Player *pl : Game::getSingleton()->getPlayers())
-			for(ResourceDeposit *rd : pl->getResourceDeposits())
-				depositIcons.push_back(initIcon(rd->getPos(), basePath + refIconFile));
+		for(ResourceDeposit *rd : Game::getSingleton()->getCivilianPlayer()->getResourceDeposits())
+			depositIcons.push_back(initIcon(rd->getPos(), basePath + refIconFile));
 
 		string camIconFile = SOL_STATE_VIEW["eyeIcon"];
 		camIcon = initIcon(Root::getSingleton()->getCamera()->getPosition(), basePath + camIconFile);
@@ -107,7 +106,7 @@ namespace battleship{
 		Vector3 mapSize = Map::getSingleton()->getMapSize();
 		vector<pair<Unit*, Vector2>> unitMinimapPos;
 
-		for(Player *pl : Game::getSingleton()->getPlayers())
+		for(Player *pl : Game::getSingleton()->getPlayers(true))
 			for(Unit *un : pl->getUnits()){
 				Vector2 coords = Vector2(
 					int(un->getPos().x / mapSize.x * width),
@@ -395,15 +394,15 @@ namespace battleship{
 
 	//TODO move minimap loading elsewhere
 	void Map::loadPlayerGameObjects(){
-		int numPlayers = Game::getSingleton()->getNumPlayers();
+		vector<Player*> players = Game::getSingleton()->getPlayers(true);
 		sol::state_view SOL_LUA_VIEW = generateView();
 		string playerInd = "players";
 
-		for(int i = 0; i < numPlayers; i++){
+		for(int i = 0; i < players.size(); i++){
 			string resDepInd = "resourceDeposits";
 			SOL_LUA_VIEW.script("numResourceDeposits = #" + mapTable + "." + playerInd + "[" + to_string(i + 1) + "]." + resDepInd);
 			int numNpcObjs = SOL_LUA_VIEW["numResourceDeposits"];
-			Player *player = Game::getSingleton()->getPlayer(i);
+			Player *player = players[i];
 
 			for(int j = 0; j < numNpcObjs; j++){
 				sol::table npcObjTable = SOL_LUA_VIEW[mapTable][playerInd][i + 1][resDepInd][j + 1];
@@ -587,7 +586,7 @@ namespace battleship{
 	}
 
 	void Map::unloadPlayerObjects(){
-		for(Player *pl : Game::getSingleton()->getPlayers()){
+		for(Player *pl : Game::getSingleton()->getPlayers(true)){
 			while(pl->getNumUnits() > 0){
 				pl->removeUnit(0);
 			}

@@ -12,21 +12,13 @@ namespace battleship{
 	using namespace gameBase;
 
 	Extractor::Extractor(Player *player, int id, Vector3 pos, Quaternion rot, int buildStatus, ResourceDeposit *rd, Unit::State state) : Structure(player, id, pos, rot, buildStatus, state){
-		if(!rd){
-			vector<ResourceDeposit*> deposits;
-
-			for(Player *pl : Game::getSingleton()->getPlayers()){
-				vector<ResourceDeposit*> dep = pl->getResourceDeposits();
-				deposits.insert(deposits.end(), dep.begin(), dep.end());
-			}
-
-			for(ResourceDeposit *dep : deposits)
+		if(!rd)
+			for(ResourceDeposit *dep : Game::getSingleton()->getCivilianPlayer()->getResourceDeposits())
 				if(dep->getPos().getDistanceFrom(pos) < .001){
 					deposit = dep;
 					deposit->setExtractor(this);
 					break;
 				}
-		}
 
 		Vector2 size = Vector2(lenHpBar, 10);
 		ammountBackground = Unit::createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 0, 1));

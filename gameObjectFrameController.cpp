@@ -59,17 +59,9 @@ namespace battleship{
 	void GameObjectFrameController::snapToObj(GameObjectFrame &s, GameObject::Type type, int unitId, float maxDist){
 		if(s.getType() == GameObject::Type::UNIT && s.getId() == unitId){
 			s.status = GameObjectFrame::NOT_PLACEABLE;
-			vector<Player*> players = Game::getSingleton()->getPlayers();
-			vector<ResourceDeposit*> deposits;
-		
-			for(Player *pl : players){
-				vector<ResourceDeposit*> deps = pl->getResourceDeposits();
-		
-				for(ResourceDeposit *dep : deps)
-					deposits.push_back(dep);
-			}
+			Player *civPl = Game::getSingleton()->getCivilianPlayer();
 
-			for(ResourceDeposit *dep : deposits){
+			for(ResourceDeposit *dep : civPl->getResourceDeposits()){
 				Vector3 depPos = dep->getPos();
 
 				if(!dep->getExtractor() && s.getPos().getDistanceFrom(depPos) < maxDist){

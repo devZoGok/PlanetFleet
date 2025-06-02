@@ -76,7 +76,7 @@ namespace battleship{
     }
 
 	void Projectile::checkUnitCollision(){
-		vector<Player*> players = Game::getSingleton()->getPlayers();
+		vector<Player*> players = Game::getSingleton()->getPlayers(true);
 		vector<Unit*> targetUnits;
 		vector<Node*> targetNodes;
 
