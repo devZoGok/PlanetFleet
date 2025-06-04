@@ -78,6 +78,7 @@ namespace battleship{
 		bool isPointWithinTerrainObject(vb01::Vector3, int);
 		void loadPlayerGameObjects();
 		int getNumMapSpawnPoints(std::string = "");
+		std::vector<int> getSurroundingCells(vb01::Vector3, int);
 		void blockCells(Unit*);
 		void unblockCells(Unit*);
 		inline std::string getMapName(){return mapName;}

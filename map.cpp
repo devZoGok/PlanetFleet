@@ -382,26 +382,39 @@ namespace battleship{
 		return spawnPointsTbl.size();
 	}
 
+	//TODO improve for underwater cells
+	vector<int> Map::getSurroundingCells(Vector3 p, int numRings){
+		int numHorCells = int(mapSize.x / CELL_SIZE.x);
+		int numVertCells = int(mapSize.z / CELL_SIZE.z);
+		int horId = int((.5 * mapSize.x + p.x) / CELL_SIZE.x);
+		int vertId = int((.5 * mapSize.z + p.z) / CELL_SIZE.z);
+
+		vector<int> cellIds;
+
+		for(int i = vertId - numRings; i <= vertId + numRings; i++)
+			for(int j = horId - numRings; j <= horId + numRings; j++)
+				cellIds.push_back(numHorCells * i + j);
+
+		return cellIds;
+	}
+
 	void Map::blockCells(Unit *unit){
-		for(Cell &cell : cells){
-			if(cell.blockedBy && cell.blockedBy != unit) continue;
+		vector<int> surroundingCellIds = getSurroundingCells(unit->getPos(), 0);
 
-			Vector3 cellDir = (cell.pos - unit->getPos()), dirVec = unit->getDirVec(), leftVec = unit->getLeftVec();
-			float forwAngle = std::min(dirVec.getAngleBetween(cellDir.norm()), (-dirVec).getAngleBetween(cellDir.norm()));
-			float forwDist = cellDir.getLength() * cos(forwAngle);
+		for(int scid : surroundingCellIds){
+			if(cells[scid].blockedBy && cells[scid].blockedBy != unit) continue;
 
-			float leftAngle = std::min(leftVec.getAngleBetween(cellDir.norm()), (-leftVec).getAngleBetween(cellDir.norm()));
-			float leftDist = cellDir.getLength() * cos(leftAngle);
-			
-			bool within = (forwDist < .5 * (unit->getLength() + CELL_SIZE.x) && leftDist < .5 * (unit->getWidth() + CELL_SIZE.z));
-			cell.blockedBy = (within ? unit : nullptr);
+			bool within = unit->pointWithinObj(cells[scid].pos);
+			cells[scid].blockedBy = (within ? unit : nullptr);
 		}
 	}
 
 	void Map::unblockCells(Unit *unit){
-		for(Cell &cell : cells)
-			if(cell.blockedBy == unit)
-				cell.blockedBy = nullptr;
+		vector<int> surroundingCellIds = getSurroundingCells(unit->getPos(), 0);
+
+		for(int scid : surroundingCellIds)
+			if(cells[scid].blockedBy == unit)
+				cells[scid].blockedBy = nullptr;
 	}
 
 	void Map::loadSpawnPoints(){
@@ -689,6 +702,7 @@ namespace battleship{
 	}
 
 	//TODO replace search with binary search
+	//TODO optimize horizontal and vertical id calculcation
 	int Map::getCellId(Vector3 pos, bool checkUnderwaterCells){
 		int numHorCells = int(mapSize.x / CELL_SIZE.x), horId = -1;
 
