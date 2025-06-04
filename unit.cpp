@@ -15,6 +15,7 @@
 #include "unit.h"
 #include "util.h"
 #include "game.h"
+#include "map.h"
 #include "vehicle.h"
 #include "gameObjectFactory.h"
 #include "activeGameState.h"
@@ -819,6 +820,29 @@ namespace battleship{
 				slot.vehicle = nullptr;
 				break;
 			}
+		}
+	}
+
+	//TODO select only the closest cells based on unit size
+	void Unit::placeAt(Vector3 p){
+		GameObject::placeAt(p);
+
+		Map *map = Map::getSingleton();
+		vector<Map::Cell> &cells = map->getCells();
+		Vector3 cellSize = map->getCellSize();
+
+		for(Map::Cell &cell : cells){
+			if(cell.blockedBy && cell.blockedBy != this) continue;
+
+			Vector3 cellDir = (cell.pos - pos);
+			float forwAngle = std::min(dirVec.getAngleBetween(cellDir.norm()), (-dirVec).getAngleBetween(cellDir.norm()));
+			float forwDist = cellDir.getLength() * cos(forwAngle);
+
+			float leftAngle = std::min(leftVec.getAngleBetween(cellDir.norm()), (-leftVec).getAngleBetween(cellDir.norm()));
+			float leftDist = cellDir.getLength() * cos(leftAngle);
+			
+			bool within = (forwDist < .5 * (length + cellSize.x) && leftDist < .5 * (width + cellSize.z));
+			cell.blockedBy = (within ? this : nullptr);
 		}
 	}
 

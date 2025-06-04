@@ -268,7 +268,7 @@ namespace battleship{
 		for(Map::Cell &cell : cells)
 			heuristics.push_back(145 * (cells[dest].pos.getDistanceFrom(cell.pos)));
 
-		vector<int> path = Pathfinder::getSingleton()->findPath(cells, heuristics, source, dest, (int)type);
+		vector<int> path = Pathfinder::getSingleton()->findPath(cells, heuristics, source, dest, this);
 		bool pathTruncated = false;
 
 		for(int i = 0; i < path.size(); i++){

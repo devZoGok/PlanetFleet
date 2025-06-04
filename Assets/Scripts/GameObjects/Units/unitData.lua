@@ -28,14 +28,16 @@ UnitId = {
 	CHAMPION_CARRIER = 12,
 	MISSILE_SUBMARINE = 13,
 	STEALTH_SUBMARINE = 14,
-	LAND_FACTORY = 15,
-	NAVAL_FACTORY = 16,
-	TRADE_CENTER = 17,
-	LAB = 18,
-	POINT_DEFENSE = 19,
-	EXTRACTOR = 20,
-	REFINERY = 21,
-	FORT = 22
+	ICEBREAKER = 15,
+	LAND_FACTORY = 16,
+	NAVAL_FACTORY = 17,
+	TRADE_CENTER = 18,
+	LAB = 19,
+	POINT_DEFENSE = 20,
+	EXTRACTOR = 21,
+	REFINERY = 22,
+	FORT = 23,
+	ICE_SHEET = 24
 }
 WeaponClass = {HITSCAN = 0, SHELL = 1, TORPEDO = 2, CRUISE_MISSILE = 3, HACK = 4}
 UnitClass = {
@@ -48,14 +50,16 @@ UnitClass = {
 	CRUISER = 6,
 	CARRIER = 7,
 	SUBMARINE = 8,
-	LAND_FACTORY = 9,
-	NAVAL_FACTORY = 10,
-	TRADE_CENTER = 11,
-	LAB = 12,
-	POINT_DEFENSE = 13,
-	EXTRACTOR = 14,
-	REFINERY = 15,
-	FORT = 16
+	ICEBREAKER = 9,
+	LAND_FACTORY = 10,
+	NAVAL_FACTORY = 11,
+	TRADE_CENTER = 12,
+	LAB = 13,
+	POINT_DEFENSE = 14,
+	EXTRACTOR = 15,
+	REFINERY = 16,
+	FORT = 17,
+	ICE_SHEET = 18
 }
 UnitType = {UNDERWATER = 0, SEA_LEVEL = 1, HOVER = 2, LAND = 3, AIR = 4}
 
@@ -811,6 +815,29 @@ units = {
 		garrisonCategory = 3
 	},
 	{
+		unitClass = UnitClass.ICEBREAKER,
+		unitType = UnitType.SEA_LEVEL,
+		isVehicle = true,
+		health = 500,
+		buildTime = 1000,
+		cost = 500,
+		size = {x = 12.6, y = 8.5, z = 32.8},
+		hitboxOffset = {x = 0, y = 2.07, z = .8},
+		lineOfSight = 25,
+		name = 'Icebreaker',
+		--colorNodes = {'stealthSubmarine.001'},
+		basePath = PATH .. vehiclePrefix .. 'Icebreakers/',
+		meshPath = 'icebreaker.xml',
+		albedoPath = 'icebreaker.jpg',
+		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
+		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		speed = .1,
+		destinationOffset = .1,
+		anglePrecision = .1,
+		maxTurnAngle = .1,
+		garrisonCategory = 3
+	},
+	{
 		buildableUnits = {
 			{id = UnitId.WAR_MECH, buildable = true, trigger = 87}, 
 			{id = UnitId.TANK, buildable = true, trigger = 84}, 
@@ -1018,5 +1045,20 @@ units = {
 		albedoPath = 'fort.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
 		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+	},
+	{
+		unitClass = UnitClass.ICE_SHEET,
+		unitType = UnitType.SEA_LEVEL,
+		isVehicle = false,
+		health = 1000,
+		size = {x = 7, y = 1.5, z = 7},
+		hitboxOffset = {x = 0, y = 0, z = 0},
+		lineOfSight = 5,
+		name = 'Ice sheet',
+		basePath = PATH .. structurePrefix .. 'IceSheets/',
+		meshPath = 'iceSheet.xml',
+		albedoPath = 'iceSheet.jpg',
+		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
+		deathSfx = PATH .. 'Sounds/SFX/Ice/break.ogg',
 	},
 }

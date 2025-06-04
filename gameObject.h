@@ -23,7 +23,7 @@ namespace battleship{
 			virtual void reinit();
 			virtual void update();
         	virtual void select(){}
-			void placeAt(vb01::Vector3);
+			virtual void placeAt(vb01::Vector3);
 			void orientAt(vb01::Quaternion);
 			std::string getGameObjTableName();
 			void updateGameStats(Unit*);

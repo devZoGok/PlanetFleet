@@ -26,30 +26,34 @@ namespace battleship{
 	Unit* GameObjectFactory::createUnit(Player *player, int id, Vector3 pos, Quaternion rot, int buildStatus){
 		sol::state_view SOL_LUA_VIEW = generateView();
 		int unitClass = SOL_LUA_VIEW["units"][id + 1]["unitClass"];
+		bool vehicle = SOL_LUA_VIEW["units"][id + 1]["isVehicle"];
 
-		switch((UnitClass)unitClass){
-			case UnitClass::FORT:
-			case UnitClass::LAND_FACTORY:
-			case UnitClass::NAVAL_FACTORY:
-				return new Factory(player, id, pos, rot, buildStatus, Unit::State::STAND_GROUND);
-			case UnitClass::POINT_DEFENSE:
-				return new PointDefense(player, id, pos, rot, buildStatus, Unit::State::STAND_GROUND);
-			case UnitClass::EXTRACTOR:
-				return new Extractor(player, id, pos, rot, buildStatus);
-			case UnitClass::LAB:
-				return new ResearchStruct(player, id, pos, rot, buildStatus);
-			case UnitClass::TRADE_CENTER:
-			case UnitClass::REFINERY:
-				return new Structure(player, id, pos, rot, buildStatus, Unit::State::STAND_GROUND);
-			case UnitClass::ENGINEER:
-				return new Engineer(player, id, pos, rot, Unit::State::STAND_GROUND);
-			case UnitClass::RESOURCE_ROVER:
-				return new ResourceRover(player, id, pos, rot, Unit::State::STAND_GROUND);
-			case UnitClass::SUBMARINE:
-				return new Submarine(player, id, pos, rot, Unit::State::STAND_GROUND);
-			default:
-				return new Vehicle(player, id, pos, rot, Unit::State::STAND_GROUND);
-		}
+		if(vehicle)
+			switch((UnitClass)unitClass){
+				case UnitClass::ENGINEER:
+					return new Engineer(player, id, pos, rot, Unit::State::STAND_GROUND);
+				case UnitClass::RESOURCE_ROVER:
+					return new ResourceRover(player, id, pos, rot, Unit::State::STAND_GROUND);
+				case UnitClass::SUBMARINE:
+					return new Submarine(player, id, pos, rot, Unit::State::STAND_GROUND);
+				default:
+					return new Vehicle(player, id, pos, rot, Unit::State::STAND_GROUND);
+			}
+		else
+			switch((UnitClass)unitClass){
+				case UnitClass::FORT:
+				case UnitClass::LAND_FACTORY:
+				case UnitClass::NAVAL_FACTORY:
+					return new Factory(player, id, pos, rot, buildStatus, Unit::State::STAND_GROUND);
+				case UnitClass::POINT_DEFENSE:
+					return new PointDefense(player, id, pos, rot, buildStatus, Unit::State::STAND_GROUND);
+				case UnitClass::EXTRACTOR:
+					return new Extractor(player, id, pos, rot, buildStatus);
+				case UnitClass::LAB:
+					return new ResearchStruct(player, id, pos, rot, buildStatus);
+				default:
+					return new Structure(player, id, pos, rot, buildStatus, Unit::State::STAND_GROUND);
+			}
 	}
 
 	Projectile* GameObjectFactory::createProjectile(Unit *unit, int id, Vector3 pos, Quaternion rot){

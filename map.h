@@ -39,6 +39,7 @@ namespace battleship{
 			Type type;
 			vb01::Vector3 pos;
 			std::vector<Edge> edges;
+			Unit *blockedBy = nullptr;
 			std::vector<int> underWaterCellIds;
 		
 			Cell(){}

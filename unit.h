@@ -74,6 +74,7 @@ namespace battleship{
 	   	CRUISER,
 	   	CARRIER,
 	   	SUBMARINE,
+		ICEBREAKER,
 	   	LAND_FACTORY,
 	   	NAVAL_FACTORY,
 	   	TRADE_CENTER,
@@ -81,7 +82,8 @@ namespace battleship{
 	   	POINT_DEFENSE,
 	   	EXTRACTOR,
 	   	REFINERY,
-		FORT
+		FORT,
+		ICE_SHEET
 	};
     
     class Unit : public GameObject{
@@ -196,6 +198,7 @@ namespace battleship{
 		std::vector<BuildableUnit> buildableUnits;
 		State state = State::STAND_GROUND;
 
+		void placeAt(vb01::Vector3);
 		std::vector<Player*> getSelectingPlayers();
         void removeOrder(int);
 		virtual bool validateLaunchOrder(){return !getWeaponsByOrder(Order::TYPE::LAUNCH).empty();}

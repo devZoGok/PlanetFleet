@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include "pathfinder.h"
-#include "unit.h"
+#include "vehicle.h"
 
 namespace battleship{
 		using namespace std;
@@ -16,7 +16,7 @@ namespace battleship{
 			return pathfinder;
 		}
 
-		vector<int> Pathfinder::findPath(vector<Map::Cell> &cells, vector<float> &heuristics, int source, int dest, int unitType){
+		vector<int> Pathfinder::findPath(vector<Map::Cell> &cells, vector<float> &heuristics, int source, int dest, Vehicle *vehicle){
 			const int size = cells.size();
 			u32 *distances = new u32[size];
 			vector<int> *paths = new vector<int>[size];
@@ -67,10 +67,30 @@ namespace battleship{
 					}
 
 					bool canMoveToStrichCell = true;
-					bool ship = ((UnitType)unitType == UnitType::UNDERWATER || (UnitType)unitType == UnitType::SEA_LEVEL);
 
-					if((ship && cells[vertStrich].type != Map::Cell::WATER) || ((UnitType)unitType == UnitType::LAND && cells[vertStrich].type != Map::Cell::LAND))
-						continue;
+					if(vehicle){
+						UnitType unitType = vehicle->getType();
+						bool ship = (unitType == UnitType::UNDERWATER || unitType == UnitType::SEA_LEVEL);
+						Unit *blockingUnit = cells[vertStrich].blockedBy;
+
+						if(
+								(unitType == UnitType::LAND && (blockingUnit || cells[vertStrich].type != Map::Cell::LAND)) ||
+								(
+									ship &&
+									(
+										cells[vertStrich].type != Map::Cell::WATER ||
+										(
+											blockingUnit && 
+											blockingUnit->getUnitClass() == UnitClass::ICE_SHEET && 
+											vehicle->getUnitClass() != UnitClass::ICEBREAKER
+										)
+									)
+								)
+						)
+						{
+							continue;
+						}
+					}
 
 					if(distances[vertStrich] + cells[vertStrich].edges[i].weight < distances[edgeNode]){
 						distances[edgeNode] = distances[vertStrich] + cells[vertStrich].edges[i].weight;
