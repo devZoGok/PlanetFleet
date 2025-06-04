@@ -28,6 +28,7 @@ namespace battleship{
 			std::string getGameObjTableName();
 			void updateGameStats(Unit*);
 			static sf::Sound* prepareSfx(sf::SoundBuffer*, std::string);
+			bool pointWithinObj(vb01::Vector3, float = 0, float = 0, bool = false, float = 0);
         	inline vb01::Vector2 getScreenPos(){return screenPos;}
 			inline vb01::Vector3 getCorner(int i){return corners[i];}
 			inline bool isSelectable(){return selectable;}

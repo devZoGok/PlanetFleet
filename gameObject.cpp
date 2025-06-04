@@ -156,6 +156,27 @@ namespace battleship{
 		return sfx;
 	}
 
+	bool GameObject::pointWithinObj(Vector3 point, float deltaLength, float deltaWidth, bool useHeight, float deltaHeight){
+		Vector3 pointDir = point - pos;
+		bool within = true;
+
+		float forwAngle = std::min(dirVec.getAngleBetween(pointDir.norm()), (-dirVec).getAngleBetween(pointDir.norm()));
+		float forwDist = pointDir.getLength() * cos(forwAngle);
+		within &= (forwDist < .5 * (length + deltaLength));
+
+		float leftAngle = std::min(leftVec.getAngleBetween(pointDir.norm()), (-leftVec).getAngleBetween(pointDir.norm()));
+		float leftDist = pointDir.getLength() * cos(leftAngle);
+		within &= (leftDist < .5 * (width + deltaWidth));
+
+		if(useHeight){
+			float upAngle = std::min(upVec.getAngleBetween(pointDir.norm()), (-upVec).getAngleBetween(pointDir.norm()));
+			float upDist = pointDir.getLength() * cos(upAngle);
+			within &= (upDist < .5 * (height + deltaHeight));
+		}
+		
+		return within;
+	}
+
 	void GameObject::initSound(){
 		deathSfxBuffer = new sf::SoundBuffer();
 		string sfxPath = generateView()[getGameObjTableName()][id + 1]["deathSfx"];

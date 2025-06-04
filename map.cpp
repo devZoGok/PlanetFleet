@@ -382,6 +382,28 @@ namespace battleship{
 		return spawnPointsTbl.size();
 	}
 
+	void Map::blockCells(Unit *unit){
+		for(Cell &cell : cells){
+			if(cell.blockedBy && cell.blockedBy != unit) continue;
+
+			Vector3 cellDir = (cell.pos - unit->getPos()), dirVec = unit->getDirVec(), leftVec = unit->getLeftVec();
+			float forwAngle = std::min(dirVec.getAngleBetween(cellDir.norm()), (-dirVec).getAngleBetween(cellDir.norm()));
+			float forwDist = cellDir.getLength() * cos(forwAngle);
+
+			float leftAngle = std::min(leftVec.getAngleBetween(cellDir.norm()), (-leftVec).getAngleBetween(cellDir.norm()));
+			float leftDist = cellDir.getLength() * cos(leftAngle);
+			
+			bool within = (forwDist < .5 * (unit->getLength() + CELL_SIZE.x) && leftDist < .5 * (unit->getWidth() + CELL_SIZE.z));
+			cell.blockedBy = (within ? unit : nullptr);
+		}
+	}
+
+	void Map::unblockCells(Unit *unit){
+		for(Cell &cell : cells)
+			if(cell.blockedBy == unit)
+				cell.blockedBy = nullptr;
+	}
+
 	void Map::loadSpawnPoints(){
 		sol::state_view SOL_LUA_VIEW = generateView();
 		int numSpawnPoints = getNumMapSpawnPoints();

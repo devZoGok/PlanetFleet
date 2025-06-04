@@ -11,6 +11,7 @@
 #include "researchStruct.h"
 #include "missile.h"
 #include "cruiseMissile.h"
+#include "iceSheet.h"
 #include "shell.h"
 #include "defConfigs.h"
 
@@ -51,6 +52,8 @@ namespace battleship{
 					return new Extractor(player, id, pos, rot, buildStatus);
 				case UnitClass::LAB:
 					return new ResearchStruct(player, id, pos, rot, buildStatus);
+				case UnitClass::ICE_SHEET:
+					return new IceSheet(player, id, pos, rot, buildStatus);
 				default:
 					return new Structure(player, id, pos, rot, buildStatus, Unit::State::STAND_GROUND);
 			}
