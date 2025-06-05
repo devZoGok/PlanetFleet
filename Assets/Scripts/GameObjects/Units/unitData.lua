@@ -10,7 +10,8 @@ OrderType = {
 	SUPPLY = 7,
 	LOAD = 8,
 	UNLOAD = 9,
-	HACK = 10
+	HACK = 10,
+	FREEZE = 11
 }
 UnitId = {
 	WAR_MECH = 0,
@@ -29,17 +30,18 @@ UnitId = {
 	MISSILE_SUBMARINE = 13,
 	STEALTH_SUBMARINE = 14,
 	ICEBREAKER = 15,
-	LAND_FACTORY = 16,
-	NAVAL_FACTORY = 17,
-	TRADE_CENTER = 18,
-	LAB = 19,
-	POINT_DEFENSE = 20,
-	EXTRACTOR = 21,
-	REFINERY = 22,
-	FORT = 23,
-	ICE_SHEET = 24
+	FREEZER = 16,
+	LAND_FACTORY = 17,
+	NAVAL_FACTORY = 18,
+	TRADE_CENTER = 19,
+	LAB = 20,
+	POINT_DEFENSE = 21,
+	EXTRACTOR = 22,
+	REFINERY = 23,
+	FORT = 24,
+	ICE_SHEET = 25
 }
-WeaponClass = {HITSCAN = 0, SHELL = 1, TORPEDO = 2, CRUISE_MISSILE = 3, HACK = 4}
+WeaponClass = {FREEZE = 1}
 UnitClass = {
 	WAR_MECH = 0,
 	TANK = 1,
@@ -51,15 +53,16 @@ UnitClass = {
 	CARRIER = 7,
 	SUBMARINE = 8,
 	ICEBREAKER = 9,
-	LAND_FACTORY = 10,
-	NAVAL_FACTORY = 11,
-	TRADE_CENTER = 12,
-	LAB = 13,
-	POINT_DEFENSE = 14,
-	EXTRACTOR = 15,
-	REFINERY = 16,
-	FORT = 17,
-	ICE_SHEET = 18
+	FREEZER = 10,
+	LAND_FACTORY = 11,
+	NAVAL_FACTORY = 12,
+	TRADE_CENTER = 13,
+	LAB = 14,
+	POINT_DEFENSE = 15,
+	EXTRACTOR = 16,
+	REFINERY = 17,
+	FORT = 18,
+	ICE_SHEET = 19
 }
 UnitType = {UNDERWATER = 0, SEA_LEVEL = 1, HOVER = 2, LAND = 3, AIR = 4}
 
@@ -93,7 +96,6 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN,
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100,
 				maxRange = 10,
@@ -165,7 +167,6 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.SHELL, 
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				damage = 200, 
@@ -221,7 +222,6 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.SHELL, 
 				orderType = OrderType.ATTACK,
 				rateOfFire = 2000, 
 				damage = 5000, 
@@ -275,7 +275,7 @@ units = {
 	},
 	{
 		weapons = {
-			{type = WeaponClass.HITSCAN, orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 20, maxRange = 8},
+			{orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 20, maxRange = 8},
 		},
 		buildableUnits = {
 			{id = UnitId.LAND_FACTORY, buildable = true, trigger = 76},
@@ -314,7 +314,7 @@ units = {
 		garrisonCategory = 3
 	},
 	{
-		weapons = {{type = WeaponClass.HITSCAN, orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 50, maxRange = 20}},
+		weapons = {{orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 50, maxRange = 20}},
 		unitClass = UnitClass.TRANSPORT,
 		unitType = UnitType.HOVER,
 		isVehicle = true,
@@ -339,7 +339,7 @@ units = {
 		garrisonCategory = 3
 	},
 	{
-		weapons = {{type = WeaponClass.HITSCAN, orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/Tanks/attack.ogg', damage = 100, maxRange = 25}},
+		weapons = {{orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/Tanks/attack.ogg', damage = 100, maxRange = 25}},
 		unitClass = UnitClass.TRANSPORT,
 		unitType = UnitType.HOVER,
 		armor = {ArmorType.MECHANIC},
@@ -400,11 +400,10 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN,
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				damage = 300, 
-				maxRange = 15,
+				maxRange = 50,
 				fireFx = {
 					{
 						vfx = true,
@@ -452,7 +451,6 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				fireFx = {
@@ -504,7 +502,6 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN,
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				damage = 300,
@@ -555,7 +552,6 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				fireSfx = PATH .. 'Sounds/Units/Cruisers/fire.ogg', 
@@ -607,7 +603,6 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100, 
 				damage = 80, 
@@ -657,7 +652,6 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
 				orderType = OrderType.ATTACK,
 				rateOfFire = 450, 
 				damage = 500, 
@@ -684,7 +678,6 @@ units = {
 				waterHitFx = {explosionVfx, explosionSfx}
 			},
 			{
-				type = WeaponClass.CRUISE_MISSILE, 
 				orderType = OrderType.LAUNCH,
 				projectile = {id = ProjectileId.CRUISE_MISSILE, pos = {x = 0, y = 15, z = 0}, rot = {w = .707, x = -.707, y = 0, z = 0}},
 				rateOfFire = 500, 
@@ -723,7 +716,6 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.TORPEDO, 
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				fireFx = {
@@ -738,7 +730,6 @@ units = {
 				projectile = {id = ProjectileId.TORPEDO, pos = {x = 0, y = -.27, z = 4.6}, rot = {w = 1, x = 0, y = 0, z = 0}}
 			},
 			{
-				type = WeaponClass.CRUISE_MISSILE, 
 				orderType = OrderType.LAUNCH,
 				rateOfFire = 500, 
 				maxRange = 30, 
@@ -777,7 +768,6 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.TORPEDO, 
 				orderType = OrderType.ATTACK,
 				projectile = {id = ProjectileId.TORPEDO, pos = {x = 0, y = -.27, z = 4.6}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				damage = 200, 
@@ -829,6 +819,49 @@ units = {
 		basePath = PATH .. vehiclePrefix .. 'Icebreakers/',
 		meshPath = 'icebreaker.xml',
 		albedoPath = 'icebreaker.jpg',
+		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
+		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		speed = .1,
+		destinationOffset = .1,
+		anglePrecision = .1,
+		maxTurnAngle = .1,
+		garrisonCategory = 3
+	},
+	{
+		weapons = {
+			{
+				type = WeaponClass.FREEZE,
+				orderType = OrderType.ATTACK,
+				rateOfFire = 100,
+				maxRange = 10,
+				damage = 0,
+				fireFx = {
+					{
+						vfx = false,
+						duration = 500,
+						path = PATH .. 'Sounds/SFX/Freezing/freeze.ogg'
+					},
+				},
+				unitHitFx = {},
+				landHitFx = {},
+				waterHitFx = {},
+			}
+		},
+		--buildableUnits = {{id = UnitId.ICE_SHEET, buildable = true, trigger = 83}},
+		unitClass = UnitClass.FREEZER,
+		unitType = UnitType.SEA_LEVEL,
+		isVehicle = true,
+		health = 500,
+		buildTime = 1000,
+		cost = 500,
+		size = {x = 8.5, y = 6.3, z = 17.6},
+		hitboxOffset = {x = 0, y = 1.6, z = 0},
+		lineOfSight = 25,
+		name = 'Freezer',
+		--colorNodes = {'stealthSubmarine.001'},
+		basePath = PATH .. vehiclePrefix .. 'Freezers/',
+		meshPath = 'freezer.xml',
+		albedoPath = 'freezer.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
 		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
@@ -927,7 +960,6 @@ units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100, 
 				damage = 50, 

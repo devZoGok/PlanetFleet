@@ -8,6 +8,7 @@
 #include <quaternion.h>
 
 #include "vehicle.h"
+#include "weapon.h"
 #include "pathfinder.h"
 #include "player.h"
 #include "game.h"
