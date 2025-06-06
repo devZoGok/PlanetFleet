@@ -24,7 +24,7 @@ namespace battleship{
 		return environment;
 	}
 
-	static void explode(Vector3 pos, int damage, float radius, sf::Sound *explosionSfx){
+	void Environment::explode(Vector3 pos, int damage, float radius, sf::Sound *explosionSfx){
 		if(!(damage == 0 || radius == 0))
 			for(Player *pl : Game::getSingleton()->getPlayers()){
 				for(Unit *un : pl->getUnits()){

@@ -325,7 +325,7 @@ namespace battleship{
 			displayUnitStats(slot.foreground, slot.background, (int)((bool)slot.vehicle), (int)true, renderSelectables, slot.offset);
 
         if (health <= DEATH_HP){
-			Environment::getSingleton()->explode(pos, 0, 0, deathSfx);
+			Environment::explode(pos, 0, 0, deathSfx);
 			remove = true;
 		}
 

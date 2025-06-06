@@ -97,7 +97,7 @@ namespace battleship{
 			for(int i = 0; i < targetNodes.size(); i++)
 				if(targetNodes[i]->getMesh(0) == results[0].mesh){
 					targetUnits[i]->takeDamage(directHitDamage);
-					Environment::getSingleton()->explode(pos, explosionDamage, explosionRadius, explosionSfx);
+					Environment::explode(pos, explosionDamage, explosionRadius, explosionSfx);
 					remove = true;
 				}
 		}
@@ -108,7 +108,7 @@ namespace battleship{
 		int cellId = map->getCellId(pos, false);
 
 		if((pos + dirVec * rayLength).y <= map->getCells()[cellId].pos.y){
-			Environment::getSingleton()->explode(pos, explosionDamage, explosionRadius, explosionSfx);
+			Environment::explode(pos, explosionDamage, explosionRadius, explosionSfx);
 			remove = true;
 		}
 	}
