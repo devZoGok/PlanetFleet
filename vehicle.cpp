@@ -247,6 +247,7 @@ namespace battleship{
 	}
 
 	//TODO allow ships to attack land targets and vice versa 
+	//TODO recursively search for vacant dest cell neibourghss 
 	void Vehicle::preparePathpoints(Order &order, Vector3 destPos, bool appendDestPos){
 		removeAllPathpoints();
 
@@ -263,6 +264,16 @@ namespace battleship{
 		int dest = map->getCellId(destPos);
 
 		if(type != UnitType::UNDERWATER && fabs(destPos.y - cells[dest].pos.y) > .1) return;
+
+		if(cells[dest].blockedBy){
+			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
+
+			for(int scid : surrCellIds)
+				if(!cells[scid].blockedBy){
+					dest = scid;
+					break;
+				}
+		}
 
 		vector<float> heuristics;
 

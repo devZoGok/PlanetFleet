@@ -717,7 +717,7 @@ namespace battleship{
 
 							buildableStructSelected = false;
 						}
-						else if(!canSelectHoveredOnGameObj()){
+						else{
                     		if(targets.empty()) castRayToTerrain();
 
 							issueOrder(Order::TYPE::MOVE, targets, shiftPressed);
