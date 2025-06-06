@@ -18,6 +18,7 @@
 #include "game.h"
 #include "map.h"
 #include "vehicle.h"
+#include "environment.h"
 #include "gameObjectFactory.h"
 #include "activeGameState.h"
 #include "gameManager.h"
@@ -34,6 +35,7 @@ using namespace std;
 namespace battleship{
     Unit::Unit(Player *player, int id, Vector3 pos, Quaternion rot, State st) : GameObject(GameObject::Type::UNIT, id, player, pos, rot), state(st){
 		selectable = true;
+		restartTime = 2000;
 
 		Unit::initProperties();
 		initModel();
@@ -298,7 +300,10 @@ namespace battleship{
     void Unit::update() {
 		GameObject::update();
 
-		if(freezeStatus >= 100) enabled = false;
+		if(condition == Condition::EM_JAMMED && getTime() - lastJamTime > restartTime)
+			condition = Condition::ABLE;
+
+		if(freezeStatus >= 100) condition = Condition::FROZEN;
 
 		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
 		Player *mainPlayer = (activeState ? activeState->getPlayer() : nullptr);
@@ -320,7 +325,7 @@ namespace battleship{
 			displayUnitStats(slot.foreground, slot.background, (int)((bool)slot.vehicle), (int)true, renderSelectables, slot.offset);
 
         if (health <= DEATH_HP){
-			Game::getSingleton()->explode(pos, 0, 0, deathSfx);
+			Environment::getSingleton()->explode(pos, 0, 0, deathSfx);
 			remove = true;
 		}
 
@@ -349,7 +354,7 @@ namespace battleship{
 
 	//TODO remove order argument from action methods
     void Unit::executeOrders() {
-		if(!enabled) return;
+		if(condition != Condition::ABLE) return;
 
         if (orders.size() > 0) {
             Order order = orders[0];

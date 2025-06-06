@@ -232,7 +232,7 @@ namespace battleship{
 
 	//TODO replace unit pos with absolute weapon pos for withinAngle
 	void Weapon::update(){
-		if(!unit->isEnabled()) return;
+		if(unit->getCondition() != Unit::Condition::ABLE) return;
 
 		int numOrders = unit->getNumOrders();
 		int ordTp = (numOrders > 0 ? (int)unit->getOrder(0).type : -1);

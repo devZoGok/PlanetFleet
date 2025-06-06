@@ -1,4 +1,4 @@
-ProjectileId = {SHELL = 0, CRUISE_MISSILE = 1, MISSILE = 2, TORPEDO = 3}
+ProjectileId = {HE_SHELL = 0, EMP_SHELL = 1, CRUISE_MISSILE = 2, MISSILE = 3, TORPEDO = 4}
 ProjectileClass = {SHELL = 0, CRUISE_MISSILE = 1, MISSILE = 2, TORPEDO = 3}
 G = 9.8
 
@@ -10,6 +10,19 @@ projectiles = {
 		rotAngle = .1,
 		explosion = {damage = 100, radius = 20, sfx = PATH .. 'Sounds/SFX/Explosions/explosion02.ogg'},
 		directHitDamage = 200,
+		rayLength = 1,
+		name = "Shell",
+	    basePath = PATH .. "Models/GameObjects/Projectiles/Shells/",
+		meshPath = "shell.xml",
+		albedoPath = 'shell.jpg'
+	},
+	{
+		projectileClass = ProjectileClass.SHELL,
+		size = {x = 1, y = 1, z = 1},
+		speed = 5,
+		rotAngle = .1,
+		explosion = {damage = 0, radius = 20, sfx = PATH .. 'Sounds/SFX/Explosions/explosion02.ogg'},
+		directHitDamage = 0,
 		rayLength = 1,
 		name = "Shell",
 	    basePath = PATH .. "Models/GameObjects/Projectiles/Shells/",

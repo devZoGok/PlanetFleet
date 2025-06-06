@@ -31,15 +31,16 @@ UnitId = {
 	STEALTH_SUBMARINE = 14,
 	ICEBREAKER = 15,
 	FREEZER = 16,
-	LAND_FACTORY = 17,
-	NAVAL_FACTORY = 18,
-	TRADE_CENTER = 19,
-	LAB = 20,
-	POINT_DEFENSE = 21,
-	EXTRACTOR = 22,
-	REFINERY = 23,
-	FORT = 24,
-	ICE_SHEET = 25
+	EMP_BOAT = 17,
+	LAND_FACTORY = 18,
+	NAVAL_FACTORY = 19,
+	TRADE_CENTER = 20,
+	LAB = 21,
+	POINT_DEFENSE = 22,
+	EXTRACTOR = 23,
+	REFINERY = 24,
+	FORT = 25,
+	ICE_SHEET = 26
 }
 WeaponClass = {FREEZE = 1}
 UnitClass = {
@@ -54,15 +55,16 @@ UnitClass = {
 	SUBMARINE = 8,
 	ICEBREAKER = 9,
 	FREEZER = 10,
-	LAND_FACTORY = 11,
-	NAVAL_FACTORY = 12,
-	TRADE_CENTER = 13,
-	LAB = 14,
-	POINT_DEFENSE = 15,
-	EXTRACTOR = 16,
-	REFINERY = 17,
-	FORT = 18,
-	ICE_SHEET = 19
+	EMP_BOAT = 11,
+	LAND_FACTORY = 12,
+	NAVAL_FACTORY = 13,
+	TRADE_CENTER = 14,
+	LAB = 15,
+	POINT_DEFENSE = 16,
+	EXTRACTOR = 17,
+	REFINERY = 18,
+	FORT = 19,
+	ICE_SHEET = 20
 }
 UnitType = {UNDERWATER = 0, SEA_LEVEL = 1, HOVER = 2, LAND = 3, AIR = 4}
 
@@ -172,7 +174,7 @@ units = {
 				damage = 200, 
 				maxRange = 25,
 				horizontalNode = {name = 'Turret', rotationSpeed = .05, maxFireAngle = .1},
-				projectile = {id = ProjectileId.SHELL, parent = 'Turret', pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.HE_SHELL, parent = 'Turret', pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = false,
@@ -402,7 +404,7 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
-				damage = 300, 
+				damage = 10, 
 				maxRange = 50,
 				fireFx = {
 					{
@@ -862,6 +864,46 @@ units = {
 		basePath = PATH .. vehiclePrefix .. 'Freezers/',
 		meshPath = 'freezer.xml',
 		albedoPath = 'freezer.jpg',
+		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
+		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		speed = .1,
+		destinationOffset = .1,
+		anglePrecision = .1,
+		maxTurnAngle = .1,
+		garrisonCategory = 3
+	},
+	{
+		weapons = {
+			{
+				orderType = OrderType.ATTACK,
+				rateOfFire = 1000, 
+				damage = 0, 
+				maxRange = 25,
+				horizontalNode = {name = 'turret', rotationSpeed = .05, maxFireAngle = .1},
+				projectile = {id = ProjectileId.EMP_SHELL, parent = 'turret', pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = .998, x = -.066, y = 0, z = 0}},
+				fireFx = {
+					{
+						vfx = false,
+						duration = 300,
+						path = PATH .. 'Sounds/Units/Tanks/attack.ogg', 
+					},
+				},
+			}
+		},
+		unitClass = UnitClass.EMP_BOAT,
+		unitType = UnitType.SEA_LEVEL,
+		isVehicle = true,
+		health = 500,
+		buildTime = 1000,
+		cost = 500,
+		size = {x = 4.75, y = 5.15, z = 19.55},
+		hitboxOffset = {x = 0, y = .18, z = .25},
+		lineOfSight = 25,
+		name = 'EMP boat',
+		--colorNodes = {'stealthSubmarine.001'},
+		basePath = PATH .. vehiclePrefix .. 'EMPShips/',
+		meshPath = 'empShip.xml',
+		albedoPath = 'empShip.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
 		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,

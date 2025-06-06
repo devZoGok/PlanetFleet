@@ -10,6 +10,7 @@
 #include "unit.h"
 #include "util.h"
 #include "player.h"
+#include "environment.h"
 #include "projectile.h"
 #include "defConfigs.h"
 #include "resourceDeposit.h"
@@ -96,7 +97,7 @@ namespace battleship{
 			for(int i = 0; i < targetNodes.size(); i++)
 				if(targetNodes[i]->getMesh(0) == results[0].mesh){
 					targetUnits[i]->takeDamage(directHitDamage);
-					Game::getSingleton()->explode(pos, explosionDamage, explosionRadius, explosionSfx);
+					Environment::getSingleton()->explode(pos, explosionDamage, explosionRadius, explosionSfx);
 					remove = true;
 				}
 		}
@@ -107,7 +108,7 @@ namespace battleship{
 		int cellId = map->getCellId(pos, false);
 
 		if((pos + dirVec * rayLength).y <= map->getCells()[cellId].pos.y){
-			Game::getSingleton()->explode(pos, explosionDamage, explosionRadius, explosionSfx);
+			Environment::getSingleton()->explode(pos, explosionDamage, explosionRadius, explosionSfx);
 			remove = true;
 		}
 	}

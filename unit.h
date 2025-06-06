@@ -77,6 +77,7 @@ namespace battleship{
 	   	SUBMARINE,
 		ICEBREAKER,
 		FREEZER,
+		EMP_BOAT,
 	   	LAND_FACTORY,
 	   	NAVAL_FACTORY,
 	   	TRADE_CENTER,
@@ -90,7 +91,6 @@ namespace battleship{
     
     class Unit : public GameObject{
     public:
-
 		struct GarrisonSlot{
 			Vehicle *vehicle = nullptr;
 			int category;
@@ -102,6 +102,7 @@ namespace battleship{
 
 		enum class Armor {CAST, COMBINED, MECHANIC, SHELL, STEEL};
 		enum class State {CHASE, STAND_GROUND, HOLD_FIRE};
+		enum class Condition{ABLE, FROZEN, EM_JAMMED};
 
         Unit(Player*, int, vb01::Vector3, vb01::Quaternion, State = State::STAND_GROUND);
         virtual ~Unit();
@@ -140,7 +141,7 @@ namespace battleship{
 		inline vb01::Node* getLosLightNode(){return losLightNode;}
 		inline void setFreezeStatus(int fs){this->freezeStatus = std::clamp(fs, 0, 100);}
 		inline int getFreezeStatus(){return freezeStatus;}
-		inline bool isEnabled(){return enabled;}
+		inline Condition getCondition(){return condition;}
     private:
 		void renderOrderLine(bool);
         void updateScreenCoordinates();
@@ -153,14 +154,15 @@ namespace battleship{
         sf::SoundBuffer *selectionSfxBuffer;
         sf::Sound *selectionSfx = nullptr;
 		vb01::Node *hpBackgroundNode = nullptr, *hpForegroundNode = nullptr, *losLightNode = nullptr;
-		bool vehicle, enabled = true;
+		bool vehicle;
+		Condition condition = Condition::ABLE;
     protected:
         UnitClass unitClass;
         UnitType type;
         std::vector<Order> orders;
 		std::string guiScreen = "";
-        int health = 0, maxHealth, playerId, lenHpBar = 200, freezeStatus = 0, freezeDmgFactor = 10;
-		vb01::s64 orderLineDispTime = 0, lastFireTime = 0;
+        int health = 0, maxHealth, playerId, lenHpBar = 200, freezeStatus = 0, freezeDmgFactor = 10, restartTime;
+		vb01::s64 orderLineDispTime = 0, lastFireTime = 0, lastJamTime = 0;
         float lineOfSight;
 		std::vector<Armor> armorTypes;
 		std::vector<Weapon*> weapons;

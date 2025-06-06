@@ -22,7 +22,6 @@ namespace battleship{
 			void update();
 			void togglePause();
 			void removeAllElements();
-			void explode(vb01::Vector3, int, float, sf::Sound*);
 			void changeUnitPlayer(Unit*, Player*);
 			void initTechnologies();
 			float calcAbilFromTech(Ability::Type, std::vector<int>, int, int);

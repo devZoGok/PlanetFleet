@@ -16,26 +16,29 @@ set(BUILD_TESTS ON)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL FORCED)
 cmake_policy(SET CMP0015 NEW)
 
+set(STATES activeGameState.cpp inGameAppState.cpp guiAppState.cpp mapEditorAppState.cpp loadingAppState.cpp)
+
 set(UNIT_BUTTONS unitButton.cpp tradeButton.cpp buildButton.cpp trainButton.cpp researchButton.cpp orderButton.cpp stateToggleButton.cpp)
 set(OPTIONS_BUTTONS optionsButton.cpp tabButton.cpp okButton.cpp defaultsButton.cpp)
 set(TRADING_BUTTONS activeStateBackButton.cpp playerTradeButton.cpp tradingScreenButton.cpp offerButton.cpp resourceAmmountButton.cpp)
 set(MENU_BUTTONS mainMenuButton.cpp singlePlayerButton.cpp exitButton.cpp backButton.cpp playButton.cpp)
 set(MAP_EDITOR_BUTTONS mapEditorButton.cpp newMapButton.cpp loadMapButton.cpp exportButton.cpp)
 set(BUTTONS statsButton.cpp activeStateButton.cpp minimapButton.cpp ${TRADING_BUTTONS} ${OPTIONS_BUTTONS} ${MENU_BUTTONS} ${MAP_EDITOR_BUTTONS} ${UNIT_BUTTONS})
-
 set(LISTBOXES skyboxTextureListbox.cpp landTextureListbox.cpp gameObjectListbox.cpp mapListbox.cpp)
 set(GUI tooltip.cpp concreteGuiManager.cpp ${BUTTONS} ${LISTBOXES})
 
-set(STATES activeGameState.cpp inGameAppState.cpp guiAppState.cpp mapEditorAppState.cpp loadingAppState.cpp)
-set(UTIL util.cpp binds.h)
 set(CONTROLLERS gameObjectFrameController.cpp cameraController.cpp)
 set(CONSOLE console.cpp abstractCommand.cpp addUnitCommand.cpp addResourceCommand.cpp addTechnologyCommand.cpp toggleDebugCommand.cpp)
-set(CORE gameManager.cpp game.cpp fxManager.cpp defConfigs.cpp ${CONSOLE} ${CONTROLLERS})
+set(CORE gameManager.cpp game.cpp environment.cpp fxManager.cpp defConfigs.cpp ${CONSOLE} ${CONTROLLERS})
+
 set(PROJECTILES projectile.cpp missile.cpp cruiseMissile.cpp shell.cpp)
 set(VEHICLES vehicle.cpp submarine.cpp engineer.cpp resourceRover.cpp)
 set(STRUCTURES structure.cpp factory.cpp pointDefense.cpp extractor.cpp researchStruct.cpp iceSheet.cpp)
 set(UNITS gameObjectFactory.cpp unit.cpp weapon.cpp ${STRUCTURES} ${VEHICLES})
 set(CONTENT player.cpp trader.cpp pathfinder.cpp map.cpp gameObject.cpp gameObjectFrame.h resourceDeposit.cpp ${UNITS} ${PROJECTILES})
+
+set(UTIL util.cpp binds.h)
+
 set(GAME_SRC ${STATES} ${GUI} ${CORE} ${CONTENT} ${UTIL})
 
 set(SFML_DIR external/SFML)
