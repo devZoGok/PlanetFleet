@@ -1,4 +1,13 @@
 #include "environment.h"
+#include "fxManager.h"
+#include "player.h"
+#include "game.h"
+
+#include <root.h>
+#include <node.h>
+#include <material.h>
+#include <texture.h>
+#include <particleEmitter.h>
 
 #include <SFML/Audio.hpp>
 
@@ -8,16 +17,16 @@ namespace battleship{
 
 	static Environment *environment = nullptr;
 
-	static Environment* getSingleton(){
+	Environment* Environment::getSingleton(){
 		if(!environment)
 			environment = new Environment();
 
 		return environment;
 	}
 
-	static Environment::explode(Vector3 pos, int damage, float radius, sf::Sound *explosionSfx){
+	static void explode(Vector3 pos, int damage, float radius, sf::Sound *explosionSfx){
 		if(!(damage == 0 || radius == 0))
-			for(Player *pl : players){
+			for(Player *pl : Game::getSingleton()->getPlayers()){
 				for(Unit *un : pl->getUnits()){
 					float distance = un->getPos().getDistanceFrom(pos);
 
