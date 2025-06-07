@@ -49,7 +49,6 @@ namespace battleship{
 			void alignNode(vb01::Vector3, vb01::Node*, bool);
 			void initProjectileData(sol::table);
 			vb01::Node* initNode(sol::table, bool);
-			FxManager::Fx* initFx(sol::table, std::string, bool);
 			void useFx(FxManager::Fx*, vb01::Vector3, bool);
 			inline bool canFire(){return vb01::getTime() - lastFireTime > rateOfFire;}
 		protected:

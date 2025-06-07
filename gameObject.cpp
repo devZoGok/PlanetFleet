@@ -177,12 +177,6 @@ namespace battleship{
 		return within;
 	}
 
-	void GameObject::initSound(){
-		deathSfxBuffer = new sf::SoundBuffer();
-		string sfxPath = generateView()[getGameObjTableName()][id + 1]["deathSfx"];
-		deathSfx = prepareSfx(deathSfxBuffer, sfxPath);
-	}
-
 	string GameObject::getGameObjTableName(){
 		switch(type){
 			case GameObject::Type::UNIT:

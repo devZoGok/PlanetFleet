@@ -325,7 +325,10 @@ namespace battleship{
 			displayUnitStats(slot.foreground, slot.background, (int)((bool)slot.vehicle), (int)true, renderSelectables, slot.offset);
 
         if (health <= DEATH_HP){
-			Environment::explode(pos, 0, 0, deathSfx);
+			FxManager *fxManager = FxManager::getSingleton();
+			FxManager::Fx *deathFx = fxManager->initFx(generateView()[getGameObjTableName()][id + 1]["deathFx"], model, false, pos);
+			deathFx->toggleComponents(true);
+			fxManager->addFx(deathFx);
 			remove = true;
 		}
 

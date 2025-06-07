@@ -56,13 +56,11 @@ namespace battleship{
 			virtual void initHitbox();
 			virtual void destroyHitbox();
 			virtual void destroySound();
-			virtual void initSound();
+			virtual void initSound(){}
 
 			Type type;
 			int id;
 			Player *player;
-			sf::SoundBuffer *deathSfxBuffer;
-			sf::Sound *deathSfx;
 			vb01::Model *model = nullptr;
 			vb01::Node *hitbox = nullptr;
 			vb01::Vector3 pos = vb01::Vector3(0, 0, 0), upVec = vb01::Vector3(0, 1, 0), dirVec = vb01::Vector3(0, 0, 1), leftVec = vb01::Vector3(1, 0, 0), corners[8];

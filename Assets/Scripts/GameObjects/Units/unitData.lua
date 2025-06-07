@@ -93,7 +93,6 @@ explosionSfx = {
 	duration = 2500
 }
 
-
 units = {
 	{
 		weapons = {
@@ -159,12 +158,12 @@ units = {
 		albedoPath = 'mech.jpg',
 		colorNodes = {'WarRobotTemplate.001'},
 		selectionSfx = PATH .. 'Sounds/Units/WarMechs/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .3,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 1
+		garrisonCategory = 1,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -214,12 +213,12 @@ units = {
 		albedoPath = 'tank.jpg',
 		colorNodes = {'Antenna_S', 'Antenna_L', 'Hatch'},
 		selectionSfx = PATH .. 'Sounds/Units/Tanks/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 2
+		garrisonCategory = 2,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -268,12 +267,12 @@ units = {
 		albedoPath = 'artillery.jpg',
 		colorNodes = {'turret'},
 		selectionSfx = PATH .. 'Sounds/Units/Tanks/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 2
+		garrisonCategory = 2,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -308,12 +307,12 @@ units = {
 		colorNodes = {'Cube.008'},
 		meshPath = 'engineer2.xml',
 		selectionSfx = PATH .. 'Sounds/Units/Engineers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {{orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 50, maxRange = 20}},
@@ -333,12 +332,12 @@ units = {
 		basePath = PATH .. vehiclePrefix .. 'Transports/',
 		meshPath = 'scoutTransport.xml',
 		selectionSfx = PATH .. 'Sounds/Units/Transports/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {{orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/Tanks/attack.ogg', damage = 100, maxRange = 25}},
@@ -359,12 +358,12 @@ units = {
 		meshPath = 'hoverTransport.xml',
 		albedoPath = 'transport.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Transports/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {},
@@ -392,12 +391,12 @@ units = {
 		meshPath = 'cargoship.xml',
 		albedoPath = 'cargoship.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cargoships/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -443,12 +442,12 @@ units = {
 		meshPath = 'tacticalCruiser.xml',
 		albedoPath = 'cruiser.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -494,12 +493,12 @@ units = {
 		meshPath = 'defensiveCruiser.xml',
 		albedoPath = 'cruiser.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -544,12 +543,12 @@ units = {
 		meshPath = 'cheapCruiser.xml',
 		albedoPath = 'cruiser.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -595,12 +594,12 @@ units = {
 		meshPath = 'transportCruiser.xml',
 		albedoPath = 'cruiser.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -644,12 +643,12 @@ units = {
 		meshPath = 'heavyCarrier.xml',
 		albedoPath = 'carrier.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Carriers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -708,12 +707,12 @@ units = {
 		meshPath = 'championCarrier.xml',
 		albedoPath = 'carrier.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Carriers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -760,12 +759,12 @@ units = {
 		albedoPath = 'submarine.jpg',
 		colorNodes = {'missileSubmarine.001'},
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -799,12 +798,12 @@ units = {
 		meshPath = 'stealthSubmarine.xml',
 		albedoPath = 'submarine.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		unitClass = UnitClass.ICEBREAKER,
@@ -822,12 +821,12 @@ units = {
 		meshPath = 'icebreaker.xml',
 		albedoPath = 'icebreaker.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -865,12 +864,12 @@ units = {
 		meshPath = 'freezer.xml',
 		albedoPath = 'freezer.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -905,12 +904,12 @@ units = {
 		meshPath = 'empShip.xml',
 		albedoPath = 'empShip.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		buildableUnits = {
@@ -934,7 +933,7 @@ units = {
 		basePath = PATH .. structurePrefix .. 'LandFactories/',
 		meshPath = 'landFactory.xml',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		unitClass = UnitClass.NAVAL_FACTORY,
@@ -951,7 +950,7 @@ units = {
 		meshPath = 'navalFactory.xml',
 		albedoPath = 'factory.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		unitClass = UnitClass.TRADE_CENTER,
@@ -975,7 +974,7 @@ units = {
 		meshPath = 'tradeCenter.xml',
 		albedoPath = 'tradeCenter.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		unitClass = UnitClass.LAB,
@@ -997,7 +996,7 @@ units = {
 		meshPath = 'lab2.xml',
 		albedoPath = 'lab.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
@@ -1061,7 +1060,7 @@ units = {
 		meshPath = 'pointDefense2.xml',
 		albedoPath = 'pointDefense.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		unitClass = UnitClass.EXTRACTOR,
@@ -1081,7 +1080,7 @@ units = {
 		meshPath = 'extractor.xml',
 		albedoPath = 'extractor.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		unitClass = UnitClass.REFINERY,
@@ -1099,7 +1098,7 @@ units = {
 		meshPath = 'refinery.xml',
 		albedoPath = 'refinery.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		buildableUnits = {{id = UnitId.ENGINEER, buildable = true, trigger = 69}},
@@ -1118,7 +1117,7 @@ units = {
 		colorNodes = {'Cube.004'},
 		albedoPath = 'fort.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		unitClass = UnitClass.ICE_SHEET,
@@ -1133,6 +1132,6 @@ units = {
 		meshPath = 'iceSheet.xml',
 		albedoPath = 'iceSheet.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Ice/break.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 }

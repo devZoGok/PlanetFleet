@@ -1,19 +1,19 @@
 #ifndef PROJECTILE_H
 #define PROJECTILE_H
 
-#include <SFML/Audio.hpp>
-
 #include "gameObject.h"
+#include "fxManager.h"
 
-#include <algorithm>
+#include <SFML/Audio.hpp>
 
 namespace vb01{
 	class Node;
 }
 
 namespace battleship {
-	enum class ProjectileClass{SHELL, CRUISE_MISSILE, MISSILE, TORPEDO};
 	class Unit;
+
+	enum class ProjectileClass{SHELL, CRUISE_MISSILE, MISSILE, TORPEDO};
 
     class Projectile : public GameObject{
     public:
@@ -23,17 +23,17 @@ namespace battleship {
         virtual void debug();
 	private:
 		void initProperties();
-		void initSound();
     protected:
 		virtual void reinit();
 		virtual void checkUnitCollision();
 		virtual void checkSurfaceCollision();
 		void checkCollision();
 
-        float speed, rayLength, explosionRadius, rotAngle;
-        int directHitDamage, explosionDamage;
 		vb01::Vector3 initPos;
 		Unit *unit = nullptr;
+		FxManager::Fx *explosionFx = nullptr;
+        float speed, rayLength, explosionRadius, rotAngle;
+        int directHitDamage, explosionDamage;
         sf::SoundBuffer *shotSfxBuffer, *explosionSfxBuffer;
         sf::Sound *shotSfx = nullptr, *explosionSfx = nullptr;
     };

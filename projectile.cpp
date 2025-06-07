@@ -44,7 +44,6 @@ namespace battleship{
 		initProperties();
 
 		initModel();
-		initSound();
 
 		GameObject::reinit();
 	}
@@ -63,12 +62,6 @@ namespace battleship{
         explosionRadius = projTable[explKey]["radius"]; explosionRadius += game->calcAbilFromTech(Ability::Type::EXPLOSION_RADIUS, currTechs, (int)GameObject::type, id);
         speed = projTable["speed"];
 		rotAngle = projTable["rotAngle"].get_or(0.0);
-	}
-
-	void Projectile::initSound(){
-        explosionSfxBuffer = new sf::SoundBuffer();
-        string sfxPath = generateView()[GameObject::getGameObjTableName()][id + 1]["explosion"]["sfx"];
-		explosionSfx = GameObject::prepareSfx(explosionSfxBuffer, sfxPath);
 	}
 
     void Projectile::update() {
@@ -96,8 +89,11 @@ namespace battleship{
 		if(!results.empty()){
 			for(int i = 0; i < targetNodes.size(); i++)
 				if(targetNodes[i]->getMesh(0) == results[0].mesh){
+					FxManager *fxManager = FxManager::getSingleton();
+					FxManager::Fx *explosionFx = fxManager->initFx(generateView()[getGameObjTableName()][id + 1]["explosion"]["fx"], model, false, pos);
+					explosionFx->toggleComponents(true);
+					fxManager->addFx(explosionFx);
 					targetUnits[i]->takeDamage(directHitDamage);
-					Environment::explode(pos, explosionDamage, explosionRadius, explosionSfx);
 					remove = true;
 				}
 		}
@@ -108,7 +104,10 @@ namespace battleship{
 		int cellId = map->getCellId(pos, false);
 
 		if((pos + dirVec * rayLength).y <= map->getCells()[cellId].pos.y){
-			Environment::explode(pos, explosionDamage, explosionRadius, explosionSfx);
+			FxManager *fxManager = FxManager::getSingleton();
+			FxManager::Fx *explosionFx = fxManager->initFx(generateView()[getGameObjTableName()][id + 1]["explosion"]["fx"], model, false, pos);
+			explosionFx->toggleComponents(true);
+			fxManager->addFx(explosionFx);
 			remove = true;
 		}
 	}
