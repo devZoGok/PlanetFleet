@@ -190,17 +190,20 @@ namespace battleship{
 		if(projId == -1){
 			sol::table weaponTbl = generateView()["units"][unit->getId() + 1]["weapons"][id + 1];
 			FxManager *fxManager = FxManager::getSingleton();
+			string fxKey = "unitHitFx";
 
-			if(targetUnit){
+			if(targetUnit)
 				updateTargetUnit(targetUnit);
-				useFx(fxManager->initFx(weaponTbl["unitHitFx"], unit->getModel(), false), targPos, false);
-			}
 			else{
 				Map *map = Map::getSingleton();
 				Map::Cell::Type cellType = map->getCells()[map->getCellId(targPos)].type;
-				string fxKey = (cellType == Map::Cell::Type::LAND ? "landHitFx" : "waterHitFx");
-				useFx(fxManager->initFx(weaponTbl[fxKey], unit->getModel(), false), targPos, false);
+				fxKey = (cellType == Map::Cell::Type::LAND ? "landHitFx" : "waterHitFx");
 			}
+
+			sol::optional<sol::table> hitFxOpt = weaponTbl[fxKey];
+
+			if(hitFxOpt != sol::nullopt && ((sol::table)weaponTbl[fxKey]).size() > 0)
+				useFx(fxManager->initFx(weaponTbl[fxKey], unit->getModel(), false), targPos, false);
 		}
 		else{
 			Quaternion r = projPar->localToGlobalOrientation(projRot);

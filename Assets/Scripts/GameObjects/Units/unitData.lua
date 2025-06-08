@@ -99,7 +99,7 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100,
-				maxRange = 10,
+				maxRange = 14,
 				damage = 50,
 				fireFx = {
 					{
