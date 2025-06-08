@@ -69,6 +69,16 @@ namespace battleship{
 		placeAt(pos + speed * dirVec);
     }
 
+	void Projectile::detonate(Unit *target){
+		if(target) target->takeDamage(directHitDamage);
+
+		sol::table tbl = generateView()[getGameObjTableName()][id + 1]["explosion"];
+		FxManager::Fx *fx = FxManager::getSingleton()->initFx(tbl["fx"], model, false, pos);
+		Environment::explode(fx, (Environment::Detonation)tbl["detonation"], pos, tbl["damage"], tbl["radius"]);
+
+		remove = true;
+	}
+
 	void Projectile::checkUnitCollision(){
 		vector<Player*> players = Game::getSingleton()->getPlayers(true);
 		vector<Unit*> targetUnits;
@@ -86,30 +96,18 @@ namespace battleship{
 
 		vector<RayCaster::CollisionResult> results = RayCaster::cast(pos, dirVec, targetNodes, rayLength);
 
-		if(!results.empty()){
+		if(!results.empty())
 			for(int i = 0; i < targetNodes.size(); i++)
-				if(targetNodes[i]->getMesh(0) == results[0].mesh){
-					FxManager *fxManager = FxManager::getSingleton();
-					FxManager::Fx *explosionFx = fxManager->initFx(generateView()[getGameObjTableName()][id + 1]["explosion"]["fx"], model, false, pos);
-					explosionFx->toggleComponents(true);
-					fxManager->addFx(explosionFx);
-					targetUnits[i]->takeDamage(directHitDamage);
-					remove = true;
-				}
-		}
+				if(targetNodes[i]->getMesh(0) == results[0].mesh)
+					detonate(targetUnits[i]);
 	}
 
 	void Projectile::checkSurfaceCollision(){
 		Map *map = Map::getSingleton();
 		int cellId = map->getCellId(pos, false);
 
-		if((pos + dirVec * rayLength).y <= map->getCells()[cellId].pos.y){
-			FxManager *fxManager = FxManager::getSingleton();
-			FxManager::Fx *explosionFx = fxManager->initFx(generateView()[getGameObjTableName()][id + 1]["explosion"]["fx"], model, false, pos);
-			explosionFx->toggleComponents(true);
-			fxManager->addFx(explosionFx);
-			remove = true;
-		}
+		if((pos + dirVec * rayLength).y <= map->getCells()[cellId].pos.y)
+			detonate();
 	}
 
 	void Projectile::checkCollision(){

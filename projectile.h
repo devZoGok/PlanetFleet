@@ -23,6 +23,7 @@ namespace battleship {
         virtual void debug();
 	private:
 		void initProperties();
+		void detonate(Unit *u = nullptr);
     protected:
 		virtual void reinit();
 		virtual void checkUnitCollision();

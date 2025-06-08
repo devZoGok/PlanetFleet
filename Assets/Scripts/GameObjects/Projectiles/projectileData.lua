@@ -20,6 +20,7 @@ explosionSfx = {
 	path = PATH .. 'Sounds/SFX/Explosions/explosion02.ogg',
 	duration = 2500
 }
+Detonation = {EXPLOSION = 0, EMP = 1, CRYO = 2}
 
 projectiles = {
 	{
@@ -27,7 +28,7 @@ projectiles = {
 		size = {x = 1, y = 1, z = 1},
 		speed = 5,
 		rotAngle = .1,
-		explosion = {damage = 100, radius = 20, fx = {explosionVfx, explosionSfx}},
+		explosion = {detonation = Detonation.EXPLOSION, damage = 100, radius = 20, fx = {explosionVfx, explosionSfx}},
 		directHitDamage = 200,
 		rayLength = 1,
 		name = "Shell",
@@ -40,7 +41,7 @@ projectiles = {
 		size = {x = 1, y = 1, z = 1},
 		speed = 5,
 		rotAngle = .1,
-		explosion = {damage = 0, radius = 20, fx = {explosionVfx, explosionSfx}},
+		explosion = {detonation = Detonation.EMP, damage = 0, radius = 20, fx = {explosionVfx, explosionSfx}},
 		directHitDamage = 0,
 		rayLength = 1,
 		name = "Shell",
@@ -53,7 +54,7 @@ projectiles = {
 		size = {x = 6, y = 13.5, z = 2.54},
 		speed = .5,
 		rotAngle = .1,
-		explosion = {damage = 100, radius = 20, fx = {explosionVfx, explosionSfx}},
+		explosion = {detonation = Detonation.EXPLOSION, damage = 100, radius = 20, fx = {explosionVfx, explosionSfx}},
 		directHitDamage = 450,
 		rayLength = 6,
 		name = "Cruise missile",
@@ -66,7 +67,7 @@ projectiles = {
 		size = {x = 3, y = 7., z = 1.27},
 		speed = .5,
 		rotAngle = .1,
-		explosion = {damage = 70, radius = 12, fx = {explosionVfx, explosionSfx}},
+		explosion = {detonation = Detonation.EXPLOSION, damage = 70, radius = 12, fx = {explosionVfx, explosionSfx}},
 		directHitDamage = 250,
 		rayLength = 3,
 		name = "Missile",
@@ -78,7 +79,7 @@ projectiles = {
 		projectileClass = ProjectileClass.TORPEDO,
 		size = {x = 1, y = 6, z = 1},
 		speed = .06,
-		explosion = {damage = 20, radius = 3, fx = {explosionVfx, explosionSfx}},
+		explosion = {detonation = Detonation.EXPLOSION, damage = 20, radius = 3, fx = {explosionVfx, explosionSfx}},
 		directHitDamage = 450,
 		rayLength = 3.5,
 		name = "Torpedo",

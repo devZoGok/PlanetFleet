@@ -142,6 +142,11 @@ namespace battleship{
 		inline void setFreezeStatus(int fs){this->freezeStatus = std::clamp(fs, 0, 100);}
 		inline int getFreezeStatus(){return freezeStatus;}
 		inline Condition getCondition(){return condition;}
+		inline void setCondition(Condition cond){
+			this->condition = cond;
+
+			if(cond == Condition::EM_JAMMED) lastJamTime = vb01::getTime();
+		}
     private:
 		void renderOrderLine(bool);
         void updateScreenCoordinates();
