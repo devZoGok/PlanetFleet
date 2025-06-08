@@ -8,6 +8,7 @@
 #include "resourceDeposit.h"
 #include "pointDefense.h"
 #include "extractor.h"
+#include "freezer.h"
 #include "researchStruct.h"
 #include "missile.h"
 #include "cruiseMissile.h"
@@ -37,6 +38,8 @@ namespace battleship{
 					return new ResourceRover(player, id, pos, rot, Unit::State::STAND_GROUND);
 				case UnitClass::SUBMARINE:
 					return new Submarine(player, id, pos, rot, Unit::State::STAND_GROUND);
+				case UnitClass::FREEZER:
+					return new Freezer(player, id, pos, rot, Unit::State::STAND_GROUND);
 				default:
 					return new Vehicle(player, id, pos, rot, Unit::State::STAND_GROUND);
 			}

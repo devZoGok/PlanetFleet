@@ -46,7 +46,7 @@ namespace battleship{
 			void navigateToTarget(float);
 			void preparePathpoints(Order&, vb01::Vector3, bool = false);
 			void alignToSurface();
-			void attack(Order);
+			virtual void attack(Order);
 			void garrison(Order);
 			void patrol(Order);
 			virtual void initProperties();

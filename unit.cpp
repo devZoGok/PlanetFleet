@@ -152,7 +152,7 @@ namespace battleship{
 
 				if(wtOpt != sol::nullopt) wt = unitTable[tblName][i + 1]["type"];
 
-				Weapon *weapon = ((Weapon::Type)wt == Weapon::Type::FREEZER ? new Freezer(this, unitTable, i) : new Weapon(this, unitTable, i));
+				Weapon *weapon = ((Weapon::Type)wt == Weapon::Type::FREEZER ? new CryoGun(this, unitTable, i) : new Weapon(this, unitTable, i));
 				weapons.push_back(weapon);
 			}
 		}

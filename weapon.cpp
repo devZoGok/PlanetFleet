@@ -234,9 +234,9 @@ namespace battleship{
 		//if(vertNode) alignNode(targPos, vertNode, false);
 	}
 
-	Freezer::Freezer(Unit *u, sol::table unitTable, int wid) : Weapon(u, unitTable, wid){}
+	CryoGun::CryoGun(Unit *u, sol::table unitTable, int wid) : Weapon(u, unitTable, wid){}
 
-	void Freezer::updateTargetUnit(Unit *targetUnit){
+	void CryoGun::updateTargetUnit(Unit *targetUnit){
 		if(canFreeze()){
 			targetUnit->setFreezeStatus(targetUnit->getFreezeStatus() + 1);
 			lastFreezeTime = getTime();

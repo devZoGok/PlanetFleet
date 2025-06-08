@@ -54,12 +54,12 @@ namespace battleship{
 		protected:
 			int rateOfFire;
 
-			void updateTargetUnit(Unit*);
+			virtual void updateTargetUnit(Unit*);
 	};
 
-	class Freezer : public Weapon{
+	class CryoGun : public Weapon{
 		public:
-			Freezer(Unit*, sol::table, int);
+			CryoGun(Unit*, sol::table, int);
 		private:
 			vb01::s64 lastFreezeTime = 0;
 
