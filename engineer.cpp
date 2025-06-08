@@ -50,40 +50,12 @@ namespace battleship{
 			hackStatus = 0;
 	}
 
-	void Engineer::build(Order order){
-		if(pathPoints.empty()){
-			if(!order.targets[0].unit)
-				player->addUnit(order.targets[0].unit);
-			else {
-				Structure *structure = (Structure*)order.targets[0].unit;
-				sol::table targTable = generateView()["units"][order.targets[0].unit->getId()];
-				int costRate = (int)targTable["cost"] / 100, buildRate = (int)targTable["buildTime"] / 100;
-
-				if(structure->getBuildStatus() < 100 && player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastIncrementTime > buildRate){
-					structure->incrementBuildStatus();
-					player->updateResource(ResourceType::REFINEDS, -costRate, true);
-					lastIncrementTime = getTime();
-				}
-				else if(structure->getBuildStatus() >= 100){
-					removeOrder(0);
-					player->incStructuresBuilt();
-				}
-			}
-		}
-		else{
-			navigate(0.5 * Map::getSingleton()->getCellSize().x);
-
-			if(type == UnitType::LAND)
-				alignToSurface();
-		}
-	}
-
 	//TODO change unit colors after faction change
 	void Engineer::hack(Order order){
 		Unit *targUnit = order.targets[0].unit;
 		bool withinRange = (targUnit->getPos().getDistanceFrom(pos) < hackRange);
 		int hackRate = int(generateView()["units"][id + 1]["hackTime"]) / 100;
-		bool canHack = (getTime() - lastIncrementTime > hackRate);
+		bool canHack = (getTime() - lastHackTime > hackRate);
 
 		if(withinRange && canHack){
 			hackStatus++;

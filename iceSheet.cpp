@@ -11,6 +11,9 @@ namespace battleship{
 	void IceSheet::update(){
 		Structure::update();
 
+		if(buildStatus < 100)
+			model->getChild(0)->setScale(.01 * buildStatus * Vector3::VEC_IJK);
+
 		for(Player *pl : Game::getSingleton()->getPlayers(true)){
 			vector<Unit*> icebreakers = pl->getUnitsByClass(UnitClass::ICEBREAKER);
 

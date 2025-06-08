@@ -451,7 +451,7 @@ namespace battleship{
 		    case Order::TYPE::ATTACK:
 				return !getWeaponsByOrder(Order::TYPE::ATTACK).empty();
 		    case Order::TYPE::BUILD:
-				return unitClass == UnitClass::ENGINEER;
+				return (unitClass == UnitClass::ENGINEER || unitClass == UnitClass::FREEZER);
 		    case Order::TYPE::PATROL:
 		    case Order::TYPE::MOVE:
 				return vehicle;

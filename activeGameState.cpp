@@ -703,7 +703,7 @@ namespace battleship{
 						else if(cursorState == CursorState::HACK){
 							if(orderPossible) issueOrder(Order::TYPE::HACK, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
 						}
-						else if(selectedUnits[0]->getUnitClass() == UnitClass::ENGINEER && ufCtr->isPlacingOnSurface()){
+						else if((selectedUnits[0]->getUnitClass() == UnitClass::ENGINEER || selectedUnits[0]->getUnitClass() == UnitClass::FREEZER) && ufCtr->isPlacingOnSurface()){
                     		castRayToTerrain();
 							GameObjectFrame gmObjFr = ufCtr->getGameObjectFrame(0);
 

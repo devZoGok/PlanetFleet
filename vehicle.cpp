@@ -7,9 +7,10 @@
 #include <model.h>
 #include <quaternion.h>
 
+#include "pathfinder.h"
+#include "structure.h"
 #include "vehicle.h"
 #include "weapon.h"
-#include "pathfinder.h"
 #include "player.h"
 #include "game.h"
 #include "map.h"
@@ -355,6 +356,33 @@ namespace battleship{
 		}
 	}
 
+	void Vehicle::build(Order order){
+		if(pathPoints.empty()){
+			if(!order.targets[0].unit)
+				player->addUnit(order.targets[0].unit);
+			else {
+				Structure *structure = (Structure*)order.targets[0].unit;
+				sol::table targTable = generateView()["units"][structure->getId()];
+				int costRate = (int)targTable["cost"] / 100, buildRate = (int)targTable["buildTime"] / 100;
+
+				if(structure->getBuildStatus() < 100 && player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastBuildTime > buildRate){
+					structure->incrementBuildStatus();
+					player->updateResource(ResourceType::REFINEDS, -costRate, true);
+					lastBuildTime = getTime();
+				}
+				else if(structure->getBuildStatus() >= 100){
+					removeOrder(0);
+					player->incStructuresBuilt();
+				}
+			}
+		}
+		else{
+			navigate(0.5 * Map::getSingleton()->getCellSize().x);
+
+			if(type == UnitType::LAND)
+				alignToSurface();
+		}
+	}
 
 	void Vehicle::select(){
 		if(!garrisonable)

@@ -275,9 +275,6 @@ units = {
 		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
-		weapons = {
-			{orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 20, maxRange = 8},
-		},
 		buildableUnits = {
 			{id = UnitId.LAND_FACTORY, buildable = true, trigger = 76},
 			{id = UnitId.NAVAL_FACTORY, buildable = true, trigger = 78},
@@ -848,7 +845,7 @@ units = {
 				waterHitFx = {},
 			}
 		},
-		--buildableUnits = {{id = UnitId.ICE_SHEET, buildable = true, trigger = 83}},
+		buildableUnits = {{id = UnitId.ICE_SHEET, buildable = true, trigger = 83}},
 		unitClass = UnitClass.FREEZER,
 		unitType = UnitType.SEA_LEVEL,
 		isVehicle = true,
