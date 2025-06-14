@@ -106,82 +106,91 @@ namespace battleship{
 		Vector3 mapSize = Map::getSingleton()->getMapSize();
 		vector<pair<Unit*, Vector2>> unitMinimapPos;
 
-		for(Player *pl : Game::getSingleton()->getPlayers(true))
-			for(Unit *un : pl->getUnits()){
-				Vector2 coords = Vector2(
-					int(un->getPos().x / mapSize.x * width),
-					int(un->getPos().z / mapSize.z * height)
-				);
-
-				unitMinimapPos.push_back(make_pair(un, coords));
-			}
-
 		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
 		Player *mainPlayer = activeState->getPlayer();
-		vector<Unit*> units = mainPlayer->getUnits();
+		vector<Unit*> friendlyUnits;
+
+		for(Player *pl : Game::getSingleton()->getPlayers(true))
+			if(pl->getTeam() == mainPlayer->getTeam()){
+				vector<Unit*> units = pl->getUnits();
+				friendlyUnits.insert(friendlyUnits.begin(), units.begin(), units.end());
+
+				for(Unit *u : units){
+					Vector2 coords = Vector2(
+						int(u->getPos().x / mapSize.x * width),
+						int(u->getPos().z / mapSize.z * height)
+					);
+					unitMinimapPos.push_back(make_pair(u, coords));
+				}
+			}
+
+		for(Player *pl : Game::getSingleton()->getPlayers(true)){
+			if(pl->getTeam() == mainPlayer->getTeam()) continue;
+
+			for(Unit *un : pl->getUnits()){
+				Vector3 unitPos = un->getPos();
+
+				for(Unit *fu : friendlyUnits){
+					Vector3 fuPos = fu->getPos();
+
+					if(Vector3(fuPos.x, 0, fuPos.z).getDistanceFrom(Vector3(unitPos.x, 0, unitPos.z)) < fu->getLineOfSight()){
+						Vector2 coords = Vector2(
+							int(un->getPos().x / mapSize.x * width),
+							int(un->getPos().z / mapSize.z * height)
+						);
+
+						unitMinimapPos.push_back(make_pair(un, coords));
+
+						break;
+					}
+				}
+			}
+		}
 
 		int size = width * height * numChannels, unitPxRadius = 1;
 		int pxId = 0, numIter = 0;
 
 		for(u8 *p = asset->image; p != asset->image + size; p += numChannels, pxId += numChannels, numIter++){
-			Vector2 coords = Vector2(
-				numIter % asset->width - .5 * asset->width,
-				-(numIter / asset->width - .5 * asset->height)
-			);
-			float losFactor = .6, pxCol[3]{
+			float losFactor = .6;
+			float pxCol[3]{
 				losFactor * oldImageData[pxId + 0],
 				losFactor * oldImageData[pxId + 1],
 				losFactor * oldImageData[pxId + 2]
 			};
+			Vector2 coords = Vector2(
+				numIter % asset->width - .5 * asset->width,
+				-(numIter / asset->width - .5 * asset->height)
+			);
+
+			bool pixelColored = false;
 
 			for(pair<Unit*, Vector2> unitPair : unitMinimapPos){
+				bool sameTeam = (unitPair.first->getPlayer()->getTeam() == mainPlayer->getTeam());
 				float minimapLos = unitPair.first->getLineOfSight() / mapSize.x * width;
 
-				if(unitPair.first->getPlayer() == mainPlayer && coords.getDistanceFrom(unitPair.second) < minimapLos){
-					bool foreignUnit = false;
-					Player *pl = nullptr;
+				if(!pixelColored && sameTeam && coords.getDistanceFrom(unitPair.second) < minimapLos){
+					pixelColored = true;
+					pxCol[0] = oldImageData[pxId + 0];
+					pxCol[1] = oldImageData[pxId + 1];
+					pxCol[2] = oldImageData[pxId + 2];
 
-					for(pair<Unit*, Vector2> up : unitMinimapPos){
-						Vector2 coordDiff = up.second - coords;
+					for(pair<Unit*, Vector2> addUnitPair : unitMinimapPos)
+						if(addUnitPair.second == coords){
+							Vector3 unitCol = addUnitPair.first->getPlayer()->getColor();
+							pxCol[0] = unitCol.x * 255;
+							pxCol[1] = unitCol.y * 255;
+							pxCol[2] = unitCol.z * 255;
 
-						if(up.first->getPlayer() != mainPlayer && fabs(coordDiff.x) <= unitPxRadius && fabs(coordDiff.y) <= unitPxRadius){
-							foreignUnit = true;
-							pl = up.first->getPlayer();
 							break;
 						}
-					}
-
-					if(foreignUnit){
-						Vector3 plCol = pl->getColor();
-						pxCol[0] = plCol.x * 255;
-						pxCol[1] = plCol.y * 255;
-						pxCol[2] = plCol.z * 255;
-					}
-					else{
-						pxCol[0] = oldImageData[pxId + 0];
-						pxCol[1] = oldImageData[pxId + 1];
-						pxCol[2] = oldImageData[pxId + 2];
-					}
-
-					break;
 				}
+
+				*p = pxCol[0];
+				*(p + 1) = pxCol[1];
+				*(p + 2) = pxCol[2];
 			}
-
-			for(pair<Unit*, Vector2> unitPair : unitMinimapPos){
-				Vector2 coordDiff = unitPair.second - coords;
-
-				if(unitPair.first->getPlayer() == mainPlayer && fabs(coordDiff.x) <= unitPxRadius && fabs(coordDiff.y) <= unitPxRadius){
-					Vector3 plCol = mainPlayer->getColor();
-					pxCol[0] = plCol.x * 255;
-					pxCol[1] = plCol.y * 255;
-					pxCol[2] = plCol.z * 255;
-					break;
-				}
-			}
-
-			*p = pxCol[0];
-			*(p + 1) = pxCol[1];
-			*(p + 2) = pxCol[2];
+				/*
+				*/
 		}
 
 		Node *rectNode = minimapButton->getRectNode();
