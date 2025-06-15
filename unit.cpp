@@ -174,7 +174,7 @@ namespace battleship{
 		light->setUseAngle(false);
 
 		losLightNode = new Node(Vector3::VEC_J * 5);
-		losLightNode->addLight(light);
+		//losLightNode->addLight(light);
 		model->attachChild(losLightNode);
 	}
 
@@ -519,6 +519,11 @@ namespace battleship{
 		Map::getSingleton()->blockCells(this);
 		GameObject::placeAt(p);
 		Map::getSingleton()->blockCells(this);
+
+		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
+
+		if(activeState && activeState->getPlayer())
+		Map::Minimap::getSingleton()->updateImage();
 	}
 
 	vector<Player*> Unit::getSelectingPlayers(){
