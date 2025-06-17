@@ -151,7 +151,7 @@ units = {
 		cost = 500,
 		size = {x = 6, y = 9.22, z = 2.42},
 		hitboxOffset = {x = 0, y = 4.5, z = 0},
-		lineOfSight = 250,
+		lineOfSight = 25,
 		name = 'War mech',
 		basePath = PATH .. vehiclePrefix .. 'WarMechs/',
 		meshPath = 'warMech.xml',
@@ -1002,11 +1002,8 @@ units = {
 				rateOfFire = 100, 
 				damage = 50, 
 				maxRange = 50,
-				node = {
-					name = 'TurretBody',
-					rotationSpeed = .05,
-					maxFireAngle = .1
-				},
+				horizontalNode = {name = 'TurretBody', rotationSpeed = .05, maxFireAngle = .1},
+				--verticalNode = {name = 'TurretArms', rotationSpeed = .05, maxFireAngle = .1},
 				fireFx = {
 					{
 						vfx = true,
