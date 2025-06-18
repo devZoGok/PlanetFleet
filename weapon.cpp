@@ -202,8 +202,12 @@ namespace battleship{
 
 			sol::optional<sol::table> hitFxOpt = weaponTbl[fxKey];
 
-			if(hitFxOpt != sol::nullopt && ((sol::table)weaponTbl[fxKey]).size() > 0)
-				useFx(fxManager->initFx(weaponTbl[fxKey], unit->getModel(), false), targPos, false);
+			if(hitFxOpt != sol::nullopt){
+				sol::table fxTbl = weaponTbl[fxKey];
+				int numFx = fxTbl.size();
+
+				if(numFx > 0) useFx(fxManager->initFx(weaponTbl[fxKey], unit->getModel(), false), targPos, false);
+			}
 		}
 		else{
 			Quaternion r = projPar->localToGlobalOrientation(projRot);

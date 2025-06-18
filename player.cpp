@@ -27,7 +27,7 @@ namespace battleship{
 		resources[0] = 30000;
 
 		colorMaterial = new Material(Root::getSingleton()->getLibPath() + "texture");
-		colorMaterial->addBoolUniform("lightingEnabled", true);
+		colorMaterial->addBoolUniform("lightingEnabled", false);
 		colorMaterial->addBoolUniform("texturingEnabled", false);
 		colorMaterial->addVec4Uniform("diffuseColor", Vector4(color.x, color.y, color.z, 1));
 	}
