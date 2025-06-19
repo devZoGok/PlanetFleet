@@ -48,9 +48,8 @@ namespace battleship{
 		string refIconFile = SOL_STATE_VIEW["refIcon"];
 		string basePath = GameManager::getSingleton()->getPath() + "Textures/Icons/Minimap/";
 
-		for(Player *pl : Game::getSingleton()->getPlayers())
-			for(ResourceDeposit *rd : pl->getResourceDeposits())
-				depositIcons.push_back(initIcon(rd->getPos(), basePath + refIconFile));
+		for(ResourceDeposit *rd : Game::getSingleton()->getCivilianPlayer()->getResourceDeposits())
+			depositIcons.push_back(initIcon(rd->getPos(), basePath + refIconFile));
 
 		string camIconFile = SOL_STATE_VIEW["eyeIcon"];
 		camIcon = initIcon(Root::getSingleton()->getCamera()->getPosition(), basePath + camIconFile);
@@ -107,7 +106,7 @@ namespace battleship{
 		Vector3 mapSize = Map::getSingleton()->getMapSize();
 		vector<pair<Unit*, Vector2>> unitMinimapPos;
 
-		for(Player *pl : Game::getSingleton()->getPlayers())
+		for(Player *pl : Game::getSingleton()->getPlayers(true))
 			for(Unit *un : pl->getUnits()){
 				Vector2 coords = Vector2(
 					int(un->getPos().x / mapSize.x * width),
@@ -383,6 +382,41 @@ namespace battleship{
 		return spawnPointsTbl.size();
 	}
 
+	//TODO improve for underwater cells
+	vector<int> Map::getSurroundingCells(Vector3 p, int numRings){
+		int numHorCells = int(mapSize.x / CELL_SIZE.x);
+		int numVertCells = int(mapSize.z / CELL_SIZE.z);
+		int horId = int((.5 * mapSize.x + p.x) / CELL_SIZE.x);
+		int vertId = int((.5 * mapSize.z + p.z) / CELL_SIZE.z);
+
+		vector<int> cellIds;
+
+		for(int i = vertId - numRings; i <= vertId + numRings; i++)
+			for(int j = horId - numRings; j <= horId + numRings; j++)
+				cellIds.push_back(numHorCells * i + j);
+
+		return cellIds;
+	}
+
+	void Map::blockCells(Unit *unit){
+		vector<int> surroundingCellIds = getSurroundingCells(unit->getPos(), 0);
+
+		for(int scid : surroundingCellIds){
+			if(cells[scid].blockedBy && cells[scid].blockedBy != unit) continue;
+
+			bool within = unit->pointWithinObj(cells[scid].pos);
+			cells[scid].blockedBy = (within ? unit : nullptr);
+		}
+	}
+
+	void Map::unblockCells(Unit *unit){
+		vector<int> surroundingCellIds = getSurroundingCells(unit->getPos(), 0);
+
+		for(int scid : surroundingCellIds)
+			if(cells[scid].blockedBy == unit)
+				cells[scid].blockedBy = nullptr;
+	}
+
 	void Map::loadSpawnPoints(){
 		sol::state_view SOL_LUA_VIEW = generateView();
 		int numSpawnPoints = getNumMapSpawnPoints();
@@ -395,15 +429,15 @@ namespace battleship{
 
 	//TODO move minimap loading elsewhere
 	void Map::loadPlayerGameObjects(){
-		int numPlayers = Game::getSingleton()->getNumPlayers();
+		vector<Player*> players = Game::getSingleton()->getPlayers(true);
 		sol::state_view SOL_LUA_VIEW = generateView();
 		string playerInd = "players";
 
-		for(int i = 0; i < numPlayers; i++){
+		for(int i = 0; i < players.size(); i++){
 			string resDepInd = "resourceDeposits";
 			SOL_LUA_VIEW.script("numResourceDeposits = #" + mapTable + "." + playerInd + "[" + to_string(i + 1) + "]." + resDepInd);
 			int numNpcObjs = SOL_LUA_VIEW["numResourceDeposits"];
-			Player *player = Game::getSingleton()->getPlayer(i);
+			Player *player = players[i];
 
 			for(int j = 0; j < numNpcObjs; j++){
 				sol::table npcObjTable = SOL_LUA_VIEW[mapTable][playerInd][i + 1][resDepInd][j + 1];
@@ -587,7 +621,7 @@ namespace battleship{
 	}
 
 	void Map::unloadPlayerObjects(){
-		for(Player *pl : Game::getSingleton()->getPlayers()){
+		for(Player *pl : Game::getSingleton()->getPlayers(true)){
 			while(pl->getNumUnits() > 0){
 				pl->removeUnit(0);
 			}
@@ -668,6 +702,7 @@ namespace battleship{
 	}
 
 	//TODO replace search with binary search
+	//TODO optimize horizontal and vertical id calculcation
 	int Map::getCellId(Vector3 pos, bool checkUnderwaterCells){
 		int numHorCells = int(mapSize.x / CELL_SIZE.x), horId = -1;
 

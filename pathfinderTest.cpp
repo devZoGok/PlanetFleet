@@ -66,7 +66,7 @@ namespace battleship{
 
 			int src = 0, dest = cells.size() - 1;
 			vector<float> heur;
-			vector<int> path = pathfinder->findPath(cells, heur, src, dest, 3);
+			vector<int> path = pathfinder->findPath(cells, heur, src, dest);
 			CPPUNIT_ASSERT(path == vector<int>({0, 1, 2, 4, 3, 6}));
 
 			int sumPathWeights = calcPathLength(path);
@@ -82,7 +82,7 @@ namespace battleship{
 
 			for(int i = 0; i < numIterations; i++){
 				s64 t0 = getTime();
-				pathfinder->findPath(cells, heur, src, dest, 3);
+				pathfinder->findPath(cells, heur, src, dest);
 				s64 t1 = getTime();
 				sumTime += t1 - t0;
 			}

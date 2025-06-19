@@ -10,6 +10,7 @@
 #include "unit.h"
 #include "util.h"
 #include "player.h"
+#include "environment.h"
 #include "projectile.h"
 #include "defConfigs.h"
 #include "resourceDeposit.h"
@@ -43,7 +44,6 @@ namespace battleship{
 		initProperties();
 
 		initModel();
-		initSound();
 
 		GameObject::reinit();
 	}
@@ -64,25 +64,23 @@ namespace battleship{
 		rotAngle = projTable["rotAngle"].get_or(0.0);
 	}
 
-	void Projectile::initSound(){
-        explosionSfxBuffer = new sf::SoundBuffer();
-        string sfxPath = generateView()[GameObject::getGameObjTableName()][id + 1]["explosion"]["sfx"];
-		explosionSfx = GameObject::prepareSfx(explosionSfxBuffer, sfxPath);
-	}
-
     void Projectile::update() {
 		GameObject::update();
 		placeAt(pos + speed * dirVec);
-
-        if(!remove){
-			checkSurfaceCollision();
-			if(remove) return;
-			checkUnitCollision();
-		}
     }
 
+	void Projectile::detonate(Unit *target){
+		if(target) target->takeDamage(directHitDamage);
+
+		sol::table tbl = generateView()[getGameObjTableName()][id + 1]["explosion"];
+		FxManager::Fx *fx = FxManager::getSingleton()->initFx(tbl["fx"], model, false, pos);
+		Environment::explode(fx, (Environment::Detonation)tbl["detonation"], pos, tbl["damage"], tbl["radius"]);
+
+		remove = true;
+	}
+
 	void Projectile::checkUnitCollision(){
-		vector<Player*> players = Game::getSingleton()->getPlayers();
+		vector<Player*> players = Game::getSingleton()->getPlayers(true);
 		vector<Unit*> targetUnits;
 		vector<Node*> targetNodes;
 
@@ -98,22 +96,26 @@ namespace battleship{
 
 		vector<RayCaster::CollisionResult> results = RayCaster::cast(pos, dirVec, targetNodes, rayLength);
 
-		if(!results.empty()){
+		if(!results.empty())
 			for(int i = 0; i < targetNodes.size(); i++)
-				if(targetNodes[i]->getMesh(0) == results[0].mesh){
-					targetUnits[i]->takeDamage(directHitDamage);
-					Game::getSingleton()->explode(pos, explosionDamage, explosionRadius, explosionSfx);
-					remove = true;
-				}
-		}
+				if(targetNodes[i]->getMesh(0) == results[0].mesh)
+					detonate(targetUnits[i]);
 	}
 
 	void Projectile::checkSurfaceCollision(){
 		Map *map = Map::getSingleton();
 		int cellId = map->getCellId(pos, false);
 
-		if(map->getCells()[cellId].type == Map::Cell::LAND)
-			remove = true;
+		if((pos + dirVec * rayLength).y <= map->getCells()[cellId].pos.y)
+			detonate();
+	}
+
+	void Projectile::checkCollision(){
+        if(!remove){
+			checkSurfaceCollision();
+			if(remove) return;
+			checkUnitCollision();
+		}
 	}
 
     void Projectile::debug(){

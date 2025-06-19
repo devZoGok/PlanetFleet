@@ -82,12 +82,17 @@ function generateGui(unitId)
 				mainUnit.unitClass == UnitClass.FORT
 			)
 
+			isEng = (
+				mainUnit.unitClass == UnitClass.ENGINEER or 
+				mainUnit.unitClass == UnitClass.FREEZER
+			)
+
 			buttonData = {
 				trigger = buildUnit.trigger,
 				name = units[buildUnit.id + 1].name,
 				buttonType = (mainUnit.isVehicle and ButtonType.BUILD or ButtonType.TRAIN),
 				factoryId = (isFactory and unitId or nil),
-				engineerId = (mainUnit.unitClass == UnitClass.ENGINEER and unitId or nil),
+				engineerId = (isEng and unitId or nil),
 				slotId = (ButtonType.BUILD and i - 1 or nil)
 			}
 			gui[#gui + 1] = generateButton(#gui, buttonData)

@@ -238,7 +238,7 @@ namespace battleship{
 				}
 				else if(cursorState == CursorState::HACK)
 					orderPossible = (!ownGameObj && gameObjUnit && mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::ENGINEER);
-				else if(gameObjUnit)
+				else if(controlPressed)
 					cursorState = CursorState::ATTACK;
 				else
 					cursorState = CursorState::NORMAL;
@@ -337,7 +337,7 @@ namespace battleship{
 
 	void ActiveGameState::updateGameObjHoveredOn(){
 		vector<GameObject*> gameObjs;
-		vector<Player*> players = Game::getSingleton()->getPlayers();
+		vector<Player*> players = Game::getSingleton()->getPlayers(true);
 
 		for(Player *pl : players){
 			vector<ResourceDeposit*> resDeps = pl->getResourceDeposits();
@@ -482,7 +482,7 @@ namespace battleship{
 
 		vector<Unit*> units;
 
-        for (Player *p : Game::getSingleton()->getPlayers())
+        for (Player *p : Game::getSingleton()->getPlayers(true))
             for (Unit *u : p->getUnits())
                 units.push_back(u);
 
@@ -703,7 +703,7 @@ namespace battleship{
 						else if(cursorState == CursorState::HACK){
 							if(orderPossible) issueOrder(Order::TYPE::HACK, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
 						}
-						else if(selectedUnits[0]->getUnitClass() == UnitClass::ENGINEER && ufCtr->isPlacingOnSurface()){
+						else if((selectedUnits[0]->getUnitClass() == UnitClass::ENGINEER || selectedUnits[0]->getUnitClass() == UnitClass::FREEZER) && ufCtr->isPlacingOnSurface()){
                     		castRayToTerrain();
 							GameObjectFrame gmObjFr = ufCtr->getGameObjectFrame(0);
 
@@ -717,7 +717,7 @@ namespace battleship{
 
 							buildableStructSelected = false;
 						}
-						else if(!canSelectHoveredOnGameObj()){
+						else{
                     		if(targets.empty()) castRayToTerrain();
 
 							issueOrder(Order::TYPE::MOVE, targets, shiftPressed);
@@ -788,6 +788,7 @@ namespace battleship{
 
 				forceCursorState = isPressed;
 				controlPressed = isPressed;
+				orderPossible = isPressed;
                 break;
 			case Bind::LEFT_SHIFT:
 			{

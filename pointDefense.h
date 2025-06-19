@@ -8,10 +8,7 @@ namespace battleship{
 		public:
 			PointDefense(Player*, int, vb01::Vector3, vb01::Quaternion, int, Unit::State);
 		private:
-			vb01::Vector3 turretDir;
-
 			void attack(Order);
-			void rotateTurret(float);
 	};
 }
 

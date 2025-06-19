@@ -3,6 +3,12 @@
 
 #include <util.h>
 
+#include <solUtil.h>
+
+namespace vb01{
+	class Node;
+}
+
 namespace battleship{
 	class FxManager{
 		public:
@@ -24,6 +30,7 @@ namespace battleship{
 			};
 
 			static FxManager* getSingleton();
+			FxManager::Fx* initFx(sol::table, vb01::Node*, bool, vb01::Vector3 = vb01::Vector3::VEC_ZERO);
 			void update();
 			void removeFx(Fx*);
 			inline void addFx(Fx *fx){fxs.push_back(fx);}

@@ -10,7 +10,8 @@ OrderType = {
 	SUPPLY = 7,
 	LOAD = 8,
 	UNLOAD = 9,
-	HACK = 10
+	HACK = 10,
+	FREEZE = 11
 }
 UnitId = {
 	WAR_MECH = 0,
@@ -28,16 +29,20 @@ UnitId = {
 	CHAMPION_CARRIER = 12,
 	MISSILE_SUBMARINE = 13,
 	STEALTH_SUBMARINE = 14,
-	LAND_FACTORY = 15,
-	NAVAL_FACTORY = 16,
-	TRADE_CENTER = 17,
-	LAB = 18,
-	POINT_DEFENSE = 19,
-	EXTRACTOR = 20,
-	REFINERY = 21,
-	FORT = 22
+	ICEBREAKER = 15,
+	FREEZER = 16,
+	EMP_BOAT = 17,
+	LAND_FACTORY = 18,
+	NAVAL_FACTORY = 19,
+	TRADE_CENTER = 20,
+	LAB = 21,
+	POINT_DEFENSE = 22,
+	EXTRACTOR = 23,
+	REFINERY = 24,
+	FORT = 25,
+	ICE_SHEET = 26
 }
-WeaponClass = {HITSCAN = 0, SHELL = 1, TORPEDO = 2, CRUISE_MISSILE = 3, HACK = 4}
+WeaponClass = {FREEZE = 1}
 UnitClass = {
 	WAR_MECH = 0,
 	TANK = 1,
@@ -48,14 +53,18 @@ UnitClass = {
 	CRUISER = 6,
 	CARRIER = 7,
 	SUBMARINE = 8,
-	LAND_FACTORY = 9,
-	NAVAL_FACTORY = 10,
-	TRADE_CENTER = 11,
-	LAB = 12,
-	POINT_DEFENSE = 13,
-	EXTRACTOR = 14,
-	REFINERY = 15,
-	FORT = 16
+	ICEBREAKER = 9,
+	FREEZER = 10,
+	EMP_BOAT = 11,
+	LAND_FACTORY = 12,
+	NAVAL_FACTORY = 13,
+	TRADE_CENTER = 14,
+	LAB = 15,
+	POINT_DEFENSE = 16,
+	EXTRACTOR = 17,
+	REFINERY = 18,
+	FORT = 19,
+	ICE_SHEET = 20
 }
 UnitType = {UNDERWATER = 0, SEA_LEVEL = 1, HOVER = 2, LAND = 3, AIR = 4}
 
@@ -84,14 +93,13 @@ explosionSfx = {
 	duration = 2500
 }
 
-
 units = {
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN,
+				orderType = OrderType.ATTACK,
 				rateOfFire = 100,
-				maxRange = 10,
+				maxRange = 14,
 				damage = 50,
 				fireFx = {
 					{
@@ -143,28 +151,35 @@ units = {
 		cost = 500,
 		size = {x = 6, y = 9.22, z = 2.42},
 		hitboxOffset = {x = 0, y = 4.5, z = 0},
-		lineOfSight = 250,
+		lineOfSight = 25,
 		name = 'War mech',
 		basePath = PATH .. vehiclePrefix .. 'WarMechs/',
 		meshPath = 'warMech.xml',
 		albedoPath = 'mech.jpg',
 		colorNodes = {'WarRobotTemplate.001'},
 		selectionSfx = PATH .. 'Sounds/Units/WarMechs/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .3,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 1
+		garrisonCategory = 1,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				damage = 200, 
 				maxRange = 25,
+				horizontalNode = {name = 'Turret', rotationSpeed = .05, maxFireAngle = .1},
+				projectile = {id = ProjectileId.HE_SHELL, parent = 'Turret', pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
+					{
+						vfx = false,
+						duration = 300,
+						path = PATH .. 'Sounds/Units/Tanks/attack.ogg', 
+					},
 					{
 						vfx = true,
 						duration = 50,
@@ -172,19 +187,14 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						parent = 'Turret',
+						parent = 'CannonBarrel',
 						pos = {x = 0.06, y = 5.82, z = 11.4},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
-					},
-					{
-						vfx = false,
-						duration = 300,
-						path = PATH .. 'Sounds/Units/Tanks/attack.ogg', 
 					}
 				},
-				landHitFx = {explosionVfx, explosionSfx},
-				unitHitFx = {explosionVfx, explosionSfx}
+				--landHitFx = {explosionVfx, explosionSfx},
+				--unitHitFx = {explosionVfx, explosionSfx}
 			}
 		},
 		unitClass = UnitClass.TANK,
@@ -203,40 +213,42 @@ units = {
 		albedoPath = 'tank.jpg',
 		colorNodes = {'Antenna_S', 'Antenna_L', 'Hatch'},
 		selectionSfx = PATH .. 'Sounds/Units/Tanks/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 2
+		garrisonCategory = 2,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 2000, 
 				damage = 5000, 
-				maxRange = 30,
+				maxRange = 70,
+				horizontalNode = {name = 'turret', rotationSpeed = .05, maxFireAngle = .1},
+				verticalNode = {name = 'tubes', rotationSpeed = .05, maxFireAngle = .1},
+				projectile = {id = ProjectileId.MISSILE, parent = 'tubes', pos = {x = 0.95, y = 2.16, z = 4.11}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = true,
 						duration = 50,
+						parent = 'tubes',
+						pos = {x = 0.95, y = 2.16, z = 4.11},
+						rot = {w = 1, x = 0, y = 0, z = 0},
 						mesh = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						pos = {x = 1, y = 5.8, z = 3.9},
-						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
 					},
 					{
 						vfx = false,
-						duration = 300,
-						path = PATH .. 'Sounds/Units/Tanks/attack.ogg', 
+						duration = 2500,
+						path = PATH .. 'Sounds/Units/Submarines/missile.ogg', 
 					}
 				},
-				landHitFx = {explosionVfx, explosionSfx},
-				unitHitFx = {explosionVfx, explosionSfx}
 			}
 		},
 		unitClass = UnitClass.ARTILLERY,
@@ -255,17 +267,14 @@ units = {
 		albedoPath = 'artillery.jpg',
 		colorNodes = {'turret'},
 		selectionSfx = PATH .. 'Sounds/Units/Tanks/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 2
+		garrisonCategory = 2,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
-		weapons = {
-			{type = WeaponClass.HITSCAN, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 20, maxRange = 8},
-		},
 		buildableUnits = {
 			{id = UnitId.LAND_FACTORY, buildable = true, trigger = 76},
 			{id = UnitId.NAVAL_FACTORY, buildable = true, trigger = 78},
@@ -295,15 +304,15 @@ units = {
 		colorNodes = {'Cube.008'},
 		meshPath = 'engineer2.xml',
 		selectionSfx = PATH .. 'Sounds/Units/Engineers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
-		weapons = {{type = WeaponClass.HITSCAN, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 50, maxRange = 20}},
+		weapons = {{orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 50, maxRange = 20}},
 		unitClass = UnitClass.TRANSPORT,
 		unitType = UnitType.HOVER,
 		isVehicle = true,
@@ -320,15 +329,15 @@ units = {
 		basePath = PATH .. vehiclePrefix .. 'Transports/',
 		meshPath = 'scoutTransport.xml',
 		selectionSfx = PATH .. 'Sounds/Units/Transports/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
-		weapons = {{type = WeaponClass.HITSCAN, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/Tanks/attack.ogg', damage = 100, maxRange = 25}},
+		weapons = {{orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/Tanks/attack.ogg', damage = 100, maxRange = 25}},
 		unitClass = UnitClass.TRANSPORT,
 		unitType = UnitType.HOVER,
 		armor = {ArmorType.MECHANIC},
@@ -346,12 +355,12 @@ units = {
 		meshPath = 'hoverTransport.xml',
 		albedoPath = 'transport.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Transports/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {},
@@ -379,20 +388,20 @@ units = {
 		meshPath = 'cargoship.xml',
 		albedoPath = 'cargoship.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cargoships/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
-				damage = 300, 
-				maxRange = 15,
+				damage = 10, 
+				maxRange = 50,
 				fireFx = {
 					{
 						vfx = true,
@@ -430,17 +439,17 @@ units = {
 		meshPath = 'tacticalCruiser.xml',
 		albedoPath = 'cruiser.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				fireFx = {
 					{
@@ -481,17 +490,17 @@ units = {
 		meshPath = 'defensiveCruiser.xml',
 		albedoPath = 'cruiser.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN,
+				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				damage = 300,
 				maxRange = 15,
@@ -531,17 +540,17 @@ units = {
 		meshPath = 'cheapCruiser.xml',
 		albedoPath = 'cruiser.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				fireSfx = PATH .. 'Sounds/Units/Cruisers/fire.ogg', 
 				damage = 300,
@@ -582,17 +591,17 @@ units = {
 		meshPath = 'transportCruiser.xml',
 		albedoPath = 'cruiser.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 100, 
 				damage = 80, 
 				maxRange = 100,
@@ -631,17 +640,17 @@ units = {
 		meshPath = 'heavyCarrier.xml',
 		albedoPath = 'carrier.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Carriers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 450, 
 				damage = 500, 
 				maxRange = 100,
@@ -667,7 +676,7 @@ units = {
 				waterHitFx = {explosionVfx, explosionSfx}
 			},
 			{
-				type = WeaponClass.CRUISE_MISSILE, 
+				orderType = OrderType.LAUNCH,
 				projectile = {id = ProjectileId.CRUISE_MISSILE, pos = {x = 0, y = 15, z = 0}, rot = {w = .707, x = -.707, y = 0, z = 0}},
 				rateOfFire = 500, 
 				maxRange = 30, 
@@ -695,17 +704,17 @@ units = {
 		meshPath = 'championCarrier.xml',
 		albedoPath = 'carrier.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Carriers/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
 			{
-				type = WeaponClass.TORPEDO, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				fireFx = {
 					{
@@ -719,7 +728,7 @@ units = {
 				projectile = {id = ProjectileId.TORPEDO, pos = {x = 0, y = -.27, z = 4.6}, rot = {w = 1, x = 0, y = 0, z = 0}}
 			},
 			{
-				type = WeaponClass.CRUISE_MISSILE, 
+				orderType = OrderType.LAUNCH,
 				rateOfFire = 500, 
 				maxRange = 30, 
 				fireFx = {
@@ -747,17 +756,17 @@ units = {
 		albedoPath = 'submarine.jpg',
 		colorNodes = {'missileSubmarine.001'},
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
 			{
-				type = WeaponClass.TORPEDO, 
+				orderType = OrderType.ATTACK,
 				projectile = {id = ProjectileId.TORPEDO, pos = {x = 0, y = -.27, z = 4.6}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				damage = 200, 
 				maxRange = 20, 
@@ -786,12 +795,118 @@ units = {
 		meshPath = 'stealthSubmarine.xml',
 		albedoPath = 'submarine.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
 		speed = .1,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
-		garrisonCategory = 3
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
+	},
+	{
+		unitClass = UnitClass.ICEBREAKER,
+		unitType = UnitType.SEA_LEVEL,
+		isVehicle = true,
+		health = 500,
+		buildTime = 1000,
+		cost = 500,
+		size = {x = 12.6, y = 8.5, z = 32.8},
+		hitboxOffset = {x = 0, y = 2.07, z = .8},
+		lineOfSight = 25,
+		name = 'Icebreaker',
+		--colorNodes = {'stealthSubmarine.001'},
+		basePath = PATH .. vehiclePrefix .. 'Icebreakers/',
+		meshPath = 'icebreaker.xml',
+		albedoPath = 'icebreaker.jpg',
+		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
+		speed = .1,
+		destinationOffset = .1,
+		anglePrecision = .1,
+		maxTurnAngle = .1,
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
+	},
+	{
+		weapons = {
+			{
+				type = WeaponClass.FREEZE,
+				orderType = OrderType.ATTACK,
+				rateOfFire = 100,
+				maxRange = 10,
+				damage = 0,
+				fireFx = {
+					{
+						vfx = false,
+						duration = 500,
+						path = PATH .. 'Sounds/SFX/Freezing/freeze.ogg'
+					},
+				},
+				unitHitFx = {},
+				landHitFx = {},
+				waterHitFx = {},
+			}
+		},
+		buildableUnits = {{id = UnitId.ICE_SHEET, buildable = true, trigger = 83}},
+		unitClass = UnitClass.FREEZER,
+		unitType = UnitType.SEA_LEVEL,
+		isVehicle = true,
+		health = 500,
+		buildTime = 1000,
+		cost = 500,
+		size = {x = 8.5, y = 6.3, z = 17.6},
+		hitboxOffset = {x = 0, y = 1.6, z = 0},
+		lineOfSight = 25,
+		name = 'Freezer',
+		--colorNodes = {'stealthSubmarine.001'},
+		basePath = PATH .. vehiclePrefix .. 'Freezers/',
+		meshPath = 'freezer.xml',
+		albedoPath = 'freezer.jpg',
+		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
+		speed = .1,
+		destinationOffset = .1,
+		anglePrecision = .1,
+		maxTurnAngle = .1,
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
+	},
+	{
+		weapons = {
+			{
+				orderType = OrderType.ATTACK,
+				rateOfFire = 1000, 
+				damage = 0, 
+				maxRange = 25,
+				horizontalNode = {name = 'turret', rotationSpeed = .05, maxFireAngle = .1},
+				projectile = {id = ProjectileId.EMP_SHELL, parent = 'turret', pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = .998, x = -.066, y = 0, z = 0}},
+				fireFx = {
+					{
+						vfx = false,
+						duration = 300,
+						path = PATH .. 'Sounds/Units/Tanks/attack.ogg', 
+					},
+				},
+			}
+		},
+		unitClass = UnitClass.EMP_BOAT,
+		unitType = UnitType.SEA_LEVEL,
+		isVehicle = true,
+		health = 500,
+		buildTime = 1000,
+		cost = 500,
+		size = {x = 4.75, y = 5.15, z = 19.55},
+		hitboxOffset = {x = 0, y = .18, z = .25},
+		lineOfSight = 25,
+		name = 'EMP boat',
+		--colorNodes = {'stealthSubmarine.001'},
+		basePath = PATH .. vehiclePrefix .. 'EMPShips/',
+		meshPath = 'empShip.xml',
+		albedoPath = 'empShip.jpg',
+		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
+		speed = .1,
+		destinationOffset = .1,
+		anglePrecision = .1,
+		maxTurnAngle = .1,
+		garrisonCategory = 3,
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		buildableUnits = {
@@ -815,7 +930,7 @@ units = {
 		basePath = PATH .. structurePrefix .. 'LandFactories/',
 		meshPath = 'landFactory.xml',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		unitClass = UnitClass.NAVAL_FACTORY,
@@ -832,7 +947,7 @@ units = {
 		meshPath = 'navalFactory.xml',
 		albedoPath = 'factory.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		unitClass = UnitClass.TRADE_CENTER,
@@ -856,7 +971,7 @@ units = {
 		meshPath = 'tradeCenter.xml',
 		albedoPath = 'tradeCenter.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		unitClass = UnitClass.LAB,
@@ -878,15 +993,17 @@ units = {
 		meshPath = 'lab2.xml',
 		albedoPath = 'lab.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		weapons = {
 			{
-				type = WeaponClass.HITSCAN, 
+				orderType = OrderType.ATTACK,
 				rateOfFire = 100, 
 				damage = 50, 
 				maxRange = 50,
+				horizontalNode = {name = 'TurretBody', rotationSpeed = .05, maxFireAngle = .1},
+				--verticalNode = {name = 'TurretArms', rotationSpeed = .05, maxFireAngle = .1},
 				fireFx = {
 					{
 						vfx = true,
@@ -937,7 +1054,7 @@ units = {
 		meshPath = 'pointDefense2.xml',
 		albedoPath = 'pointDefense.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		unitClass = UnitClass.EXTRACTOR,
@@ -957,7 +1074,7 @@ units = {
 		meshPath = 'extractor.xml',
 		albedoPath = 'extractor.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		unitClass = UnitClass.REFINERY,
@@ -975,7 +1092,7 @@ units = {
 		meshPath = 'refinery.xml',
 		albedoPath = 'refinery.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
 		buildableUnits = {{id = UnitId.ENGINEER, buildable = true, trigger = 69}},
@@ -994,6 +1111,21 @@ units = {
 		colorNodes = {'Cube.004'},
 		albedoPath = 'fort.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
-		deathSfx = PATH .. 'Sounds/SFX/Explosions/explosion01.ogg',
+		deathFx = {explosionVfx, explosionSfx},
+	},
+	{
+		unitClass = UnitClass.ICE_SHEET,
+		unitType = UnitType.SEA_LEVEL,
+		isVehicle = false,
+		health = 1000,
+		size = {x = 7, y = 1.5, z = 7},
+		hitboxOffset = {x = 0, y = 0, z = 0},
+		lineOfSight = 5,
+		name = 'Ice sheet',
+		basePath = PATH .. structurePrefix .. 'IceSheets/',
+		meshPath = 'iceSheet.xml',
+		albedoPath = 'iceSheet.jpg',
+		selectionSfx = PATH .. 'Sounds/Units/Sample/selection.ogg',
+		deathFx = {explosionVfx, explosionSfx},
 	},
 }

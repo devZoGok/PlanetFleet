@@ -12,7 +12,7 @@ namespace battleship{
 	using namespace std;
 	using namespace vb01;
 
-	CruiseMissile::CruiseMissile(Unit *unit, Vector3 tp, Vector3 pos, Quaternion rot) : Projectile(unit, 0, pos, rot), targetPoint(tp), flightStage(FlightStage::ASCENT){
+	CruiseMissile::CruiseMissile(Unit *unit, int id, Vector3 tp, Vector3 pos, Quaternion rot) : Projectile(unit, id, pos, rot), targetPoint(tp), flightStage(FlightStage::ASCENT){
 		Vector3 unitDir = unit->getDirVec(); 
 		Vector3 leftDir = unit->getLeftVec();
 		Vector3 targDir = (Vector3(targetPoint.x, pos.y, targetPoint.z) - pos).norm();
@@ -29,7 +29,7 @@ namespace battleship{
 
 		if(flightStage == FlightStage::ASCENT && pos.y - initPos.y > minHeight){
 			orientAt(Quaternion(angle, leftVec) * rot);
-			if(dirVec.y <= 0) flightStage = FlightStage::CRUISE;
+			if(dirVec.y <= .001) flightStage = FlightStage::CRUISE;
 		}
 		else if(flightStage == FlightStage::DESCENT){
 			Vector3 targDir = (Vector3(targetPoint.x, initPos.y, targetPoint.z) - initPos).norm();
@@ -47,19 +47,8 @@ namespace battleship{
 			flightStage = FlightStage::DESCENT;
 	}
 
-	void CruiseMissile::checkSurfaceCollision(){
-		Map *map = Map::getSingleton();
-		int cellId = map->getCellId(pos, false);
-
-		if((pos + dirVec * rayLength).y <= map->getCells()[cellId].pos.y){
-			Game::getSingleton()->explode(pos, explosionDamage, explosionRadius, explosionSfx);
-			remove = true;
-		}
-	}
-
 	void CruiseMissile::update(){
-		GameObject::update();
-		placeAt(pos + dirVec * speed);
+		Projectile::update();
 
 		switch(flightStage){
 			case FlightStage::ASCENT:
@@ -73,10 +62,11 @@ namespace battleship{
 				break;
 		}
 
-		if(!remove && flightStage == FlightStage::DESCENT){
-		   	checkSurfaceCollision();
-			if(remove) return;
-		   	checkUnitCollision();
-		}
+		checkCollision();
+	}
+
+	void CruiseMissile::checkCollision(){
+		if(flightStage == FlightStage::DESCENT)
+			Projectile::checkCollision();
 	}
 }

@@ -23,6 +23,7 @@ namespace battleship{
         	float speed, maxTurnAngle, anglePrecision;
 			vb01::Material *debugMat = nullptr;
 			std::vector<vb01::Node*> debugPathPoints;
+			vb01::s64 lastBuildTime = 0;
 
         	inline int getNextPatrolPointId(int numPoints) {return patrolPointId == numPoints - 1 ? 0 : patrolPointId + 1;}
 			bool validateGarrisonOrder(Order);
@@ -34,6 +35,7 @@ namespace battleship{
 			void addPathpoint(vb01::Vector3);
 			void removePathpoint(int = 0);
 			void removeAllPathpoints();
+			void build(Order);
 			void select();
 			void reinit();
 		protected:
@@ -44,7 +46,7 @@ namespace battleship{
 			void navigateToTarget(float);
 			void preparePathpoints(Order&, vb01::Vector3, bool = false);
 			void alignToSurface();
-			void attack(Order);
+			virtual void attack(Order);
 			void garrison(Order);
 			void patrol(Order);
 			virtual void initProperties();

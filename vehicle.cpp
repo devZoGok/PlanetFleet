@@ -7,8 +7,10 @@
 #include <model.h>
 #include <quaternion.h>
 
-#include "vehicle.h"
 #include "pathfinder.h"
+#include "structure.h"
+#include "vehicle.h"
+#include "weapon.h"
 #include "player.h"
 #include "game.h"
 #include "map.h"
@@ -246,6 +248,7 @@ namespace battleship{
 	}
 
 	//TODO allow ships to attack land targets and vice versa 
+	//TODO recursively search for vacant dest cell neibourghss 
 	void Vehicle::preparePathpoints(Order &order, Vector3 destPos, bool appendDestPos){
 		removeAllPathpoints();
 
@@ -263,12 +266,22 @@ namespace battleship{
 
 		if(type != UnitType::UNDERWATER && fabs(destPos.y - cells[dest].pos.y) > .1) return;
 
+		if(cells[dest].blockedBy){
+			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
+
+			for(int scid : surrCellIds)
+				if(!cells[scid].blockedBy){
+					dest = scid;
+					break;
+				}
+		}
+
 		vector<float> heuristics;
 
 		for(Map::Cell &cell : cells)
 			heuristics.push_back(145 * (cells[dest].pos.getDistanceFrom(cell.pos)));
 
-		vector<int> path = Pathfinder::getSingleton()->findPath(cells, heuristics, source, dest, (int)type);
+		vector<int> path = Pathfinder::getSingleton()->findPath(cells, heuristics, source, dest, this);
 		bool pathTruncated = false;
 
 		for(int i = 0; i < path.size(); i++){
@@ -316,12 +329,19 @@ namespace battleship{
 		Unit::attack(order);
 		int currNumOrders = orders.size();
 
-		if(weapons.empty() || prevNumOrders != currNumOrders) return;
+		if(prevNumOrders != currNumOrders) return;
 
 		Order::Target target = order.targets[0];
 		Vector3 targVec = (target.unit ? target.unit->getPos() : target.pos) - pos;
 		float distToTarg = targVec.getLength();
-		Weapon *weapon = weapons[0];
+
+		vector<Weapon*> attackWeapons = getWeaponsByOrder(Order::TYPE::ATTACK);
+		Weapon *weapon = attackWeapons[0];
+
+		for(Weapon *w : attackWeapons)
+			if(w->getMaxRange() > weapon->getMaxRange())
+				weapon = w;
+
 		float minDist = weapon->getMaxRange();
 
 		if(order.playerAssigned || (!order.playerAssigned && state == Unit::State::CHASE)){
@@ -334,17 +354,35 @@ namespace battleship{
 			removeOrder(0);
 			return;
 		}
-
-		float angleToTarg = targVec.norm().getAngleBetween(dirVec);
-
-		if(distToTarg <= weapon->getMaxRange()){
-			if(angleToTarg <= anglePrecision)
-				weapon->fire(order);
-			else if(angleToTarg > anglePrecision)
-				turn(calculateRotation(targVec.norm(), angleToTarg, maxTurnAngle));
-		}
 	}
 
+	void Vehicle::build(Order order){
+		if(pathPoints.empty()){
+			if(!order.targets[0].unit)
+				player->addUnit(order.targets[0].unit);
+			else {
+				Structure *structure = (Structure*)order.targets[0].unit;
+				sol::table targTable = generateView()["units"][structure->getId()];
+				int costRate = (int)targTable["cost"] / 100, buildRate = (int)targTable["buildTime"] / 100;
+
+				if(structure->getBuildStatus() < 100 && player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastBuildTime > buildRate){
+					structure->incrementBuildStatus();
+					player->updateResource(ResourceType::REFINEDS, -costRate, true);
+					lastBuildTime = getTime();
+				}
+				else if(structure->getBuildStatus() >= 100){
+					removeOrder(0);
+					player->incStructuresBuilt();
+				}
+			}
+		}
+		else{
+			navigate(0.5 * Map::getSingleton()->getCellSize().x);
+
+			if(type == UnitType::LAND)
+				alignToSurface();
+		}
+	}
 
 	void Vehicle::select(){
 		if(!garrisonable)
