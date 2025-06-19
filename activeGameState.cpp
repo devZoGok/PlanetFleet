@@ -491,7 +491,7 @@ namespace battleship{
         for (Unit *u : units) {
 			Node *model = u->getModel();
 
-            if (u->getPlayer() == mainPlayer){
+            if (u->getPlayer()->getTeam() == mainPlayer->getTeam()){
 				if(!u->getLosLightNode()) u->initLosLight();
 
 				model->setVisible(true);

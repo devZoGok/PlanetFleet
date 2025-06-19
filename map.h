@@ -51,6 +51,7 @@ namespace battleship{
 				static Minimap* getSingleton();
 				~Minimap();
 				void update();
+				void updateImage();
 				void load();
 				void unload();
 				inline vb01::u8* getOldMinimapImage(){return oldImageData;}
@@ -58,7 +59,6 @@ namespace battleship{
 				Minimap();
 				vb01::Node* initIcon(vb01::Vector3, std::string);
 				void updateCamFrame(vb01Gui::Button*);
-				void updateImage(vb01Gui::Button*);
 
 				vb01::u8 *oldImageData = nullptr;
 				vb01::Node *camFrame = nullptr;

@@ -98,93 +98,73 @@ namespace battleship{
 		return node;
 	}
 
-	void Map::Minimap::updateImage(Button *minimapButton){
-		string imagePath = GameManager::getSingleton()->getPath() + "Models/Maps/" + Map::getSingleton()->getMapName() + "/minimap.jpg";
-		ImageAsset *asset = (ImageAsset*)AssetManager::getSingleton()->getAsset(imagePath);
-		int width = asset->width, height = asset->height, numChannels = asset->numChannels;
+	void Map::Minimap::updateImage(){
+		GameManager *gm = GameManager::getSingleton();
+		Map *map = Map::getSingleton();
 
-		Vector3 mapSize = Map::getSingleton()->getMapSize();
+		string imagePath = gm->getPath() + "Models/Maps/" + map->getMapName() + "/minimap.jpg";
+		ImageAsset *asset = (ImageAsset*)AssetManager::getSingleton()->getAsset(imagePath);
+		int width = asset->width, height = asset->height;
+
+		Vector3 mapSize = map->getMapSize();
 		vector<pair<Unit*, Vector2>> unitMinimapPos;
 
+		ActiveGameState *activeState = (ActiveGameState*)gm->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
+
 		for(Player *pl : Game::getSingleton()->getPlayers(true))
-			for(Unit *un : pl->getUnits()){
-				Vector2 coords = Vector2(
-					int(un->getPos().x / mapSize.x * width),
-					int(un->getPos().z / mapSize.z * height)
-				);
+			if(pl->getTeam() == activeState->getPlayer()->getTeam()){
+				vector<Unit*> units = pl->getUnits();
 
-				unitMinimapPos.push_back(make_pair(un, coords));
-			}
-
-		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
-		Player *mainPlayer = activeState->getPlayer();
-		vector<Unit*> units = mainPlayer->getUnits();
-
-		int size = width * height * numChannels, unitPxRadius = 1;
-		int pxId = 0, numIter = 0;
-
-		for(u8 *p = asset->image; p != asset->image + size; p += numChannels, pxId += numChannels, numIter++){
-			Vector2 coords = Vector2(
-				numIter % asset->width - .5 * asset->width,
-				-(numIter / asset->width - .5 * asset->height)
-			);
-			float losFactor = .6, pxCol[3]{
-				losFactor * oldImageData[pxId + 0],
-				losFactor * oldImageData[pxId + 1],
-				losFactor * oldImageData[pxId + 2]
-			};
-
-			for(pair<Unit*, Vector2> unitPair : unitMinimapPos){
-				float minimapLos = unitPair.first->getLineOfSight() / mapSize.x * width;
-
-				if(unitPair.first->getPlayer() == mainPlayer && coords.getDistanceFrom(unitPair.second) < minimapLos){
-					bool foreignUnit = false;
-					Player *pl = nullptr;
-
-					for(pair<Unit*, Vector2> up : unitMinimapPos){
-						Vector2 coordDiff = up.second - coords;
-
-						if(up.first->getPlayer() != mainPlayer && fabs(coordDiff.x) <= unitPxRadius && fabs(coordDiff.y) <= unitPxRadius){
-							foreignUnit = true;
-							pl = up.first->getPlayer();
-							break;
-						}
-					}
-
-					if(foreignUnit){
-						Vector3 plCol = pl->getColor();
-						pxCol[0] = plCol.x * 255;
-						pxCol[1] = plCol.y * 255;
-						pxCol[2] = plCol.z * 255;
-					}
-					else{
-						pxCol[0] = oldImageData[pxId + 0];
-						pxCol[1] = oldImageData[pxId + 1];
-						pxCol[2] = oldImageData[pxId + 2];
-					}
-
-					break;
+				for(Unit *u : units){
+					Vector2 coords = Vector2(
+						int(u->getPos().x / mapSize.x * width),
+						int(-u->getPos().z / mapSize.z * height)
+					);
+					unitMinimapPos.push_back(make_pair(u, coords));
 				}
 			}
 
-			for(pair<Unit*, Vector2> unitPair : unitMinimapPos){
-				Vector2 coordDiff = unitPair.second - coords;
+		int pxId = 0, numChannels = asset->numChannels, size = width * height * numChannels;
+		float losFactor = .6;
 
-				if(unitPair.first->getPlayer() == mainPlayer && fabs(coordDiff.x) <= unitPxRadius && fabs(coordDiff.y) <= unitPxRadius){
-					Vector3 plCol = mainPlayer->getColor();
-					pxCol[0] = plCol.x * 255;
-					pxCol[1] = plCol.y * 255;
-					pxCol[2] = plCol.z * 255;
-					break;
-				}
-			}
-
-			*p = pxCol[0];
-			*(p + 1) = pxCol[1];
-			*(p + 2) = pxCol[2];
+		for(u8 *p = asset->image; p != asset->image + size; p += numChannels, pxId += numChannels){
+			*(p + 0) = losFactor * oldImageData[pxId + 0];
+			*(p + 1) = losFactor * oldImageData[pxId + 1];
+			*(p + 2) = losFactor * oldImageData[pxId + 2];
 		}
 
-		Node *rectNode = minimapButton->getRectNode();
+		int unitPxRadius = 1;
+
+		for(pair<Unit*, Vector2> unitPair : unitMinimapPos){
+			Unit *losUnit = unitPair.first;
+			Vector2 losUnitCoords = unitPair.second;
+			float minimapLos = losUnit->getLineOfSight() / mapSize.x * width;
+
+			for(int x = max(-.5f * width, losUnitCoords.x - minimapLos); x < min(.5f * width, losUnitCoords.x + minimapLos); x++){
+				for(int y = max(-.5f * height, losUnitCoords.y - minimapLos); y < min(.5f * height, losUnitCoords.y + minimapLos); y++){
+					int pxId = width * (y + .5 * height) + (x + .5 * width);
+					Vector2 coords = Vector2(x, y);
+
+					if(coords.getDistanceFrom(losUnitCoords) < minimapLos){
+						asset->image[numChannels * pxId + 0] = oldImageData[numChannels * pxId + 0];
+						asset->image[numChannels * pxId + 1] = oldImageData[numChannels * pxId + 1];
+						asset->image[numChannels * pxId + 2] = oldImageData[numChannels * pxId + 2];
+
+						for(pair<Unit*, Vector2> addUnitPair : unitMinimapPos)
+							if(fabs(addUnitPair.second.x - coords.x) < unitPxRadius && fabs(addUnitPair.second.y - coords.y) < unitPxRadius){
+								Vector3 unitCol = addUnitPair.first->getPlayer()->getColor();
+								asset->image[numChannels * pxId + 0] = unitCol.x * 255;
+								asset->image[numChannels * pxId + 1] = unitCol.y * 255;
+								asset->image[numChannels * pxId + 2] = unitCol.z * 255;
+
+								break;
+							}
+					}
+				}
+			}
+		}
+
+		Node *rectNode = ConcreteGuiManager::getSingleton()->getButton("minimap")->getRectNode();
 		Material *mat = rectNode->getMesh(0)->getMaterial();
 		Texture *tex = ((Material::TextureUniform*)mat->getUniform("diffuseMap"))->value;
 		tex->loadImageData(asset);
@@ -206,7 +186,6 @@ namespace battleship{
 		if(!GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE)) return;
 
 		Button *mb = ConcreteGuiManager::getSingleton()->getButton("minimap");
-		updateImage(mb);
 		updateCamFrame(mb);
 	}
 
@@ -546,6 +525,7 @@ namespace battleship{
 			 */
 
 			cells.push_back(Cell(cellPos, cellType, edges, underWaterCellIds));
+
 		}
 	}
 
