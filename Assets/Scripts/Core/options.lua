@@ -65,3 +65,7 @@ mappings = {
 graphics = {
 	resolution = {x = 1920, y = 1080}
 }
+audio = {
+	sfxVolume = 100,
+	musicVolume = 100,
+}

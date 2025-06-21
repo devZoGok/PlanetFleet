@@ -3,6 +3,28 @@ Size = {x = 70, y = 70}
 sz = 210
 s = 40
 
+function generateFactionMusic(factionId)
+	asianTracks = {'ACS/asian_theme_1.ogg', 'ACS/asian_theme_2.ogg'}
+	americanTracks = {'AInc/american_theme_1.ogg', 'AInc/american_theme_2.ogg'}
+	europeanTracks = {'ER/european_theme_1.ogg', 'ER/european_theme_2.ogg'}
+
+	factionTracks = {}
+
+	if factionId == 0 then 
+		factionTracks = americanTracks
+	elseif factionId == 1 then 
+		factionTracks = europeanTracks
+	elseif factionId == 2 then 
+		factionTracks = asianTracks
+	end
+
+	return {
+		loop = true,
+		shuffle = false,
+		tracks = factionTracks
+	}
+end
+
 eyeIcon = 'eye.png'
 refIcon = 'refineds.png'
 minimapSize = {x = 200, y = 200}
