@@ -13,6 +13,7 @@
 
 #include "map.h"
 #include "util.h"
+#include "vehicle.h"
 #include "game.h"
 #include "player.h"
 #include "gameObject.h"
@@ -102,6 +103,7 @@ namespace battleship{
 		return node;
 	}
 
+	//TODO add a flag to Player::getUnits* whether to include garrisoned units
 	void Map::Minimap::updateImage(){
 		GameManager *gm = GameManager::getSingleton();
 		Map *map = Map::getSingleton();
@@ -120,6 +122,8 @@ namespace battleship{
 				vector<Unit*> units = pl->getUnits();
 
 				for(Unit *u : units){
+					if(u->isVehicle() && ((Vehicle*)u)->getGarrisonable()) continue;
+
 					Vector2 coords = Vector2(
 						int(u->getPos().x / mapSize.x * width),
 						int(-u->getPos().z / mapSize.z * height)

@@ -501,6 +501,8 @@ namespace battleship{
 		vector<Unit*> selUnits = mainPlayer->getSelectedUnits();
 
         for (Unit *u : units) {
+			if(u->isVehicle() && ((Vehicle*)u)->getGarrisonable()) continue;
+
 			Node *model = u->getModel();
 
             if (u->getPlayer()->getTeam() == mainPlayer->getTeam()){
