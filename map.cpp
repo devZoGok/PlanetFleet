@@ -96,6 +96,7 @@ namespace battleship{
 
 		Node *node = new Node(minimapPos + Vector3(iconPos.x, iconPos.y, .1) - .5 * iconSize);
 		node->attachMesh(quad);
+		node->setVisible(false);
 		root->getGuiNode()->attachChild(node);
 
 		return node;
@@ -193,6 +194,9 @@ namespace battleship{
 	}
 
 	void Map::Minimap::load(){
+		for(Node *node : depositIcons)
+			node->setVisible(true);
+
 		AssetManager *am = AssetManager::getSingleton();
 		string minimapPath = GameManager::getSingleton()->getPath() + "Models/Maps/" + Map::getSingleton()->getMapName() + "/minimap.jpg";
 
@@ -206,6 +210,9 @@ namespace battleship{
 	}
 
 	void Map::Minimap::unload(){
+		for(Node *node : depositIcons)
+			node->setVisible(false);
+
 		delete[] oldImageData;
 	}
 

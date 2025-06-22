@@ -120,15 +120,18 @@ namespace battleship{
 
     void ActiveGameState::onAttached() {
         AbstractAppState::onAttached();
+		vector<Button*> buttons = guiButtons;
+		buttons.insert(buttons.end(), unitButtons.begin(), unitButtons.end());
+
 		ConcreteGuiManager::getSingleton()->readLuaScreenScript(
 				"activeGameState.lua",
-				vector<Button*>{},
+				buttons,
 				vector<Listbox*>{},
 				vector<Checkbox*>{},
 				vector<Slider*>{},
 				vector<Textbox*>{},
-				vector<Node*>{},
-				vector<Text*>{},
+				guiRects,
+				guiTexts,
 				"music = generateFactionMusic(" + to_string(mainPlayer->getFaction()) + ")"
 		);
 
@@ -375,7 +378,6 @@ namespace battleship{
 		ufCtr->removeGameObjectFrames();
 		ufCtr->toggleFrameTransformations(false, false, false);
 
-		unitGuiScreen = "";
 		ConcreteGuiManager::getSingleton()->readLuaScreenScript("activeGameState.lua");
 	}
 

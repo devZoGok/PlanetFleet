@@ -81,7 +81,6 @@ namespace battleship{
 		CursorState cursorState = CursorState::NORMAL;
         Player *mainPlayer;
         GuiAppState *guiState;
-		std::string unitGuiScreen = "";
 		GameObject *gameObjHoveredOn = nullptr;
 		vb01::Vector2 clickPoint;
         std::vector<Unit*> unitGroups[9], prevSelectedUnits;

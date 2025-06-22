@@ -105,7 +105,7 @@ namespace battleship{
 
         if (!paused) {
             gm->getStateManager()->dettachAppState(activeState);
-			guiManager->readLuaScreenScript("gamePaused.lua", activeState->getGuiButtons());
+			guiManager->parseLuaScript("gamePaused.lua");
         } 
         else {
 			sol::state_view SOL_LUA_VIEW = generateView();
