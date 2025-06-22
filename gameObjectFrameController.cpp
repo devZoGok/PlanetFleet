@@ -40,7 +40,7 @@ namespace battleship{
 		float hypothenuse = sqrt(width * width + length * length);
 		int numStructsInRow = int(lenRow / hypothenuse);
 		
-		while(gameObjectFrames.size() > numStructsInRow)
+		while(gameObjectFrames.size() > numStructsInRow && gameObjectFrames.size() > 1)
 			removeGameObjectFrame(gameObjectFrames.size() - 1);
 
 		if(gameObjectFrames.size() < numStructsInRow){
