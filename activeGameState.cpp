@@ -217,8 +217,10 @@ namespace battleship{
 
 					cursorState = (unloadFlag ? CursorState::UNLOAD : CursorState::LOAD);
 				}
-				else if(gameObjUnit && !(ownGameObj || alliedGameObj))
+				else if(gameObjUnit && !(ownGameObj || alliedGameObj)){
+					orderPossible = true;
 					cursorState = CursorState::ATTACK;
+				}
 				else
 					cursorState = CursorState::NORMAL;
 			}
@@ -586,8 +588,10 @@ namespace battleship{
 		}
 
 		mainPlayer->issueOrder(type, destDir, targets, addOrder);
-		forceCursorState = false;
 		this->targets.clear();
+
+		if(cursorState != CursorState::ATTACK)
+			forceCursorState = false;
     }
     
     void ActiveGameState::castRayToTerrain() {
