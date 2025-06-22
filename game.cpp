@@ -39,10 +39,7 @@ namespace battleship{
 		StateManager *sm = GameManager::getSingleton()->getStateManager();
 		sm->dettachAppState(sm->getAppStateByType(AppStateType::ACTIVE_STATE));
 
-		togglePause();
-
-		string endGameScreen = (victory ? "victory.lua" : "defeat.lua");
-		ConcreteGuiManager::getSingleton()->readLuaScreenScript(endGameScreen);
+		ConcreteGuiManager::getSingleton()->parseLuaScript(victory ? "victory.lua" : "defeat.lua");
 	}
 
 	void Game::update(){

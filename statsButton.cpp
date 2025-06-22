@@ -6,6 +6,7 @@
 #include "map.h"
 
 #include <stateManager.h>
+#include <solUtil.h>
 
 namespace battleship{
 	using namespace std;
@@ -30,7 +31,9 @@ namespace battleship{
 		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
 		Vector3 plCol = player->getColor();
 		Root *root = Root::getSingleton();
-		string fontPath = GameManager::getSingleton()->getPath() + "Fonts/batang.ttf";
+		sol::state_view SOL_STATE_VIEW = generateView();
+		float statsInitHeight = SOL_STATE_VIEW["statsInitHeight"], statsSpace = SOL_STATE_VIEW["statsSpace"];
+		string fontName = SOL_STATE_VIEW["fontName"];
 
 		for(int i = 0; i < numPairs; i++){
 			Text *category = guiManager->getText(unitDataPairs[i].first);
@@ -39,11 +42,11 @@ namespace battleship{
 			categoryMat->addBoolUniform("texturingEnabled", false);
 			categoryMat->addVec4Uniform("diffuseColor", Vector4(plCol.x, plCol.y, plCol.z, 1));
 
-			Text *categoryVal = new Text(fontPath, unitDataPairs[i].second);
+			Text *categoryVal = new Text(GameManager::getSingleton()->getPath() + "Fonts/" + fontName, unitDataPairs[i].second);
 			categoryVal->setScale(category->getScale());
 			categoryVal->setMaterial(categoryMat);
 
-			Node *categoryValNode = new Node(category->getNode()->getPosition() + Vector3(0, 100 * playerId, 0));
+			Node *categoryValNode = new Node(category->getNode()->getPosition() + Vector3(0, statsInitHeight + statsSpace * playerId, 0));
 			categoryValNode->addText(categoryVal);
 			root->getGuiNode()->attachChild(categoryValNode);
 
@@ -64,7 +67,7 @@ namespace battleship{
 		Game *game = Game::getSingleton();
 		int numPlayers = game->getNumPlayers();
 
-		for(int i = 1; i < numPlayers; i++)
+		for(int i = 0; i < numPlayers; i++)
 			addPlayerDataGuiElements(i);
 
 		game->removeAllElements();

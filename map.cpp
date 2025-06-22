@@ -56,13 +56,16 @@ namespace battleship{
 	}
 
 	Map::Minimap::~Minimap(){
+		Node *guiNode = Root::getSingleton()->getGuiNode();
+
 		for(Node *node : depositIcons){
-			Root::getSingleton()->getGuiNode()->dettachChild(node);
+			guiNode->dettachChild(node);
 			delete node;
 		}
 
 		depositIcons.clear();
 
+		guiNode->dettachChild(camIcon);
 		delete camIcon;
 	}
 
