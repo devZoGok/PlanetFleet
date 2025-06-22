@@ -20,7 +20,7 @@ function generateFactionMusic(factionId)
 
 	return {
 		loop = true,
-		shuffle = false,
+		shuffle = true,
 		delay = 2000,
 		tracks = factionTracks
 	}
