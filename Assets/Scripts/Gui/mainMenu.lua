@@ -4,6 +4,7 @@ numGui = 4
 music = {
 	loop = true,
 	shuffle = false,
+	delay = 2000,
 	tracks = {'intro.ogg'}
 }
 gui = {

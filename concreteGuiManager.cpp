@@ -498,7 +498,6 @@ namespace battleship{
 		sol::state_view SOL_LUA_STATE = generateView();
 		sol::table guiTable = SOL_LUA_STATE["gui"][guiId + 1];
 		sol::table posTable = guiTable["pos"];
-		sol::table scaleTable = guiTable["scale"];
 
 		Root *root = Root::getSingleton();
 
@@ -513,7 +512,20 @@ namespace battleship{
 		text->setMaterial(mat);
 
 		Vector3 pos = Vector3(posTable["x"], posTable["y"], posTable["z"]);
-		Vector3 scale = Vector3(scaleTable["x"], scaleTable["y"], 1);
+
+		SOL_LUA_STATE.script("tp = type(gui[" + to_string(guiId + 1) + "].scale)");
+		string st = SOL_LUA_STATE["tp"];
+		Vector3 scale;
+
+		if(st == "table"){
+			sol::table scaleTable = guiTable["scale"];
+			scale = Vector3(scaleTable["x"], scaleTable["y"], 1);
+		}
+		else if(st == "number"){
+			float sc = guiTable["scale"];
+			scale = Vector3(sc, sc, 1);
+		}
+
 		Node *node = new Node(pos, Quaternion::QUAT_W, scale, guiTable["name"]);
 		node->addText(text);
 		root->getGuiNode()->attachChild(node);
@@ -532,6 +544,7 @@ namespace battleship{
 
 		sol::table musicTbl = SOL_STATE_VIEW["music"], tracksTbl = musicTbl["tracks"];
 		bool loop = musicTbl["loop"], shuffle = musicTbl["shuffle"];
+		int delay = musicTbl["delay"].get_or(0);
 		int numTracks = tracksTbl.size();
 
 		vector<string> trackPaths;
@@ -541,7 +554,7 @@ namespace battleship{
 			trackPaths.push_back(GameManager::getSingleton()->getPath() + "Sounds/Music/" + track);
 		}
 
-		SoundManager::getSingleton()->play(trackPaths, 100, loop, shuffle);
+		SoundManager::getSingleton()->play(trackPaths, 100, delay, loop, shuffle);
 	}
 
 	void ConcreteGuiManager::readLuaScreenScript(

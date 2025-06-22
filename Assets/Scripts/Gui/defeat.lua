@@ -1,5 +1,11 @@
 Size = {x = 150, y = 40}
 
+music = {
+	loop = true,
+	shuffle = false,
+	delay = 2000,
+	tracks = {'defeat.ogg'}
+}
 gui = {
 	{
 		guiType = GuiType.TEXT,
@@ -25,6 +31,6 @@ gui = {
 		name = 'Leave',
 		buttonType = ButtonType.STATISTICS,
 		trigger = -1,
-		imagePath = ''
+		--imagePath = ''
 	}
 }
