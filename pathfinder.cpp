@@ -73,15 +73,17 @@ namespace battleship{
 						bool ship = (unitType == UnitType::UNDERWATER || unitType == UnitType::SEA_LEVEL);
 						Unit *blockingUnit = cells[vertStrich].blockedBy;
 						bool diffBlockingUnit = (blockingUnit && blockingUnit != vehicle);
+						bool throughBlockedCell = (source != vertStrich);
 
 						if(
-								(unitType == UnitType::LAND && (diffBlockingUnit || cells[vertStrich].type != Map::Cell::LAND)) ||
+								(unitType == UnitType::LAND && ((diffBlockingUnit && throughBlockedCell) || cells[vertStrich].type != Map::Cell::LAND)) ||
 								(
 									ship &&
 									(
 										cells[vertStrich].type != Map::Cell::WATER ||
 										(
 											diffBlockingUnit && 
+											throughBlockedCell && 
 											blockingUnit->getUnitClass() == UnitClass::ICE_SHEET && 
 											vehicle->getUnitClass() != UnitClass::ICEBREAKER
 										)
