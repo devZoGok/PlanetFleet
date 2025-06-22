@@ -29,7 +29,6 @@ namespace battleship{
 			void enterGarrisonable();
 			void halt();
 			void turn(float);
-			void receiveOrder(Order, bool);
 			void advance(float, MoveDir = MoveDir::FORW);
 			void addPathpoint(vb01::Vector3);
 			void removePathpoint(int = 0);

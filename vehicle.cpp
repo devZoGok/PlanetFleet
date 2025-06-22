@@ -52,19 +52,6 @@ namespace battleship{
 		return false;
 	}
 
-	void Vehicle::receiveOrder(Order order, bool add){
-		if(!(order.type == Order::TYPE::EJECT || order.type == Order::TYPE::LAUNCH)){
-			Order::Target targ = order.targets[0];
-			Vector3 targPos = (targ.unit ? targ.unit->getPos() : targ.pos);
-			preparePathpoints(order, targPos);
-
-			if(!pathPoints.empty())
-				Unit::receiveOrder(order, add);
-		}
-		else
-			Unit::receiveOrder(order, add);
-	}
-
     void Vehicle::turn(float angle) {
         Quaternion newRot = Quaternion(angle, upVec) * model->getOrientation();
         model->setOrientation(newRot);
@@ -170,7 +157,10 @@ namespace battleship{
 	}
 
     void Vehicle::move(Order order) {
-		navigate(0.5 * Map::getSingleton()->getCellSize().x);
+		if(pathPoints.empty())
+			preparePathpoints(order, order.targets[0].pos);
+		else
+			navigate(0.5 * Map::getSingleton()->getCellSize().x);
 
 		if(type == UnitType::LAND)
 			alignToSurface();
