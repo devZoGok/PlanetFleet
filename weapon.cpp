@@ -32,9 +32,14 @@ namespace battleship{
 		if(horNodeTblOpt != sol::nullopt) horNode = initNode(weaponTable, true);
 		if(vertNodeTblOpt != sol::nullopt) vertNode = initNode(weaponTable, false);
 
-		FxManager *fxManager = FxManager::getSingleton();
-		fireFx = fxManager->initFx(weaponTable["fireFx"], unit->getModel(), true);
-		if(fireFx) fxManager->addFx(fireFx);
+		sol::optional<sol::table> fireFxOpt = weaponTable["fireFx"];
+
+		if(fireFxOpt != sol::nullopt){
+			FxManager *fxManager = FxManager::getSingleton();
+			fireFx = fxManager->initFx(weaponTable["fireFx"], unit->getModel(), true);
+
+			if(fireFx) fxManager->addFx(fireFx);
+		}
 	}
 
 
