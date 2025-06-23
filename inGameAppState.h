@@ -51,7 +51,6 @@ namespace battleship{
     private:
         bool isMainMenuActive = false;
         std::vector<std::string> modelPaths;
-        Player *mainPlayer;
         int playerId;
 		std::string mapName = "";
         ActiveGameState* activeState;

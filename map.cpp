@@ -13,6 +13,7 @@
 
 #include "map.h"
 #include "util.h"
+#include "vehicle.h"
 #include "game.h"
 #include "player.h"
 #include "gameObject.h"
@@ -56,13 +57,16 @@ namespace battleship{
 	}
 
 	Map::Minimap::~Minimap(){
+		Node *guiNode = Root::getSingleton()->getGuiNode();
+
 		for(Node *node : depositIcons){
-			Root::getSingleton()->getGuiNode()->dettachChild(node);
+			guiNode->dettachChild(node);
 			delete node;
 		}
 
 		depositIcons.clear();
 
+		guiNode->dettachChild(camIcon);
 		delete camIcon;
 	}
 
@@ -93,11 +97,13 @@ namespace battleship{
 
 		Node *node = new Node(minimapPos + Vector3(iconPos.x, iconPos.y, .1) - .5 * iconSize);
 		node->attachMesh(quad);
+		node->setVisible(false);
 		root->getGuiNode()->attachChild(node);
 
 		return node;
 	}
 
+	//TODO add a flag to Player::getUnits* whether to include garrisoned units
 	void Map::Minimap::updateImage(){
 		GameManager *gm = GameManager::getSingleton();
 		Map *map = Map::getSingleton();
@@ -116,6 +122,8 @@ namespace battleship{
 				vector<Unit*> units = pl->getUnits();
 
 				for(Unit *u : units){
+					if(u->isVehicle() && ((Vehicle*)u)->getGarrisonable()) continue;
+
 					Vector2 coords = Vector2(
 						int(u->getPos().x / mapSize.x * width),
 						int(-u->getPos().z / mapSize.z * height)
@@ -190,6 +198,9 @@ namespace battleship{
 	}
 
 	void Map::Minimap::load(){
+		for(Node *node : depositIcons)
+			node->setVisible(true);
+
 		AssetManager *am = AssetManager::getSingleton();
 		string minimapPath = GameManager::getSingleton()->getPath() + "Models/Maps/" + Map::getSingleton()->getMapName() + "/minimap.jpg";
 
@@ -203,6 +214,9 @@ namespace battleship{
 	}
 
 	void Map::Minimap::unload(){
+		for(Node *node : depositIcons)
+			node->setVisible(false);
+
 		delete[] oldImageData;
 	}
 

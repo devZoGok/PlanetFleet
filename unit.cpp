@@ -523,7 +523,7 @@ namespace battleship{
 		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
 
 		if(activeState && activeState->getPlayer())
-		Map::Minimap::getSingleton()->updateImage();
+			Map::Minimap::getSingleton()->updateImage();
 	}
 
 	vector<Player*> Unit::getSelectingPlayers(){

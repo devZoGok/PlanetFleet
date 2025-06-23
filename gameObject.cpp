@@ -1,8 +1,9 @@
 #include "gameObject.h"
 #include "gameManager.h"
 #include "defConfigs.h"
-#include "unit.h"
 #include "player.h"
+#include "game.h"
+#include "unit.h"
 
 #include <solUtil.h>
 
@@ -29,6 +30,7 @@ namespace battleship{
 			Box *hbMesh = (Box*)hitbox->getMesh(0);
 			hbMesh->setSize(Vector3(width, height, length));
 			hbMesh->updateVerts(hbMesh->getMeshBase());
+			hitbox->setVisible(Game::getSingleton()->isDebug());
 		}
 	}
 
@@ -68,7 +70,7 @@ namespace battleship{
 
 		hitbox = new Node(Vector3(offsetPosTable["x"], offsetPosTable["y"], offsetPosTable["z"]));
 		hitbox->attachMesh(box);
-		hitbox->setVisible(true);
+		hitbox->setVisible(Game::getSingleton()->isDebug());
 		model->attachChild(hitbox);
 	}
 

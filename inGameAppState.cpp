@@ -68,21 +68,14 @@ namespace battleship{
 		cam->setPosition(Map::getSingleton()->getSpawnPoint(playerId) + Vector3(1, 1, 1) * configData::CAMERA_DISTANCE);
 		cam->lookAt(Vector3(0, -1, -1).norm(), Vector3(0, 1, -1).norm());
 
-        mainPlayer = Game::getSingleton()->getPlayer(playerId);
-
 		GameManager *gm = GameManager::getSingleton();
 		StateManager *stateManager = gm->getStateManager();
         GuiAppState *guiState = ((GuiAppState*)stateManager->getAppStateByType((int)AppStateType::GUI_STATE));
         activeState = new ActiveGameState(guiState, playerId);
         stateManager->attachAppState(activeState);
 
-		sol::state_view SOL_LUA_VIEW = generateView();
-		vector<Player*> players = Game::getSingleton()->getPlayers();
-
-		for(int i = 0; i < players.size(); i++)
-			SOL_LUA_VIEW["game"]["players"][i + 1] = players[i];
-
-		SOL_LUA_VIEW.script_file(gm->getPath() + "Scripts/Core/playerInit.lua");
+		Game::getSingleton()->updateLuaPlayers(true);
+		Map::Minimap::getSingleton()->updateImage();
     }
 
     void InGameAppState::onDettached() {

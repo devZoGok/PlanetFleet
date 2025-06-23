@@ -20,6 +20,7 @@ namespace battleship{
 		public:
 			static Game* getSingleton();
 			void update();
+			void updateLuaPlayers(bool);
 			void togglePause();
 			void removeAllElements();
 			void changeUnitPlayer(Unit*, Player*);

@@ -21,7 +21,6 @@ namespace battleship{
 		   	Unit *garrisonable = nullptr;
 			int patrolPointId = 0, garrisonCategory;
         	float speed, maxTurnAngle, anglePrecision;
-			vb01::Material *debugMat = nullptr;
 			std::vector<vb01::Node*> debugPathPoints;
 			vb01::s64 lastBuildTime = 0;
 

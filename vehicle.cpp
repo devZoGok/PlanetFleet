@@ -22,16 +22,10 @@ using namespace std;
 namespace battleship{
 	Vehicle::Vehicle(Player *player, int id, Vector3 pos, Quaternion rot, Unit::State state) : Unit(player, id, pos, rot, state){
 		initProperties();
-
-		debugMat = new Material(Root::getSingleton()->getLibPath() + "texture");
-		debugMat->addBoolUniform("lightingEnabled", false);
-		debugMat->addBoolUniform("texturingEnabled", false);
-		debugMat->addVec4Uniform("diffuseColor", Vector4::VEC_IJKL);
 	}
 
 	Vehicle::~Vehicle(){
 		removeAllPathpoints();
-		delete debugMat;
 	}
 
 	void Vehicle::update(){
@@ -237,13 +231,12 @@ namespace battleship{
 		pathPoints.push_back(pointPos);
 
 		Box *b = new Box(Vector3::VEC_IJK);
-		b->setMaterial(debugMat);
+		b->setMaterial(player->getColorMaterial());
 
 		Node *n = new Node(pointPos);
 		n->attachMesh(b);
-
+		n->setVisible(Game::getSingleton()->isDebug());
 		Root::getSingleton()->getRootNode()->attachChild(n);
-
 		debugPathPoints.push_back(n);
 	}
 

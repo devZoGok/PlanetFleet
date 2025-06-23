@@ -39,17 +39,12 @@ namespace battleship{
 		StateManager *sm = GameManager::getSingleton()->getStateManager();
 		sm->dettachAppState(sm->getAppStateByType(AppStateType::ACTIVE_STATE));
 
-		togglePause();
-
-		string endGameScreen = (victory ? "victory.lua" : "defeat.lua");
-		ConcreteGuiManager::getSingleton()->readLuaScreenScript(endGameScreen);
+		ConcreteGuiManager::getSingleton()->parseLuaScript(victory ? "victory.lua" : "defeat.lua");
 	}
 
 	void Game::update(){
+		updateLuaPlayers(false);
 		sol::state_view SOL_LUA_VIEW = generateView();
-
-		for(int i = 0; i < players.size(); i++)
-			SOL_LUA_VIEW["game"]["players"][i + 1] = players[i];
 
 		for(int i = 0; i < players.size(); i++)
 			if(players[i]->isCpuPlayer()){
@@ -81,6 +76,15 @@ namespace battleship{
 		FxManager::getSingleton()->update();
 	}
 
+	void Game::updateLuaPlayers(bool resetBehaviour){
+		sol::state_view SOL_LUA_VIEW = generateView();
+
+		for(int i = 0; i < players.size(); i++)
+			SOL_LUA_VIEW["game"]["players"][i + 1] = players[i];
+
+		if(resetBehaviour)
+			SOL_LUA_VIEW.script_file(GameManager::getSingleton()->getPath() + "Scripts/Core/playerInit.lua");
+	}
 
 	void Game::removeAllElements(){
 		generateView().script("game.players = {}");
@@ -101,14 +105,17 @@ namespace battleship{
 
         if (!paused) {
             gm->getStateManager()->dettachAppState(activeState);
-			guiManager->readLuaScreenScript("gamePaused.lua", activeState->getGuiButtons());
+			guiManager->parseLuaScript("gamePaused.lua");
         } 
         else {
-			for(string f : configData::scripts)
-				generateView().script_file(gm->getPath() + f);
-
-			guiManager->readLuaScreenScript("inGame.lua", activeState->getGuiButtons());
 			sol::state_view SOL_LUA_VIEW = generateView();
+
+			for(string f : configData::scripts)
+				SOL_LUA_VIEW.script_file(gm->getPath() + f);
+
+			updateLuaPlayers(true);
+			guiManager->readLuaScreenScript("inGame.lua", activeState->getGuiButtons());
+
 			string gop = SOL_LUA_VIEW["gameObjPrefix"], vfxp = SOL_LUA_VIEW["vfxPrefix"];
 			AssetManager::getSingleton()->load(gm->getPath() + gop, true);
 			AssetManager::getSingleton()->load(gm->getPath() + vfxp, true);
