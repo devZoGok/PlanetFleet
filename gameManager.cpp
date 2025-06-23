@@ -2,6 +2,7 @@
 
 #include <stateManager.h>
 #include <inputManager.h>
+#include <soundManager.h>
 
 #include <assetManager.h>
 #include <root.h>
@@ -170,6 +171,7 @@ namespace battleship{
 
     void GameManager::update() {
 		Root::getSingleton()->update();
+		SoundManager::getSingleton()->update();
         inputManager->update();
 		stateManager->update();
     }

@@ -624,13 +624,13 @@ namespace battleship{
     void Map::unload(){
 		Minimap::getSingleton()->unload();
 
-		unloadSkybox();
-		unloadLights();
+		unloadPlayerObjects();
 		unloadCells();
 		unloadTerrainObjects();
-		unloadPlayerObjects();
-		spawnPoints.clear();
 		destroyScene();
+		unloadLights();
+		unloadSkybox();
+		spawnPoints.clear();
 	}
 
 	vector<RayCaster::CollisionResult> Map::raycastTerrain(Vector3 rayPos, Vector3 rayDir, bool bothTerrTypes){

@@ -96,13 +96,6 @@ gui = {
 		color = {x = 1, y = 1, z = 1, w = 1}
 	},
 	{
-		guiType = GuiType.GUI_RECTANGLE,
-		pos = {x = 100, y = 200, z = 0},
-		zIndex = 1,
-		size = {x = 600, y = 600},
-		color = {x = 0, y = 0, z = 1, w = 1}
-	},
-	{
 		pos = {x = 1700, y = 1000, z = 0},
 		size = Size,
 		guiType = GuiType.BUTTON,

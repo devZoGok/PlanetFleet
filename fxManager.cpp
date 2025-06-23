@@ -204,7 +204,7 @@ namespace battleship{
 		}
 		else{
 			sf::Sound *sfx = (sf::Sound*)fx->components[cid].comp;
-			const sf::SoundBuffer *buffer = sfx->getBuffer();
+			const sf::SoundBuffer *buffer = &sfx->getBuffer();
 			sfx->stop();
 
 			delete sfx;

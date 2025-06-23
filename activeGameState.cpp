@@ -120,7 +120,17 @@ namespace battleship{
 
     void ActiveGameState::onAttached() {
         AbstractAppState::onAttached();
-		ConcreteGuiManager::getSingleton()->readLuaScreenScript("activeGameState.lua");
+		ConcreteGuiManager::getSingleton()->readLuaScreenScript(
+				"activeGameState.lua",
+				vector<Button*>{},
+				vector<Listbox*>{},
+				vector<Checkbox*>{},
+				vector<Slider*>{},
+				vector<Textbox*>{},
+				vector<Node*>{},
+				vector<Text*>{},
+				"music = generateFactionMusic(" + to_string(mainPlayer->getFaction()) + ")"
+		);
 
 		if(!cursorNode) initCursor();
     }

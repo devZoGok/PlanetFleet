@@ -13,7 +13,7 @@ namespace vb01{
 }
 
 namespace battleship{
-	enum GuiElementType {BUTTON, LISTBOX, CHECKBOX, SLIDER, TEXTBOX, GUI_RECTANGLE, TEXT};
+	enum GuiElementType {BUTTON, LISTBOX, CHECKBOX, SLIDER, TEXTBOX, GUI_RECTANGLE, TEXT, MUSIC};
 	enum ButtonType {
 		SINGLE_PLAYER,
 	   	EDITOR,
@@ -82,7 +82,8 @@ namespace battleship{
 					std::vector<vb01Gui::Slider*> = std::vector<vb01Gui::Slider*>{},
 					std::vector<vb01Gui::Textbox*> = std::vector<vb01Gui::Textbox*>{},
 					std::vector<vb01::Node*> = std::vector<vb01::Node*>{},
-					std::vector<vb01::Text*> = std::vector<vb01::Text*>{}
+					std::vector<vb01::Text*> = std::vector<vb01::Text*>{},
+					std::string = ""
 				);
 			void readLuaScreenScriptDel(
 					std::string,
@@ -94,7 +95,7 @@ namespace battleship{
 					std::vector<vb01::Node*> = std::vector<vb01::Node*>{},
 					std::vector<vb01::Text*> = std::vector<vb01::Text*>{}
 				);
-			void parseLuaScript(std::string); 
+			void parseLuaScript(std::string, std::string = "");
 		private:
 			ConcreteGuiManager();
 			vb01Gui::Button* parseButton(int);
@@ -105,6 +106,7 @@ namespace battleship{
 			vb01Gui::Textbox* parseTextbox(int);
 			vb01::Node* parseGuiRectangle(int);
 			vb01::Text* parseText(int);
+			void parseMusic();
 
 			std::vector<std::pair<int*, void*>> guiElements;
 			std::string texBasePath, fontBasePath;
