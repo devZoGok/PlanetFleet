@@ -543,6 +543,13 @@ namespace battleship{
 		if(musicTblOpt == sol::nullopt) return;
 
 		sol::table musicTbl = SOL_STATE_VIEW["music"], tracksTbl = musicTbl["tracks"];
+		SoundManager *sm = SoundManager::getSingleton();
+
+		if(tracksTbl.size() == 0){
+			sm->clearPlaylist();
+			return;
+		}
+
 		bool loop = musicTbl["loop"], shuffle = musicTbl["shuffle"];
 		int delay = musicTbl["delay"].get_or(0);
 		int numTracks = tracksTbl.size();
@@ -554,7 +561,7 @@ namespace battleship{
 			trackPaths.push_back(GameManager::getSingleton()->getPath() + "Sounds/Music/" + track);
 		}
 
-		SoundManager::getSingleton()->play(trackPaths, 100, delay, loop, shuffle);
+		sm->play(trackPaths, 100, delay, loop, shuffle);
 	}
 
 	void ConcreteGuiManager::readLuaScreenScript(

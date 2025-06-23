@@ -1,3 +1,4 @@
+music = {tracks = {}}
 numGui = 6
 
 Size = {x = 140, y = 20}
