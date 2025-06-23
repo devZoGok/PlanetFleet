@@ -312,7 +312,6 @@ units = {
 		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
-		weapons = {{orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 50, maxRange = 20}},
 		unitClass = UnitClass.TRANSPORT,
 		unitType = UnitType.HOVER,
 		isVehicle = true,
