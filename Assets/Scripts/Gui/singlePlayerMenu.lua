@@ -1,4 +1,10 @@
 Size = {x = 100, y = 20}
+music = {
+	loop = true,
+	shuffle = false,
+	delay = 2000,
+	tracks = {'intro.ogg'}
+}
 
 gui = {
 	{
