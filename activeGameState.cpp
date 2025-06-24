@@ -825,10 +825,12 @@ namespace battleship{
 			}
                 break;
 			case Bind::SELECT_PATROL_POINTS: 
+				/*
 				if(isPressed && mainPlayer->getNumSelectedUnits() > 0){
 					targets.push_back(Order::Target(nullptr, mainPlayer->getSelectedUnit(0)->getPos()));
 			   		selectingPatrolPoints = isPressed;
 				}
+				*/
 
                 break;
 			case Bind::GROUP_0:

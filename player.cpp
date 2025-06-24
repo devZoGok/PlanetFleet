@@ -142,6 +142,9 @@ namespace battleship{
 	}
 
 	void Player::removeUnit(int id){
+		if(find(selectedUnits.begin(), selectedUnits.end(), units[id]) != selectedUnits.end())
+			deselectUnit(units[id]);
+
 		delete units[id];
 		units.erase(units.begin() + id);
 	}
@@ -243,5 +246,13 @@ namespace battleship{
 				return offers.second;
 
 		return vector<TradeOffer*>{};
+	}
+
+	void Player::deselectUnit(Unit *unit){
+		for(int i = 0; i < selectedUnits.size(); i++)
+			if(selectedUnits[i] == unit){
+				selectedUnits.erase(selectedUnits.begin() + i);
+				break;
+			}
 	}
 }

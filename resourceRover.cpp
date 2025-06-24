@@ -37,8 +37,10 @@ namespace battleship{
 		loadRate = unitTable["loadRate"]; loadRate += game->calcAbilFromTech(Ability::Type::LOAD_RATE, currTechs, (int)GameObject::type, id);
 	}
 
+	//TODO implement a check of whether a vehicle is next to a building's outline
 	void ResourceRover::loadResources(Structure *targStruct, float minDist, bool loadResource){
-		bool closeEnough = (pos.getDistanceFrom(targStruct->getPos()) <= minDist);
+		float w = targStruct->getWidth(), l = targStruct->getLength();
+		bool closeEnough = (pos.getDistanceFrom(targStruct->getPos()) <= sqrt(l * l + w * w));
 		if(!closeEnough) return;
 
 		ResourceType resType;

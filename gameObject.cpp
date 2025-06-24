@@ -77,6 +77,7 @@ namespace battleship{
 	void GameObject::destroyHitbox(){
 		model->dettachChild(hitbox);
 		delete hitbox;
+		hitbox = nullptr;
 	}
 
 	//TODO use a vector for the color nodes
