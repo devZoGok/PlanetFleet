@@ -105,7 +105,7 @@ end
 -- TODO optimize deposit position check
 function Player:buildExtractor(arguments)
 	deposits = {}
-	players = Game.getSingleton():getPlayers()
+	players = Game.getSingleton():getPlayers(true)
 
 	for i = 1, #players do
 		deps = players[i]:getResourceDeposits()
@@ -229,7 +229,7 @@ function Player:clearNearEnemies(arguments)
 	self:selectUnits(taskForce.units)
 
 	targetUnits = {}
-	players = Game.getSingleton():getPlayers()
+	players = Game.getSingleton():getPlayers(false)
 
 	for i = 1, #players do
 		if players[i] == self or players[i]:getTeam() == self:getTeam() then goto continue end
