@@ -42,6 +42,17 @@ namespace battleship{
 		pursuingTarget = false;
 	}
 
+	void Vehicle::startCurrentOrder(){
+		Unit::startCurrentOrder();
+
+		if(orders[0].type == Order::TYPE::LAUNCH) return;
+
+		removeAllPathpoints();
+
+		Vector3 targPos = (orders[0].targets[0].unit ? orders[0].targets[0].unit->getPos() : orders[0].targets[0].pos);
+		preparePathpoints(orders[0], targPos);
+	}
+
 	bool Vehicle::validateGarrisonOrder(Order order){
 		Unit *targUnit = order.targets[0].unit;
 
@@ -157,10 +168,7 @@ namespace battleship{
 	}
 
     void Vehicle::move(Order order) {
-		if(pathPoints.empty())
-			preparePathpoints(order, order.targets[0].pos);
-		else
-			navigate(0.5 * Map::getSingleton()->getCellSize().x);
+		navigate(0.5 * Map::getSingleton()->getCellSize().x);
 
 		if(type == UnitType::LAND)
 			alignToSurface();

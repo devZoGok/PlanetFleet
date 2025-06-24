@@ -25,6 +25,7 @@ namespace battleship{
 			vb01::s64 lastBuildTime = 0;
 
         	inline int getNextPatrolPointId(int numPoints) {return patrolPointId == numPoints - 1 ? 0 : patrolPointId + 1;}
+			void startCurrentOrder();
 			bool validateGarrisonOrder(Order);
 			void enterGarrisonable();
 			void halt();
