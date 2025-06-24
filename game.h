@@ -23,7 +23,6 @@ namespace battleship{
 			void updateLuaPlayers(bool);
 			void togglePause();
 			void removeAllElements();
-			void changeUnitPlayer(Unit*, Player*);
 			void initTechnologies();
 			float calcAbilFromTech(Ability::Type, std::vector<int>, int, int);
 			bool isUnitUnlocked(std::vector<int>, int);

@@ -29,6 +29,7 @@ namespace battleship{
 			void updateGameStats(Unit*);
 			static sf::Sound* prepareSfx(sf::SoundBuffer*, std::string);
 			bool pointWithinObj(vb01::Vector3, float = 0, float = 0, bool = false, float = 0);
+			void changePlayer(Player *newPlayer);
         	inline vb01::Vector2 getScreenPos(){return screenPos;}
 			inline vb01::Vector3 getCorner(int i){return corners[i];}
 			inline bool isSelectable(){return selectable;}
@@ -50,6 +51,7 @@ namespace battleship{
 			inline vb01::Node* getHitbox(){return hitbox;}
 			inline bool isRemove(){return remove;}
 		protected:
+			virtual void useColor(vb01::Material*);
 			virtual void initProperties();
 			virtual void destroyModel();
 			virtual void initModel(bool = true);
