@@ -175,7 +175,7 @@ namespace battleship{
 		Node *rectNode = ConcreteGuiManager::getSingleton()->getButton("minimap")->getRectNode();
 		Material *mat = rectNode->getMesh(0)->getMaterial();
 		Texture *tex = ((Material::TextureUniform*)mat->getUniform("diffuseMap"))->value;
-		tex->loadImageData(asset);
+		tex->loadImageData(asset, false);
 	}
 
 	void Map::Minimap::updateCamFrame(Button *minimapButton){
