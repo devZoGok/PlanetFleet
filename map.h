@@ -8,6 +8,8 @@
 #include <vector.h>
 #include <util.h>
 
+#include <solUtil.h>
+
 namespace vb01{
 	class Model;
 	class Material;
@@ -76,7 +78,7 @@ namespace battleship{
 		std::vector<vb01::RayCaster::CollisionResult> raycastTerrain(vb01::Vector3, vb01::Vector3, bool);
 		int getCellId(vb01::Vector3, bool = true);
 		bool isPointWithinTerrainObject(vb01::Vector3, int);
-		void loadPlayerGameObjects();
+		void loadPlayersGameObjects();
 		int getNumMapSpawnPoints(std::string = "");
 		std::vector<int> getSurroundingCells(vb01::Vector3, int);
 		void blockCells(Unit*);
@@ -111,6 +113,7 @@ namespace battleship{
 		void loadLights();
 		void loadSkybox();
 		void loadCells();
+		void loadPlayerGameObjects(Player*, sol::table);
 		void loadTerrainObject(int);
 		void unloadTerrainObjects();
 		void unloadCells();
@@ -121,5 +124,4 @@ namespace battleship{
 		template<typename T> int bsearch(std::vector<T>, T, float);
     };
 }
-
 #endif

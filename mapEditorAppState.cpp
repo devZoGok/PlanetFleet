@@ -73,7 +73,7 @@ namespace battleship{
 			for(int i = 0; i < numPlayers; i++)
 				game->addPlayer(new Player(0, 0, 0, Vector3(1, 1, 1)));
 
-			map->loadPlayerGameObjects();
+			map->loadPlayersGameObjects();
 		}
 	}
 
