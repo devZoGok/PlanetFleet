@@ -14,7 +14,7 @@
 - `git clone <battleship_url>`
 - `cd Battteship`
 - `git submodule update --init --recursive`
-- `cmake -S . -B <build_dir> -G <present_visual_studio_version>`
+- `cmake -S . -B <build_dir> [-G <present_visual_studio_version>] -DSFML_BUILD_GRAPHICS=0`
 - open `build\ALL_BUILD.vcxproj`
 - build the solution (in case of the fatal error C1128, use, for example, the `RelWithDebInfo` build configuration)
 - copy and paste `battleship.exe` into `<build_dir>`
