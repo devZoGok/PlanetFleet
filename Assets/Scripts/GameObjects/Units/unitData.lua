@@ -275,6 +275,14 @@ units = {
 		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
+		weapons = {
+			{
+				orderType = OrderType.HACK,
+				rateOfFire = 100,
+				maxRange = 150,
+				damage = 0,
+			}
+		},
 		buildableUnits = {
 			{id = UnitId.LAND_FACTORY, buildable = true, trigger = 76},
 			{id = UnitId.NAVAL_FACTORY, buildable = true, trigger = 78},
@@ -291,20 +299,20 @@ units = {
 		armor = {ArmorType.MECHANIC},
 		isVehicle = true,
 		health = 500,
-		hackRange = 30,
+		hackRange = 200,
 		buildTime = 1000,
 		hackTime = 1000,
 		cost = 500,
 		size = {x = 1, y = 8, z = 1},
 		hitboxOffset = {x = 0, y = 0, z = 0},
-		lineOfSight = 20,
+		lineOfSight = 200,
 		name = 'Engineer',
 		basePath = PATH .. vehiclePrefix .. 'Engineers/',
 		albedoPath = 'engineer.jpg',
 		colorNodes = {'Cube.008'},
 		meshPath = 'engineer2.xml',
 		selectionSfx = PATH .. 'Sounds/Units/Engineers/selection.ogg',
-		speed = .1,
+		speed = .5,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -312,7 +320,6 @@ units = {
 		deathFx = {explosionVfx, explosionSfx},
 	},
 	{
-		weapons = {{orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/WarMechs/fire.ogg', damage = 50, maxRange = 20}},
 		unitClass = UnitClass.TRANSPORT,
 		unitType = UnitType.HOVER,
 		isVehicle = true,

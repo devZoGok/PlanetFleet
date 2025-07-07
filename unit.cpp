@@ -356,46 +356,44 @@ namespace battleship{
 
 	//TODO remove order argument from action methods
     void Unit::executeOrders() {
-		if(condition != Condition::ABLE) return;
+		if(orders.empty() || condition != Condition::ABLE) return;
 
-        if (orders.size() > 0) {
-            Order order = orders[0];
+		if(!currOrderStarted) startCurrentOrder();
 
-            switch (order.type) {
-                case Order::TYPE::ATTACK:
-                    attack(order);
-                    break;
-                case Order::TYPE::BUILD:
-                    build(order);
-                    break;
-                case Order::TYPE::MOVE:
-                    move(order);
-                    break;
-				case Order::TYPE::GARRISON:
-					garrison(order);
-					break;
-				case Order::TYPE::EJECT:
-					eject(order);
-					break;
-                case Order::TYPE::PATROL:
-                    patrol(order);
-                    break;
-                case Order::TYPE::LAUNCH:
-                    launch(order);
-                    break;
-                    break;
-                case Order::TYPE::LOAD:
-                case Order::TYPE::SUPPLY:
-                case Order::TYPE::UNLOAD:
-                    handleResources(order);
-                    break;
-                case Order::TYPE::HACK:
-                    hack(order);
-                    break;
-                default:
-                    break;
-            }
-        }
+		switch (orders[0].type) {
+		    case Order::TYPE::ATTACK:
+		        attack(orders[0]);
+		        break;
+		    case Order::TYPE::BUILD:
+		        build(orders[0]);
+		        break;
+		    case Order::TYPE::MOVE:
+		        move(orders[0]);
+		        break;
+			case Order::TYPE::GARRISON:
+				garrison(orders[0]);
+				break;
+			case Order::TYPE::EJECT:
+				eject(orders[0]);
+				break;
+		    case Order::TYPE::PATROL:
+		        patrol(orders[0]);
+		        break;
+		    case Order::TYPE::LAUNCH:
+		        launch(orders[0]);
+		        break;
+		        break;
+		    case Order::TYPE::LOAD:
+		    case Order::TYPE::SUPPLY:
+		    case Order::TYPE::UNLOAD:
+		        handleResources(orders[0]);
+		        break;
+		    case Order::TYPE::HACK:
+		        hack(orders[0]);
+		        break;
+		    default:
+		        break;
+		}
     }
 
 	void Unit::eject(Order order){
@@ -547,6 +545,7 @@ namespace battleship{
 			LineRenderer::getSingleton()->removeLine(orders[id].lineId);
 
         orders.erase(orders.begin() + id);
+		currOrderStarted = false;
     }
 
     void Unit::select() {

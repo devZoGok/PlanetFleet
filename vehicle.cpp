@@ -42,6 +42,17 @@ namespace battleship{
 		pursuingTarget = false;
 	}
 
+	void Vehicle::startCurrentOrder(){
+		Unit::startCurrentOrder();
+
+		if(orders[0].type == Order::TYPE::LAUNCH) return;
+
+		removeAllPathpoints();
+
+		Vector3 targPos = (orders[0].targets[0].unit ? orders[0].targets[0].unit->getPos() : orders[0].targets[0].pos);
+		preparePathpoints(orders[0], targPos);
+	}
+
 	bool Vehicle::validateGarrisonOrder(Order order){
 		Unit *targUnit = order.targets[0].unit;
 
@@ -50,19 +61,6 @@ namespace battleship{
 				return true;
 
 		return false;
-	}
-
-	void Vehicle::receiveOrder(Order order, bool add){
-		if(!(order.type == Order::TYPE::EJECT || order.type == Order::TYPE::LAUNCH)){
-			Order::Target targ = order.targets[0];
-			Vector3 targPos = (targ.unit ? targ.unit->getPos() : targ.pos);
-			preparePathpoints(order, targPos);
-
-			if(!pathPoints.empty())
-				Unit::receiveOrder(order, add);
-		}
-		else
-			Unit::receiveOrder(order, add);
 	}
 
     void Vehicle::turn(float angle) {

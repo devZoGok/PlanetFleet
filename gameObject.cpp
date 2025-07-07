@@ -77,6 +77,30 @@ namespace battleship{
 	void GameObject::destroyHitbox(){
 		model->dettachChild(hitbox);
 		delete hitbox;
+		hitbox = nullptr;
+	}
+
+	//TODO use a vector for the color nodes
+	void GameObject::useColor(Material *colorMat){
+		if(hitbox) model->dettachChild(hitbox);
+		model->setMaterial(model->getMaterial());
+		if(hitbox) model->attachChild(hitbox);
+
+		sol::table gameObjTable = generateView()[GameObject::getGameObjTableName()][id + 1];
+		sol::table colNodeTbl = gameObjTable["colorNodes"];
+		int numColorNodes = colNodeTbl.size();
+
+		for(int i = 0; i < numColorNodes; i++){
+			string name = colNodeTbl[i + 1];
+			Node *node = model->findDescendant(name, true);
+
+			if(!node) continue;
+
+			vector<Mesh*> meshes = node->getMeshes();
+
+			for(Mesh *mesh : meshes)
+				mesh->setMaterial(colorMat);
+		}
 	}
 
 	void GameObject::initProperties(){
@@ -123,22 +147,8 @@ namespace battleship{
 		model->setMaterial(mat);
 		sol::optional<sol::table> colNodeOpt = gameObjTable["colorNodes"];
 
-		if(player && colNodeOpt != sol::nullopt){
-			sol::table colNodeTbl = gameObjTable["colorNodes"];
-			int numColorNodes = colNodeTbl.size();
-
-			for(int i = 0; i < numColorNodes; i++){
-				string name = colNodeTbl[i + 1];
-				Node *node = model->findDescendant(name, true);
-
-				if(!node) continue;
-
-				vector<Mesh*> meshes = node->getMeshes();
-
-				for(Mesh *mesh : meshes)
-					mesh->setMaterial(player->getColorMaterial());
-			}
-		}
+		if(player && colNodeOpt != sol::nullopt)
+			useColor(player->getColorMaterial());
 
 		root->getRootNode()->attachChild(model);
 	}
@@ -177,6 +187,24 @@ namespace battleship{
 		}
 		
 		return within;
+	}
+
+	//TODO improve for other game objs, too
+	void GameObject::changePlayer(Player *newPlayer){
+		vector<Unit*> &oldPlayerUnits = player->getUnits();
+		int oldId = -1;
+
+		for(int i = 0; i < oldPlayerUnits.size(); i++)
+			if(oldPlayerUnits[i] == (Unit*)this){
+				oldId = i;
+				break;
+			}
+
+		oldPlayerUnits.erase(oldPlayerUnits.begin() + oldId);
+		newPlayer->addUnit((Unit*)this);
+		setPlayer(newPlayer);
+		useColor(newPlayer->getColorMaterial());
+		((Unit*)this)->halt();
 	}
 
 	string GameObject::getGameObjTableName(){

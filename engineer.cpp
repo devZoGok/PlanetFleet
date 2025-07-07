@@ -73,7 +73,7 @@ namespace battleship{
 		}
 
 		if(hackStatus >= 100){
-			Game::getSingleton()->changeUnitPlayer(order.targets[0].unit, player);
+			order.targets[0].unit->changePlayer(player);
 			removeOrder(0);
 		}
 	}

@@ -159,7 +159,7 @@ namespace battleship{
         sf::SoundBuffer *selectionSfxBuffer;
         sf::Sound *selectionSfx = nullptr;
 		vb01::Node *hpBackgroundNode = nullptr, *hpForegroundNode = nullptr, *losLightNode = nullptr;
-		bool vehicle;
+		bool vehicle, currOrderStarted = false;
 		Condition condition = Condition::ABLE;
     protected:
         UnitClass unitClass;
@@ -178,6 +178,7 @@ namespace battleship{
 		void placeAt(vb01::Vector3);
 		std::vector<Player*> getSelectingPlayers();
         void removeOrder(int);
+		virtual void startCurrentOrder(){currOrderStarted = true;}
 		virtual bool validateLaunchOrder(){return !getWeaponsByOrder(Order::TYPE::LAUNCH).empty();}
 		virtual bool validateGarrisonOrder(Order){return false;}
 		virtual void targetUnitsAutomatically();

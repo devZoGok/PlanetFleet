@@ -175,7 +175,7 @@ namespace battleship{
 		Node *rectNode = ConcreteGuiManager::getSingleton()->getButton("minimap")->getRectNode();
 		Material *mat = rectNode->getMesh(0)->getMaterial();
 		Texture *tex = ((Material::TextureUniform*)mat->getUniform("diffuseMap"))->value;
-		tex->loadImageData(asset);
+		tex->loadImageData(asset, false);
 	}
 
 	void Map::Minimap::updateCamFrame(Button *minimapButton){
@@ -420,51 +420,58 @@ namespace battleship{
 		}
 	}
 
-	//TODO move minimap loading elsewhere
-	void Map::loadPlayerGameObjects(){
-		vector<Player*> players = Game::getSingleton()->getPlayers(true);
+	void Map::loadPlayerGameObjects(Player *player, sol::table playerTbl){
+		string resDepInd = "resourceDeposits";
 		sol::state_view SOL_LUA_VIEW = generateView();
-		string playerInd = "players";
+		sol::table resDepTbl = playerTbl["resourceDeposits"];
+		int numNpcObjs = resDepTbl.size();
 
-		for(int i = 0; i < players.size(); i++){
-			string resDepInd = "resourceDeposits";
-			SOL_LUA_VIEW.script("numResourceDeposits = #" + mapTable + "." + playerInd + "[" + to_string(i + 1) + "]." + resDepInd);
-			int numNpcObjs = SOL_LUA_VIEW["numResourceDeposits"];
-			Player *player = players[i];
+		for(int j = 0; j < numNpcObjs; j++){
+			sol::table npcObjTable = resDepTbl[j + 1];
+			int id = npcObjTable["id"];
 
-			for(int j = 0; j < numNpcObjs; j++){
-				sol::table npcObjTable = SOL_LUA_VIEW[mapTable][playerInd][i + 1][resDepInd][j + 1];
-				int id = npcObjTable["id"];
+			sol::table posTable = npcObjTable["pos"];
+			Vector3 pos = Vector3(posTable["x"], posTable["y"], posTable["z"]);
 
-				sol::table posTable = npcObjTable["pos"];
-				Vector3 pos = Vector3(posTable["x"], posTable["y"], posTable["z"]);
+			sol::table rotTable = npcObjTable["rot"];
+			Quaternion rot = Quaternion(rotTable["w"], rotTable["x"], rotTable["y"], rotTable["z"]);
+			int initAmmount = resDepTbl[j + 1]["initAmmount"];
 
-				sol::table rotTable = npcObjTable["rot"];
-				Quaternion rot = Quaternion(rotTable["w"], rotTable["x"], rotTable["y"], rotTable["z"]);
-				int initAmmount = SOL_LUA_VIEW[mapTable][playerInd][i + 1][resDepInd][j + 1]["initAmmount"];
-
-				player->addResourceDeposit(GameObjectFactory::createResourceDeposit(player, id, pos, rot, initAmmount));
-			}
-
-			//int spawnPointId = SOL_LUA_STATE[mapTable]["spawnPointInd"][i + 1][spawnPointId];
-			string unitInd = "units";
-			SOL_LUA_VIEW.script("numUnits = #" + mapTable + "." + playerInd + "[" + to_string(i + 1) + "]." + unitInd);
-			int numUnits = SOL_LUA_VIEW["numUnits"];
-			
-			for(int j = 0; j < numUnits; j++){
-				sol::table unitTable = SOL_LUA_VIEW[mapTable][playerInd][i + 1][unitInd][j + 1];
-
-	   			string posInd = "pos";
-				Vector3 pos = Vector3(unitTable[posInd]["x"], unitTable[posInd]["y"], unitTable[posInd]["z"]);
-
-				string rotInd = "rot";
-				Quaternion rot = Quaternion(unitTable[rotInd]["w"], unitTable[rotInd]["x"], unitTable[rotInd]["x"], unitTable[rotInd]["x"]);
-
-				int id = unitTable["id"];
-				int buildStatus = unitTable["buildStatus"].get_or(0);
-				player->addUnit(GameObjectFactory::createUnit(player, id, pos, rot, buildStatus));
-			}
+			player->addResourceDeposit(GameObjectFactory::createResourceDeposit(player, id, pos, rot, initAmmount));
 		}
+
+		string unitInd = "units";
+		sol::table unitsTbl = playerTbl["units"];
+		int numUnits = unitsTbl.size();
+		
+		for(int j = 0; j < numUnits; j++){
+			sol::table unitTable = unitsTbl[j + 1];
+
+	   		string posInd = "pos";
+			Vector3 pos = Vector3(unitTable[posInd]["x"], unitTable[posInd]["y"], unitTable[posInd]["z"]);
+
+			string rotInd = "rot";
+			Quaternion rot = Quaternion(unitTable[rotInd]["w"], unitTable[rotInd]["x"], unitTable[rotInd]["x"], unitTable[rotInd]["x"]);
+
+			int id = unitTable["id"];
+			int buildStatus = unitTable["buildStatus"].get_or(0);
+			player->addUnit(GameObjectFactory::createUnit(player, id, pos, rot, buildStatus));
+		}
+	}
+
+	//TODO move minimap loading elsewhere
+	void Map::loadPlayersGameObjects(){
+		Game *game = Game::getSingleton();
+		vector<Player*> choosablePlayers = game->getPlayers(false);
+		sol::state_view SOL_LUA_VIEW = generateView();
+
+		for(int i = 0; i < choosablePlayers.size(); i++){
+			sol::table playerTbl = SOL_LUA_VIEW[mapTable]["choosablePlayers"][i + 1];
+			loadPlayerGameObjects(choosablePlayers[i], playerTbl);
+		}
+
+		sol::table civPlayerTbl = SOL_LUA_VIEW[mapTable]["civilianPlayer"];
+		loadPlayerGameObjects(game->getCivilianPlayer(), civPlayerTbl);
 
 		Minimap::getSingleton()->load();
 	}

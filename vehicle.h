@@ -25,11 +25,11 @@ namespace battleship{
 			vb01::s64 lastBuildTime = 0;
 
         	inline int getNextPatrolPointId(int numPoints) {return patrolPointId == numPoints - 1 ? 0 : patrolPointId + 1;}
+			void startCurrentOrder();
 			bool validateGarrisonOrder(Order);
 			void enterGarrisonable();
 			void halt();
 			void turn(float);
-			void receiveOrder(Order, bool);
 			void advance(float, MoveDir = MoveDir::FORW);
 			void addPathpoint(vb01::Vector3);
 			void removePathpoint(int = 0);

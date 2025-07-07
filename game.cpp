@@ -144,23 +144,6 @@ namespace battleship{
 		paused = !paused;
 	}
 
-	void Game::changeUnitPlayer(Unit *unit, Player *newPlayer){
-		Player *oldPlayer = unit->getPlayer();
-		vector<Unit*> &oldPlayerUnits = oldPlayer->getUnits();
-		int oldId = -1;
-
-		for(int i = 0; i < oldPlayerUnits.size(); i++)
-			if(oldPlayerUnits[i] == unit){
-				oldId = i;
-				break;
-			}
-
-		oldPlayerUnits.erase(oldPlayerUnits.begin() + oldId);
-		newPlayer->addUnit(unit);
-		unit->setPlayer(newPlayer);
-		unit->halt();
-	}
-
 	vector<int> Game::parseTechTable(int tid, string key, string numVarKey, string varKey){
 		sol::state_view SOL_LUA_VIEW = generateView();
 		SOL_LUA_VIEW.script(numVarKey + " = #" + key + "[" + to_string(tid + 1) + "]." + varKey);

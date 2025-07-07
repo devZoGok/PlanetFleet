@@ -217,8 +217,10 @@ namespace battleship{
 
 					cursorState = (unloadFlag ? CursorState::UNLOAD : CursorState::LOAD);
 				}
-				else if(gameObjUnit && !(ownGameObj || alliedGameObj))
+				else if(gameObjUnit && !(ownGameObj || alliedGameObj)){
+					orderPossible = true;
 					cursorState = CursorState::ATTACK;
+				}
 				else
 					cursorState = CursorState::NORMAL;
 			}
@@ -586,8 +588,10 @@ namespace battleship{
 		}
 
 		mainPlayer->issueOrder(type, destDir, targets, addOrder);
-		forceCursorState = false;
 		this->targets.clear();
+
+		if(cursorState != CursorState::ATTACK)
+			forceCursorState = false;
     }
     
     void ActiveGameState::castRayToTerrain() {
@@ -718,16 +722,17 @@ namespace battleship{
 							if(orderPossible) issueOrder(Order::TYPE::HACK, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
 						}
 						else if((selectedUnits[0]->getUnitClass() == UnitClass::ENGINEER || selectedUnits[0]->getUnitClass() == UnitClass::FREEZER) && ufCtr->isPlacingOnSurface()){
-                    		castRayToTerrain();
-							GameObjectFrame gmObjFr = ufCtr->getGameObjectFrame(0);
+							targets.clear();
 
-							if(gmObjFr.status == GameObjectFrame::NOT_PLACEABLE) return;
+							for(int i = 0; i < ufCtr->getNumGameObjectFrames(); i++){
+								GameObjectFrame gmObjFr = ufCtr->getGameObjectFrame(i);
 
-							Unit *buildStruct = GameObjectFactory::createUnit(mainPlayer, gmObjFr.getId(), gmObjFr.getPos(), gmObjFr.getRot());
-							mainPlayer->addUnit(buildStruct);
-							targets[0].unit = buildStruct;
+								if(gmObjFr.status == GameObjectFrame::NOT_PLACEABLE) continue;
 
-							issueOrder(Order::TYPE::BUILD, targets, shiftPressed);
+								Unit *buildStruct = GameObjectFactory::createUnit(mainPlayer, gmObjFr.getId(), gmObjFr.getPos(), gmObjFr.getRot());
+								issueOrder(Order::TYPE::BUILD, vector<Order::Target>{Order::Target(buildStruct, gmObjFr.getPos())}, shiftPressed);
+								mainPlayer->addUnit(buildStruct);
+							}
 
 							buildableStructSelected = false;
 						}
@@ -820,10 +825,12 @@ namespace battleship{
 			}
                 break;
 			case Bind::SELECT_PATROL_POINTS: 
+				/*
 				if(isPressed && mainPlayer->getNumSelectedUnits() > 0){
 					targets.push_back(Order::Target(nullptr, mainPlayer->getSelectedUnit(0)->getPos()));
 			   		selectingPatrolPoints = isPressed;
 				}
+				*/
 
                 break;
 			case Bind::GROUP_0:
