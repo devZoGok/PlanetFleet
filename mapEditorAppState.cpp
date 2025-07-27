@@ -59,8 +59,7 @@ namespace battleship{
 
 		if(newMap){
 			game->addPlayer(new Player(0, 0, 0, Vector3(1, 1, 1)));
-			map->setMapSize(Vector3(size.x, 0, size.y));
-			map->create(name);
+			map->create(name, Vector3(size.x, 0, size.y));
 			generatePlane(size);
 		}
 		else{
@@ -583,7 +582,7 @@ namespace battleship{
 		string assetsPath = GameManager::getSingleton()->getPath();
 		string mapFolder = assetsPath + "Models/Maps/" + map->getMapName() + "/";
 		create_directory(mapFolder);
-		copy_file(assetsPath + DEFAULT_TEXTURE, mapFolder + map->getMapName() + ".jpg");
+		copy_file(assetsPath + DEFAULT_TEXTURE, mapFolder + map->getMapName() + ".jpg", filesystem::copy_options::overwrite_existing);
 
 		vector<Map::Cell> cells = generateMapCells();
 		generateLandmassXml();

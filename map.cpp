@@ -477,6 +477,8 @@ namespace battleship{
 	}
 
 	void Map::preprareScene(bool empty){
+		Game::getSingleton()->setCivilianPlayer(new Player(0, 0, 0, .5 * Vector3::VEC_IJK));
+
 		Root *root = Root::getSingleton();
 		Node *rootNode = root->getRootNode();
 		string libPath = root->getLibPath();
@@ -579,9 +581,11 @@ namespace battleship{
 			loadTerrainObject(i);
     }
 
-	void Map::create(string mapName){
+	void Map::create(string mapName, Vector3 mapSize){
 		this->mapName = mapName;
-		addSpawnPoint(Vector3::VEC_ZERO);
+		this->mapSize = mapSize;
+
+		//addSpawnPoint(Vector3::VEC_ZERO);
 		preprareScene(true);
 	}
 
