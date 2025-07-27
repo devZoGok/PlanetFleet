@@ -421,41 +421,50 @@ namespace battleship{
 	}
 
 	void Map::loadPlayerGameObjects(Player *player, sol::table playerTbl){
-		string resDepInd = "resourceDeposits";
 		sol::state_view SOL_LUA_VIEW = generateView();
-		sol::table resDepTbl = playerTbl["resourceDeposits"];
-		int numNpcObjs = resDepTbl.size();
 
-		for(int j = 0; j < numNpcObjs; j++){
-			sol::table npcObjTable = resDepTbl[j + 1];
-			int id = npcObjTable["id"];
+		string resDepInd = "resourceDeposits";
+		sol::optional<sol::table> resDepTblOpt = playerTbl[resDepInd];
 
-			sol::table posTable = npcObjTable["pos"];
-			Vector3 pos = Vector3(posTable["x"], posTable["y"], posTable["z"]);
+		if(resDepTblOpt != sol::nullopt){
+			sol::table resDepTbl = playerTbl[resDepInd];
+			int numNpcObjs = resDepTbl.size();
 
-			sol::table rotTable = npcObjTable["rot"];
-			Quaternion rot = Quaternion(rotTable["w"], rotTable["x"], rotTable["y"], rotTable["z"]);
-			int initAmmount = resDepTbl[j + 1]["initAmmount"];
+			for(int j = 0; j < numNpcObjs; j++){
+				sol::table npcObjTable = resDepTbl[j + 1];
+				int id = npcObjTable["id"];
 
-			player->addResourceDeposit(GameObjectFactory::createResourceDeposit(player, id, pos, rot, initAmmount));
+				sol::table posTable = npcObjTable["pos"];
+				Vector3 pos = Vector3(posTable["x"], posTable["y"], posTable["z"]);
+
+				sol::table rotTable = npcObjTable["rot"];
+				Quaternion rot = Quaternion(rotTable["w"], rotTable["x"], rotTable["y"], rotTable["z"]);
+				int initAmmount = resDepTbl[j + 1]["initAmmount"];
+
+				player->addResourceDeposit(GameObjectFactory::createResourceDeposit(player, id, pos, rot, initAmmount));
+			}
 		}
 
 		string unitInd = "units";
-		sol::table unitsTbl = playerTbl["units"];
-		int numUnits = unitsTbl.size();
-		
-		for(int j = 0; j < numUnits; j++){
-			sol::table unitTable = unitsTbl[j + 1];
+		sol::optional<sol::table> unitsTblOpt = playerTbl[unitInd];
 
-	   		string posInd = "pos";
-			Vector3 pos = Vector3(unitTable[posInd]["x"], unitTable[posInd]["y"], unitTable[posInd]["z"]);
+		if(unitsTblOpt != sol::nullopt){
+			sol::table unitsTbl = playerTbl[unitInd];
+			int numUnits = unitsTbl.size();
+			
+			for(int j = 0; j < numUnits; j++){
+				sol::table unitTable = unitsTbl[j + 1];
 
-			string rotInd = "rot";
-			Quaternion rot = Quaternion(unitTable[rotInd]["w"], unitTable[rotInd]["x"], unitTable[rotInd]["x"], unitTable[rotInd]["x"]);
+				string posInd = "pos";
+				Vector3 pos = Vector3(unitTable[posInd]["x"], unitTable[posInd]["y"], unitTable[posInd]["z"]);
 
-			int id = unitTable["id"];
-			int buildStatus = unitTable["buildStatus"].get_or(0);
-			player->addUnit(GameObjectFactory::createUnit(player, id, pos, rot, buildStatus));
+				string rotInd = "rot";
+				Quaternion rot = Quaternion(unitTable[rotInd]["w"], unitTable[rotInd]["x"], unitTable[rotInd]["x"], unitTable[rotInd]["x"]);
+
+				int id = unitTable["id"];
+				int buildStatus = unitTable["buildStatus"].get_or(0);
+				player->addUnit(GameObjectFactory::createUnit(player, id, pos, rot, buildStatus));
+			}
 		}
 	}
 
@@ -516,8 +525,8 @@ namespace battleship{
 	//TODO implement toggleable cell rendering
 	void Map::loadCells(){
 		sol::state_view SOL_LUA_VIEW = generateView();
-		int numCells = SOL_LUA_VIEW[mapTable]["numCells"];
 		sol::table cellsTable = SOL_LUA_VIEW[mapTable]["cells"];
+		int numCells = cellsTable.size();
 
 		for(int i = 0; i < numCells; i++){
 			sol::table cellTable = cellsTable[i + 1], posTable = cellTable["pos"];
@@ -575,7 +584,8 @@ namespace battleship{
 
 		sol::table sizeTable = SOL_LUA_STATE[mapTable]["size"];
 		mapSize = Vector3(sizeTable["x"], sizeTable["y"], sizeTable["z"]);
-		int numWaterbodies = SOL_LUA_STATE[mapTable]["numWaterBodies"];
+		sol::table wbTbl = SOL_LUA_STATE[mapTable]["waterbodies"];
+		int numWaterbodies = wbTbl.size();
 		
 		for(int i = 0; i < numWaterbodies; i++)
 			loadTerrainObject(i);
