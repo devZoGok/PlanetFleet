@@ -658,26 +658,33 @@ namespace battleship{
 
 		switch((Bind)bind){
 			case Bind::LOOK_AROUND:
-				if(ufCtr->isPlacingOnSurface()){
+				if(!ufCtr->isPlacingOnSurface())
+					CameraController::getSingleton()->setLookingAround(isPressed);
+
+                break;
+			case Bind::ROTATE_OBJ_FRAME:
+				if(isPressed && ufCtr->isPlacingOnSurface())
+					ufCtr->setRotating(true);
+				else if(!isPressed && ufCtr->isRotating()){
 					Player *player = Game::getSingleton()->getPlayer(0);
 					GameObjectFrame &frame = ufCtr->getGameObjectFrame(0);
 					Model *model = frame.getModel();
 					Vector3 pos = model->getPosition();
 					Quaternion rot = model->getOrientation();
-					GameObject *obj;
 
 					if(frame.getType() == GameObject::Type::RESOURCE_DEPOSIT)
 						player->addResourceDeposit(GameObjectFactory::createResourceDeposit(player, frame.getId(), pos, rot));
 					else
 						player->addUnit(GameObjectFactory::createUnit(player, frame.getId(), pos, rot));
-				}
-				else
-					CameraController::getSingleton()->setLookingAround(isPressed);
 
-                break;
-			case Bind::ROTATE_OBJ_FRAME:
+					ufCtr->setRotating(false);
+				}
+
+				break;
+			case Bind::DESELECT_STRUCTURE:
 				ufCtr->removeGameObjectFrames();
 				ufCtr->setPlacingOnSurface(false);
+				ufCtr->setRotating(false);
 				break;
 			case Bind::INCREASE_RADIUS:
 				if(isPressed) mapEditor->updateCircleRadius(true);
@@ -751,6 +758,7 @@ namespace battleship{
 
 	void MapEditorAppState::onAnalog(int bind, float strength){
 		CameraController *camCtr = CameraController::getSingleton();
+		GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
 
 		switch((Bind)bind){
 			case Bind::LOOK_UP: 
@@ -766,6 +774,8 @@ namespace battleship{
 			case Bind::LOOK_RIGHT: 
 				if(camCtr->isLookingAround())
 					camCtr->orientCamera(Vector3(0, 1, 0), strength);
+				else if(ufCtr->isRotating())
+					ufCtr->rotateGameObjectFrames(100 * strength);
 
 				break;
 			case Bind::PUSH_VERTS_UP:
