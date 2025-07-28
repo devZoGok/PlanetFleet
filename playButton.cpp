@@ -66,8 +66,6 @@ namespace battleship{
 			string name = (cpuPlayer ? "CPU player #" + to_string(i) : "Player");
 			game->addPlayer(new Player(difficulty, faction, team, color, cpuPlayer, i, name));
 		}
-
-		game->setCivilianPlayer(new Player(0, 0, 0, .5 * Vector3::VEC_IJK));
 	
 		handleLoadingGui(new LoadingAppState(new InGameAppState(mapName), "inGame.lua"));
 	}

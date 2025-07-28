@@ -73,7 +73,7 @@ namespace battleship{
 		static std::vector<Edge> generateAdjacentNodeEdges(int, int, int, int, int);
         void update();
         void load(std::string);
-        void create(std::string);
+        void create(std::string, vb01::Vector3);
         void unload();
 		std::vector<vb01::RayCaster::CollisionResult> raycastTerrain(vb01::Vector3, vb01::Vector3, bool);
 		int getCellId(vb01::Vector3, bool = true);

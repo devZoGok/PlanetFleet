@@ -513,15 +513,18 @@ namespace battleship{
 
 	//TODO select only the closest cells based on unit size
 	void Unit::placeAt(Vector3 p){
-		//check twice in case the unit is warped over a long distance
-		Map::getSingleton()->blockCells(this);
-		GameObject::placeAt(p);
-		Map::getSingleton()->blockCells(this);
-
 		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
 
-		if(activeState && activeState->getPlayer())
-			Map::Minimap::getSingleton()->updateImage();
+		//check twice in case the unit is warped over a long distance
+		if(activeState) Map::getSingleton()->blockCells(this);
+		GameObject::placeAt(p);
+
+		if(activeState){
+			Map::getSingleton()->blockCells(this);
+
+			if(activeState->getPlayer())
+				Map::Minimap::getSingleton()->updateImage();
+		}
 	}
 
 	vector<Player*> Unit::getSelectingPlayers(){

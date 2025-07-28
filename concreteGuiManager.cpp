@@ -327,6 +327,7 @@ namespace battleship{
 				bool resources = (listboxType == RESOURCE_DEPOSITS);
 				sol::table gameObjTable = SOL_LUA_STATE[resources ? "resources" : "units"];
 				int numGameObjs = gameObjTable.size();
+				std::vector<int> gameObjIds;
 				
 				for(int i = 0; i < numGameObjs; i++){
 					bool canAdd = true;
@@ -337,15 +338,17 @@ namespace battleship{
 						canAdd = (v == vehicles);
 					}
 
-					if(canAdd)
+					if(canAdd){
 						lines.push_back(gameObjTable[i + 1]["name"]);
+						gameObjIds.push_back(i);
+					}
 				}
 				
 				numLines = lines.size();
 				closable = true;
 				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
 				
-				listbox = new GameObjectListbox(!resources, pos, size, lines, maxDisplay, fontPath);
+				listbox = new GameObjectListbox(!resources, pos, size, lines, gameObjIds, maxDisplay, fontPath);
 				break;
 			}
 			case SKYBOX_TEXTURES:
