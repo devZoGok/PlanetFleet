@@ -255,7 +255,7 @@ namespace battleship{
 
 		int dest = map->getCellId(destPos);
 
-		if(type != UnitType::UNDERWATER && fabs(destPos.y - cells[dest].pos.y) > .1) return;
+		if(type != UnitType::UNDERWATER && type == UnitType::SEA_LEVEL && fabs(destPos.y - cells[dest].pos.y) > .1) return;
 
 		if(cells[dest].blockedBy){
 			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
