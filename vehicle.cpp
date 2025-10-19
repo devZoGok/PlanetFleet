@@ -1,9 +1,11 @@
 #include <cmath>
+#include <algorithm>
 
 #include <solUtil.h>
 
 #include <util.h>
 #include <box.h>
+#include <quad.h>
 #include <model.h>
 #include <quaternion.h>
 
@@ -103,52 +105,207 @@ namespace battleship{
 		initProperties();
 	}
 
-	void Vehicle::navigate(float destOffset){
-		Vector3 hypVec = (pathPoints[0] - pos);
+	void Vehicle::moveByTerrainQuads(Vector3 hypVec, float destOffset){
+		Map *map = Map::getSingleton();
+		Quad *terrQuad = (Quad*)map->getNodeParent()->getChild(0)->getMesh(0);
+		int numVertDiv = 100, numHorDiv = 100;
+		Vector3 mapSize = map->getMapSize();
+		Vector2 sqIdsVec = terrQuad->getSubquadIds(numVertDiv, numHorDiv, pos, mapSize);
+		Vector2 sqIdsEndVec = terrQuad->getSubquadIds(numVertDiv, numHorDiv, pathPoints[0], mapSize);
+
+		int sqIds[]{sqIdsVec.x, sqIdsVec.y};
+		vector<Vector3> points = vector<Vector3>{pos};
+
+		// y = ax + b
+		float a = hypVec.z / hypVec.x;
+		float b = pos.z - a * pos.x;
+
+		while(!(sqIds[0] == (int)sqIdsEndVec.x && sqIds[1] == (int)sqIdsEndVec.y)){
+			Vector3 c1 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, true, false); //top left
+			Vector3 c2 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, true, true); //top right
+			Vector3 c3 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, false, false); //bottom left
+			Vector3 c4 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, false, true); //bottom right
+
+			float minX = c1.x, maxX = c2.x, minY = c1.z, maxY = c3.z;
+			bool bottom = (hypVec.z > 0), left = (hypVec.x < 0);
+			float intersecX = (left ? c1.x : c2.x);
+			float intersecY = (bottom ? c3.z : c1.z);
+
+			float xSolY = a * intersecX + b;
+			float ySolX = (intersecY - b) / a;
+
+			float diff, vertDiff, x, y, z;
+
+			if(minY <= xSolY && xSolY <= maxY){
+				diff = (xSolY - c1.z) / (c3.z - c1.z);
+				vertDiff = (left ? c3.y - c1.y : c4.y - c2.y);
+
+				x = (left ? c1.x : c2.x);
+				y = (left ? c1.y : c2.y) + vertDiff * diff;
+				z = xSolY;
+
+				sqIds[0] += (left ? -1 : 1);
+			}
+			else if(hypVec.x == 0 || (minX <= ySolX && ySolX <= maxX)){
+				diff = (ySolX - c1.x) / (c2.x - c1.x);
+				vertDiff = (bottom ? c4.y - c3.y : c2.y - c1.y);
+
+				x = ySolX;
+				y = (bottom ? c3.y : c1.y) + vertDiff * diff;
+				z = (bottom ? c3.z : c1.z);
+
+				sqIds[1] += (bottom ? 1 : -1);
+			}
+
+			points.push_back(Vector3(x, y, z));
+		}
+		
+		points.push_back(pathPoints[0]);
+
+		float movementAmmount = speed, totalDist = 0, eps = .01;
+		Vector3 endPos = pos;
+
+		for(int i = 0; i < points.size() - 1; i++){
+			Vector3 diffVec = (points[i + 1] - points[i]).norm();
+			float dist = points[i].getDistanceFrom(points[i + 1]);
+			float diff = dist;
+
+			if(fabs(totalDist + dist - movementAmmount) > eps)
+				diff = movementAmmount - totalDist;
+
+			endPos += diffVec * diff;
+			totalDist += diff;
+		}
+
+		placeAt(endPos);
+
+		if(fabs(pathPoints[0].x - pos.x) <= destOffset && fabs(pathPoints[0].z - pos.z) <= destOffset/* && fabs(pathPoints[0].y - pos.y) <= .1*/)
+			removePathpoint();
+	}
+
+	void Vehicle::moveByPlane(Vector3 hypVec, float destOffset){
 		float hypAngle = hypVec.norm().getAngleBetween(upVec) - PI / 2;
 		float offset = hypVec.getLength() * sin(hypAngle);
 
 		Vector3 linDest = pathPoints[0] + upVec * offset;
-		float vertDist = fabs(pos.y - pathPoints[0].y);
 		Vector3 destDir = (linDest - pos).norm();
 		float angle = (destDir != Vector3::VEC_ZERO ? dirVec.getAngleBetween(destDir) : -1);
 
-		if(angle > anglePrecision && pos.getDistanceFrom(linDest) > destOffset)
-			turn(calculateRotation(destDir, angle, maxTurnAngle));
-		else{
-			if(pos.getDistanceFrom(linDest) > destOffset){
-				float dist = pos.getDistanceFrom(linDest);
-				float movementAmmount = (speed > dist ? dist : speed);
-				advance(movementAmmount);
-			}
+		if(pos.getDistanceFrom(pathPoints[0]) > destOffset){
+			float dist = pos.getDistanceFrom(linDest);
+			float movementAmmount = (speed > dist ? dist : speed);
+			advance(movementAmmount);
+		}
 
-			if(vertDist > .1){
-				float dist = pos.y - pathPoints[0].y;
-				float movementAmmount = (speed > fabs(dist) ? dist : speed);
+		float vertDist = fabs(pos.y - pathPoints[0].y);
 
-				if(dist > 0)
-					movementAmmount *= -1;
+		if(vertDist > .1){
+			float dist = pos.y - pathPoints[0].y;
+			float movementAmmount = (speed > fabs(dist) ? dist : speed);
 
-				advance(movementAmmount, MoveDir::UP);
-			}
+			if(dist > 0)
+				movementAmmount *= -1;
 
-			if(pos.getDistanceFrom(linDest) <= destOffset){
-				bool orderHasDir = (orders[0].direction != Vector3::VEC_ZERO);
-				float angleToOrderDir = dirVec.getAngleBetween(orders[0].direction);
-				bool destDirWithin = (!orderHasDir || (orderHasDir && angleToOrderDir <= anglePrecision));
+			advance(movementAmmount, MoveDir::UP);
+		}
 
-				if(pathPoints.size() == 1 && !destDirWithin)
-					turn(calculateRotation(orders[0].direction, angleToOrderDir, maxTurnAngle));
+		if(pos.getDistanceFrom(linDest) <= destOffset){
+			bool orderHasDir = (orders[0].direction != Vector3::VEC_ZERO);
+			float angleToOrderDir = dirVec.getAngleBetween(orders[0].direction);
+			bool destDirWithin = (!orderHasDir || (orderHasDir && angleToOrderDir <= anglePrecision));
 
-				if(pathPoints.size() > 1 || (pathPoints.size() == 1 && destDirWithin)){
-					if(type == UnitType::UNDERWATER && vertDist < 0.5 * height)
-						removePathpoint();
-					else if(type != UnitType::UNDERWATER)
-						removePathpoint();
-				}
+			if(pathPoints.size() == 1 && !destDirWithin)
+				turn(calculateRotation(orders[0].direction, angleToOrderDir, maxTurnAngle));
+
+			if(
+					(pathPoints.size() > 1 || (pathPoints.size() == 1 && destDirWithin)) && 
+					(type != UnitType::UNDERWATER || (type == UnitType::UNDERWATER && vertDist < 0.5 * height))
+			){
+				removePathpoint();
 			}
 		}
 	}
+
+	void Vehicle::navigate(float destOffset){
+		Vector3 hypVec = (pathPoints[0] - pos), baseDir;
+		float baseAngle = upVec.getAngleBetween(hypVec.norm());
+
+		if(fabs(baseAngle - PI / 2) > .001){
+			bool acuteAngle = (baseAngle < PI / 2);
+
+			if(acuteAngle) baseAngle = PI / 2 - baseAngle;
+			else baseAngle -= PI / 2;
+
+			float pointToPlane = hypVec.getLength() * sin(baseAngle);
+			baseDir = (pathPoints[0] + upVec * pointToPlane * (acuteAngle ? -1 : 1) - pos).norm();
+		}
+		else
+			baseDir = hypVec.norm();
+
+		float angle = baseDir.getAngleBetween(dirVec);
+
+		if(angle > anglePrecision && pos.getDistanceFrom(pathPoints[0]) > destOffset)
+			turn(calculateRotation(baseDir, angle, maxTurnAngle));
+		else if(type == UnitType::LAND)
+			moveByTerrainQuads(hypVec, destOffset);
+		else
+			moveByPlane(hypVec, destOffset);
+	}
+		/*
+		int numHorSubquads = terrQuad->getNumHorSubquads();
+		int numVertSubquads = terrQuad->getNumVertSubquads();
+		Vector3 mapSize = map->getMapSize();
+		Vector2 subquadSize = terrQuad->getSubquadSize();
+		Vector3 pointA = pos, pointB = pathPoints[0];
+
+		if(pointA.x > pointB.x) swap(pointA.x, pointB.x);
+		if(pointA.z > pointB.z) swap(pointA.z, pointB.z);
+
+		// y = ax + b
+		float a = hypVec.x / hypVec.z;
+		float b = pos.z / (a * pos.x);
+
+		vector<pair<pair<int, int>, float>> intersecPointDists;
+
+		for(int x = 0; x < numHorSubquads; x++){
+			float currX = -.5 * mapSize.x + x * subquadSize.x;
+			if(!(pointA.x <= currX && currX <= pointB.x)) continue;
+
+			Vector2 pos2D = Vector2(pos.x, pos.z);
+			
+			int y;
+			for(y = 0; y < numVertSubquads; y++){
+				float currY = -.5 * mapSize.z + y * subquadSize.y;
+				if(!(pointA.z <= currY && currY <= pointB.z)) continue;
+				
+				intersecPointDists.push_back(make_pair(make_pair(x, y), Vector2((currY - b) / a, currY).getDistanceFrom(pos2D)));
+			}
+
+			intersecPointDists.push_back(make_pair(make_pair(x, y), Vector2(currX, a * currX + b).getDistanceFrom(pos2D)));
+		}
+
+		for (int i = 0; i < intersecPointDists.size(); i++)
+		    for (int j = 0; j < intersecPointDists.size() - i - 1; j++)
+		        if (intersecPointDists[j] > intersecPointDists[j + 1])
+					swap(intersecPointDists[j], intersecPointDists[j + 1]);
+
+		float currDist = 0;
+		int lastId;
+
+		for(int i = 0; i < intersecPointDists.size(); i++){
+			currDist += intersecPointDists[i].second;
+			lastId = i;
+
+			if(currDist + intersecPointDists[i].second > speed) break;
+		}
+
+		Vector3 p1, p2;
+		//p1 = terrQuad->getSubQuadPoint(intersecPointDists[lastId]);
+		//p2 = terrQuad->getSubQuadPoint(intersecPointDists[lastId - 1]);
+
+		Vector3 vec = p2 - p1;
+	}
+	*/
 
 	void Vehicle::alignToSurface(){
 		/*
@@ -170,8 +327,7 @@ namespace battleship{
     void Vehicle::move(Order order) {
 		navigate(0.5 * Map::getSingleton()->getCellSize().x);
 
-		if(type == UnitType::LAND)
-			alignToSurface();
+		//if(type == UnitType::LAND) alignToSurface();
 
 		if(pathPoints.empty())
 			removeOrder(0);
@@ -273,6 +429,7 @@ namespace battleship{
 			heuristics.push_back(145 * (cells[dest].pos.getDistanceFrom(cell.pos)));
 
 		vector<int> path = Pathfinder::getSingleton()->findPath(cells, heuristics, source, dest, this);
+		path.erase(path.begin());
 		bool pathTruncated = false;
 
 		for(int i = 0; i < path.size(); i++){

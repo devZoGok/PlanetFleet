@@ -517,7 +517,10 @@ namespace battleship{
 
 		if(type == UnitType::LAND){
 			vector<RayCaster::CollisionResult> res = RayCaster::cast(Vector3(p.x, 100, p.z), -Vector3::VEC_J, vector<Node*>{map->getNodeParent()->getChild(0)}, 0, 20);
-			p.y = res[0].pos.y;
+			float angle = upVec.getAngleBetween(res[0].norm);
+
+			if(angle > 0)
+				model->lookAt(leftVec.cross(res[0].norm), res[0].norm);
 		}
 
 		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
