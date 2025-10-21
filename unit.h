@@ -159,7 +159,7 @@ namespace battleship{
         sf::SoundBuffer *selectionSfxBuffer;
         sf::Sound *selectionSfx = nullptr;
 		vb01::Node *hpBackgroundNode = nullptr, *hpForegroundNode = nullptr, *losLightNode = nullptr;
-		bool vehicle, currOrderStarted = false;
+		bool vehicle, currOrderStarted = false, alignToSurface = false;
 		Condition condition = Condition::ABLE;
     protected:
         UnitClass unitClass;

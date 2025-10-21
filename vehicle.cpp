@@ -10,6 +10,7 @@
 #include <quaternion.h>
 
 #include "pathfinder.h"
+#include "defConfigs.h"
 #include "structure.h"
 #include "vehicle.h"
 #include "weapon.h"
@@ -105,10 +106,29 @@ namespace battleship{
 		initProperties();
 	}
 
+	void Vehicle::arrivedAtPathpoint(bool byPlane, float vertDist){
+		bool orderHasDir = (orders[0].direction != Vector3::VEC_ZERO);
+		float angleToOrderDir = dirVec.getAngleBetween(orders[0].direction);
+		bool destDirWithin = (!orderHasDir || (orderHasDir && angleToOrderDir <= anglePrecision));
+
+		if(pathPoints.size() == 1 && !destDirWithin)
+			turn(calculateRotation(orders[0].direction, angleToOrderDir, maxTurnAngle));
+
+		if(byPlane && (
+					(pathPoints.size() > 1 || (pathPoints.size() == 1 && destDirWithin)) && 
+					(type != UnitType::UNDERWATER || (type == UnitType::UNDERWATER && vertDist < 0.5 * height))
+				)
+		){
+			removePathpoint();
+		}
+		else if(!byPlane && (pathPoints.size() > 1 || (pathPoints.size() == 1 && destDirWithin)))
+			removePathpoint();
+	}
+
 	void Vehicle::moveByTerrainQuads(Vector3 hypVec, float destOffset){
 		Map *map = Map::getSingleton();
 		Quad *terrQuad = (Quad*)map->getNodeParent()->getChild(0)->getMesh(0);
-		int numVertDiv = 100, numHorDiv = 100;
+		int numVertDiv = configData::NUM_SUBDIVS, numHorDiv = configData::NUM_SUBDIVS;
 		Vector3 mapSize = map->getMapSize();
 		Vector2 sqIdsVec = terrQuad->getSubquadIds(numVertDiv, numHorDiv, pos, mapSize);
 		Vector2 sqIdsEndVec = terrQuad->getSubquadIds(numVertDiv, numHorDiv, pathPoints[0], mapSize);
@@ -132,7 +152,7 @@ namespace battleship{
 			float intersecY = (bottom ? c3.z : c1.z);
 
 			float xSolY = a * intersecX + b;
-			float ySolX = (intersecY - b) / a;
+			float ySolX = (hypVec.x != 0 ? (intersecY - b) / a : points[points.size() - 1].x);
 
 			float diff, vertDiff, x, y, z;
 
@@ -179,8 +199,8 @@ namespace battleship{
 
 		placeAt(endPos);
 
-		if(fabs(pathPoints[0].x - pos.x) <= destOffset && fabs(pathPoints[0].z - pos.z) <= destOffset/* && fabs(pathPoints[0].y - pos.y) <= .1*/)
-			removePathpoint();
+		if(fabs(pathPoints[0].x - pos.x) <= destOffset && fabs(pathPoints[0].z - pos.z) <= destOffset)
+			arrivedAtPathpoint(false);
 	}
 
 	void Vehicle::moveByPlane(Vector3 hypVec, float destOffset){
@@ -203,27 +223,13 @@ namespace battleship{
 			float dist = pos.y - pathPoints[0].y;
 			float movementAmmount = (speed > fabs(dist) ? dist : speed);
 
-			if(dist > 0)
-				movementAmmount *= -1;
+			if(dist > 0) movementAmmount *= -1;
 
 			advance(movementAmmount, MoveDir::UP);
 		}
 
-		if(pos.getDistanceFrom(linDest) <= destOffset){
-			bool orderHasDir = (orders[0].direction != Vector3::VEC_ZERO);
-			float angleToOrderDir = dirVec.getAngleBetween(orders[0].direction);
-			bool destDirWithin = (!orderHasDir || (orderHasDir && angleToOrderDir <= anglePrecision));
-
-			if(pathPoints.size() == 1 && !destDirWithin)
-				turn(calculateRotation(orders[0].direction, angleToOrderDir, maxTurnAngle));
-
-			if(
-					(pathPoints.size() > 1 || (pathPoints.size() == 1 && destDirWithin)) && 
-					(type != UnitType::UNDERWATER || (type == UnitType::UNDERWATER && vertDist < 0.5 * height))
-			){
-				removePathpoint();
-			}
-		}
+		if(pos.getDistanceFrom(linDest) <= destOffset)
+			arrivedAtPathpoint(true, vertDist);
 	}
 
 	void Vehicle::navigate(float destOffset){
@@ -251,83 +257,9 @@ namespace battleship{
 		else
 			moveByPlane(hypVec, destOffset);
 	}
-		/*
-		int numHorSubquads = terrQuad->getNumHorSubquads();
-		int numVertSubquads = terrQuad->getNumVertSubquads();
-		Vector3 mapSize = map->getMapSize();
-		Vector2 subquadSize = terrQuad->getSubquadSize();
-		Vector3 pointA = pos, pointB = pathPoints[0];
-
-		if(pointA.x > pointB.x) swap(pointA.x, pointB.x);
-		if(pointA.z > pointB.z) swap(pointA.z, pointB.z);
-
-		// y = ax + b
-		float a = hypVec.x / hypVec.z;
-		float b = pos.z / (a * pos.x);
-
-		vector<pair<pair<int, int>, float>> intersecPointDists;
-
-		for(int x = 0; x < numHorSubquads; x++){
-			float currX = -.5 * mapSize.x + x * subquadSize.x;
-			if(!(pointA.x <= currX && currX <= pointB.x)) continue;
-
-			Vector2 pos2D = Vector2(pos.x, pos.z);
-			
-			int y;
-			for(y = 0; y < numVertSubquads; y++){
-				float currY = -.5 * mapSize.z + y * subquadSize.y;
-				if(!(pointA.z <= currY && currY <= pointB.z)) continue;
-				
-				intersecPointDists.push_back(make_pair(make_pair(x, y), Vector2((currY - b) / a, currY).getDistanceFrom(pos2D)));
-			}
-
-			intersecPointDists.push_back(make_pair(make_pair(x, y), Vector2(currX, a * currX + b).getDistanceFrom(pos2D)));
-		}
-
-		for (int i = 0; i < intersecPointDists.size(); i++)
-		    for (int j = 0; j < intersecPointDists.size() - i - 1; j++)
-		        if (intersecPointDists[j] > intersecPointDists[j + 1])
-					swap(intersecPointDists[j], intersecPointDists[j + 1]);
-
-		float currDist = 0;
-		int lastId;
-
-		for(int i = 0; i < intersecPointDists.size(); i++){
-			currDist += intersecPointDists[i].second;
-			lastId = i;
-
-			if(currDist + intersecPointDists[i].second > speed) break;
-		}
-
-		Vector3 p1, p2;
-		//p1 = terrQuad->getSubQuadPoint(intersecPointDists[lastId]);
-		//p2 = terrQuad->getSubQuadPoint(intersecPointDists[lastId - 1]);
-
-		Vector3 vec = p2 - p1;
-	}
-	*/
-
-	void Vehicle::alignToSurface(){
-		/*
-		Map *map = Map::getSingleton();
-		TerrainObject terr = map->getTerrainObject(0);
-		vector<RayCaster::CollisionResult> res = RayCaster::cast(Vector3(pos.x, terr.size.y, pos.z), Vector3(0, -1, 0), terr.node);
-		
-		if(!res.empty()){
-			placeAt(res[0].pos);
-		
-			float angle = upVec.getAngleBetween(res[0].norm);
-			Vector3 axis = upVec.cross(res[0].norm).norm();
-			Quaternion rotQuat = Quaternion(angle, axis);
-			orientAt(rotQuat * rot);
-		}
-		*/
-	}
 
     void Vehicle::move(Order order) {
 		navigate(0.5 * Map::getSingleton()->getCellSize().x);
-
-		//if(type == UnitType::LAND) alignToSurface();
 
 		if(pathPoints.empty())
 			removeOrder(0);
@@ -524,12 +456,7 @@ namespace battleship{
 				}
 			}
 		}
-		else{
-			navigate(0.5 * Map::getSingleton()->getCellSize().x);
-
-			if(type == UnitType::LAND)
-				alignToSurface();
-		}
+		else navigate(0.5 * Map::getSingleton()->getCellSize().x);
 	}
 
 	void Vehicle::select(){
