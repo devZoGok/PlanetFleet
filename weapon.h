@@ -45,8 +45,6 @@ namespace battleship{
 			vb01::Node *horNode = nullptr, *vertNode = nullptr, *projPar = nullptr;
 			static std::string LASER_FLAG;
 
-			vb01::Vector3 calcOrientVec(int);
-			void alignNode(vb01::Vector3, vb01::Node*, bool);
 			void initProjectileData(sol::table);
 			vb01::Node* initNode(sol::table, bool);
 			void useFx(FxManager::Fx*, vb01::Vector3, bool);

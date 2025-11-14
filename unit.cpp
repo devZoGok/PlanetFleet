@@ -524,7 +524,7 @@ namespace battleship{
 			else if(res[0].mesh->getNode() == map->getNodeParent()->getChild(0)){
 				float angle = upVec.getAngleBetween(res[0].norm);
 
-				if(angle > 0)
+				//if(angle > 0)
 					model->lookAt(leftVec.cross(res[0].norm), res[0].norm);
 			}
 		}

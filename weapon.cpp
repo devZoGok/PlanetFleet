@@ -3,6 +3,7 @@
 #include <particleEmitter.h>
 
 #include "map.h"
+#include "util.h"
 #include "weapon.h"
 #include "player.h"
 #include "fxManager.h"
@@ -96,27 +97,6 @@ namespace battleship{
 		if(fireFx) fm->removeFx(fireFx);
 	}
 
-	Vector3 Weapon::calcOrientVec(int id){
-		Vector3 orientVec;
-
-		switch(id){
-			case 0:
-				orientVec = unit->getDirVec();
-				break;
-			case 1:
-				orientVec = unit->getLeftVec();
-				break;
-			case 2:
-				orientVec = unit->getUpVec();
-				break;
-		}
-
-		if(horNode) orientVec = horNode->getOrientation() * orientVec;
-		if(vertNode) orientVec = vertNode->getOrientation() * orientVec;
-
-		return orientVec;
-	}
-
 	//TODO replace unit pos with absolute weapon pos for withinAngle
 	void Weapon::update(){
 		if(unit->getCondition() != Unit::Condition::ABLE) return;
@@ -130,9 +110,12 @@ namespace battleship{
 			float targDist = unit->getPos().getDistanceFrom(targPos);
 
 			bool withinRange = (minRange <= targDist && targDist <= maxRange);
+			bool withinAngle = true;
 
-			Vector3 dirVec = calcOrientVec(0);
-			bool withinAngle = (horNode ? Vector3(dirVec.x, 0, dirVec.z).norm().getAngleBetween((targPos - unit->getPos()).norm()) <= maxFireAngle : true);
+			if(horNode){
+				Vector3 dirVec = horNode->getGlobalAxis(2);
+				withinAngle = Vector3(dirVec.x, 0, dirVec.z).norm().getAngleBetween((targPos - unit->getPos()).norm()) <= maxFireAngle;
+			}
 
 			if((Order::TYPE)ordTp == Order::TYPE::ATTACK && withinRange && withinAngle)
 				fire(unit->getOrder(0));
@@ -224,26 +207,22 @@ namespace battleship{
 	}
 
 	//TODO improve to allow for vertical alignment 
-	void Weapon::alignNode(Vector3 targPos, Node *node, bool horizontal){
-		Vector3 targDir = targPos - unit->getPos();
-		Vector3 targDirHor = Vector3(targDir.x, 0, targDir.z).norm(), targDirVert;
+	void Weapon::trackTarget(Vector3 targPos){
+		if(!horNode) return;
 
-		Vector3 dirVec = calcOrientVec(0);
-		Vector3 dirVecHor = Vector3(dirVec.x, 0, dirVec.z).norm(), dirVecVert;
+		Vector3 unitPos = unit->getPos();
+		Vector3 targDir = (targPos - unitPos).norm();
+		targDir = getVecToPlane(unitPos, targDir, unit->getUpVec());
 
-		Vector3 leftVec = calcOrientVec(1);
-		bool negate = (Vector3(leftVec.x, 0, leftVec.z).norm().getAngleBetween(targDirHor) < PI / 2);
+		Vector3 dirVec = getVecToPlane(unitPos, horNode->getGlobalAxis(2), unit->getUpVec());
+		Vector3 leftVec = horNode->getGlobalAxis(0);
+		bool negate = (leftVec.getAngleBetween(targDir) < PI / 2);
 
-		float angle = dirVecHor.getAngleBetween(targDirHor);
+		float angle = dirVec.getAngleBetween(targDir);
 		float rotAngle = (rotSpeed < angle ? rotSpeed : angle);
 
-		Quaternion rot = Quaternion((negate ? 1 : -1) * rotAngle, unit->getUpVec()) * node->getOrientation();
-		node->setOrientation(rot);
-	}
-
-	void Weapon::trackTarget(Vector3 targPos){
-		if(horNode) alignNode(targPos, horNode, true);
-		//if(vertNode) alignNode(targPos, vertNode, false);
+		Quaternion rot = Quaternion((negate ? 1 : -1) * rotAngle, Vector3::VEC_J) * horNode->getOrientation();
+		horNode->setOrientation(rot);
 	}
 
 	CryoGun::CryoGun(Unit *u, sol::table unitTable, int wid) : Weapon(u, unitTable, wid){}

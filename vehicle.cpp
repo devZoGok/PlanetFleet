@@ -233,21 +233,8 @@ namespace battleship{
 	}
 
 	void Vehicle::navigate(float destOffset){
-		Vector3 hypVec = (pathPoints[0] - pos), baseDir;
-		float baseAngle = upVec.getAngleBetween(hypVec.norm());
-
-		if(fabs(baseAngle - PI / 2) > .001){
-			bool acuteAngle = (baseAngle < PI / 2);
-
-			if(acuteAngle) baseAngle = PI / 2 - baseAngle;
-			else baseAngle -= PI / 2;
-
-			float pointToPlane = hypVec.getLength() * sin(baseAngle);
-			baseDir = (pathPoints[0] + upVec * pointToPlane * (acuteAngle ? -1 : 1) - pos).norm();
-		}
-		else
-			baseDir = hypVec.norm();
-
+		Vector3 hypVec = (pathPoints[0] - pos);
+		Vector3 baseDir = getVecToPlane(pos, hypVec, upVec);
 		float angle = baseDir.getAngleBetween(dirVec);
 
 		if(angle > anglePrecision && pos.getDistanceFrom(pathPoints[0]) > destOffset)
