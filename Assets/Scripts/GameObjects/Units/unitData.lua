@@ -172,7 +172,7 @@ units = {
 				rateOfFire = 1000, 
 				damage = 200, 
 				maxRange = 50,
-				horizontalNode = {name = 'Turret', rotationSpeed = .05, maxFireAngle = .1},
+				nodes = {{name = 'Turret', rotationSpeed = .05, maxFireAngle = .1}},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'Turret', pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -228,8 +228,10 @@ units = {
 				rateOfFire = 2000, 
 				damage = 5000, 
 				maxRange = 70,
-				horizontalNode = {name = 'turret', rotationSpeed = .05, maxFireAngle = .1},
-				verticalNode = {name = 'tubes', rotationSpeed = .05, maxFireAngle = .1},
+				nodes = {
+					{name = 'turret', rotationSpeed = .05, maxFireAngle = .1},
+					{name = 'tubes', rotationSpeed = .05, maxFireAngle = .1}
+				},
 				projectile = {id = ProjectileId.MISSILE, parent = 'tubes', pos = {x = 0.95, y = 2.16, z = 4.11}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -887,7 +889,7 @@ units = {
 				rateOfFire = 1000, 
 				damage = 0, 
 				maxRange = 25,
-				horizontalNode = {name = 'turret', rotationSpeed = .05, maxFireAngle = .1},
+				nodes = {{name = 'turret', rotationSpeed = .05, maxFireAngle = .1}},
 				projectile = {id = ProjectileId.EMP_SHELL, parent = 'turret', pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = .998, x = -.066, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -1014,8 +1016,10 @@ units = {
 				rateOfFire = 100, 
 				damage = 50, 
 				maxRange = 50,
-				horizontalNode = {name = 'TurretBody', rotationSpeed = .05, maxFireAngle = .1},
-				--verticalNode = {name = 'TurretArms', rotationSpeed = .05, maxFireAngle = .1},
+				nodes = {
+					{name = 'TurretBody', rotationSpeed = .05, maxFireAngle = .1},
+					{name = 'TurretArms', rotationSpeed = .05, maxFireAngle = .1}
+				},
 				fireFx = {
 					{
 						vfx = true,
