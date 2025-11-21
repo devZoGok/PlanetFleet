@@ -103,6 +103,42 @@ namespace battleship{
 		GameObjectFrame &s = gameObjectFrames[id];
 		s.placeAt(newPos);
 
+		vector<Unit*> units;
+
+		for(Player *player : Game::getSingleton()->getPlayers()){
+			vector<Unit*> u = player->getUnits();
+			units.insert(units.end(), u.begin(), u.end());
+		}
+
+		for(Unit *unit : units){
+			Vector3 gm1Pos = s.getPos();
+			Vector3 gm1Dir = s.getDirVec();
+			gm1Dir = Vector3(gm1Dir.x, 0, gm1Dir.z).norm();
+
+			Vector3 gm2Pos = unit->getPos();
+
+			Vector3 gm2Dir = unit->getDirVec();
+			gm2Dir = Vector3(gm2Dir.x, 0, gm2Dir.z).norm();
+
+			Vector3 gm2Left = unit->getLeftVec();
+			gm2Left = Vector3(gm2Left.x, 0, gm2Left.z).norm();
+
+			bool intersects = rectanglesIntersect(
+					Vector2(gm1Pos.x, gm1Pos.z),
+					Vector2(gm1Dir.x, gm1Dir.z), 
+					Vector2(s.getWidth(), s.getLength()), 
+					Vector2(gm2Pos.x, gm2Pos.z),
+					Vector2(gm2Dir.x, gm2Dir.z), 
+					Vector2(gm2Left.x, gm2Left.z), 
+					Vector2(unit->getWidth(), unit->getLength())
+			);
+
+			if(intersects){
+				placeable = false;
+				break;
+			}
+		}
+
 		snapToObj(s, GameObject::Type::UNIT, 20, 3);
 
 		Vector4 color;

@@ -12,6 +12,7 @@ namespace battleship{
 	
 		GameObjectFrame(int i, GameObject::Type t, vb01::Vector3 pos = vb01::Vector3::VEC_ZERO, vb01::Quaternion rot = vb01::Quaternion::QUAT_W) : GameObject(t, i, nullptr, pos, rot) {
 			initModel(false);
+			initProperties();
 		}    
 		~GameObjectFrame(){}
 		void destroy(){destroyModel();}
