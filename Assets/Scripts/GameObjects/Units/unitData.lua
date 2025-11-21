@@ -171,8 +171,8 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				damage = 200, 
-				maxRange = 25,
-				horizontalNode = {name = 'Turret', rotationSpeed = .05, maxFireAngle = .1},
+				maxRange = 50,
+				nodes = {{name = 'Turret', rotationSpeed = .05, maxFireAngle = .1}},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'Turret', pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -201,6 +201,7 @@ units = {
 		unitType = UnitType.LAND,
 		armor = {ArmorType.STEEL},
 		isVehicle = true,
+		alignToSurface = true,
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
@@ -213,7 +214,7 @@ units = {
 		albedoPath = 'tank.jpg',
 		colorNodes = {'Antenna_S', 'Antenna_L', 'Hatch'},
 		selectionSfx = PATH .. 'Sounds/Units/Tanks/selection.ogg',
-		speed = .1,
+		speed = .4,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -227,8 +228,10 @@ units = {
 				rateOfFire = 2000, 
 				damage = 5000, 
 				maxRange = 70,
-				horizontalNode = {name = 'turret', rotationSpeed = .05, maxFireAngle = .1},
-				verticalNode = {name = 'tubes', rotationSpeed = .05, maxFireAngle = .1},
+				nodes = {
+					{name = 'turret', rotationSpeed = .05, maxFireAngle = .1},
+					{name = 'tubes', rotationSpeed = .05, maxFireAngle = .1}
+				},
 				projectile = {id = ProjectileId.MISSILE, parent = 'tubes', pos = {x = 0.95, y = 2.16, z = 4.11}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -254,6 +257,7 @@ units = {
 		unitClass = UnitClass.ARTILLERY,
 		unitType = UnitType.LAND,
 		armor = {ArmorType.MECHANIC},
+		alignToSurface = true,
 		isVehicle = true,
 		health = 500,
 		buildTime = 1000,
@@ -267,7 +271,7 @@ units = {
 		albedoPath = 'artillery.jpg',
 		colorNodes = {'turret'},
 		selectionSfx = PATH .. 'Sounds/Units/Tanks/selection.ogg',
-		speed = .1,
+		speed = .3,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -322,6 +326,7 @@ units = {
 	{
 		unitClass = UnitClass.TRANSPORT,
 		unitType = UnitType.HOVER,
+		alignToSurface = true,
 		isVehicle = true,
 		health = 500,
 		buildTime = 1000,
@@ -348,6 +353,7 @@ units = {
 		unitClass = UnitClass.TRANSPORT,
 		unitType = UnitType.HOVER,
 		armor = {ArmorType.MECHANIC},
+		alignToSurface = true,
 		isVehicle = true,
 		health = 500,
 		buildTime = 1000,
@@ -379,6 +385,7 @@ units = {
 		unitClass = UnitClass.RESOURCE_ROVER,
 		unitType = UnitType.HOVER,
 		armor = {ArmorType.CAST},
+		alignToSurface = true,
 		capacity = 3000,
 		loadRate = 1,
 		loadSpeed = 5,
@@ -882,7 +889,7 @@ units = {
 				rateOfFire = 1000, 
 				damage = 0, 
 				maxRange = 25,
-				horizontalNode = {name = 'turret', rotationSpeed = .05, maxFireAngle = .1},
+				nodes = {{name = 'turret', rotationSpeed = .05, maxFireAngle = .1}},
 				projectile = {id = ProjectileId.EMP_SHELL, parent = 'turret', pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = .998, x = -.066, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -1009,8 +1016,10 @@ units = {
 				rateOfFire = 100, 
 				damage = 50, 
 				maxRange = 50,
-				horizontalNode = {name = 'TurretBody', rotationSpeed = .05, maxFireAngle = .1},
-				--verticalNode = {name = 'TurretArms', rotationSpeed = .05, maxFireAngle = .1},
+				nodes = {
+					{name = 'TurretBody', rotationSpeed = .05, maxFireAngle = .1},
+					{name = 'TurretArms', rotationSpeed = .05, maxFireAngle = .1}
+				},
 				fireFx = {
 					{
 						vfx = true,

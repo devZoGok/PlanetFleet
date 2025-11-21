@@ -42,13 +42,12 @@ namespace battleship{
 			vb01::Quaternion projRot;
 			vb01::Vector3 projPos;
 			float horConstraint = 1.57, vertConstraint = 1.57;
-			vb01::Node *horNode = nullptr, *vertNode = nullptr, *projPar = nullptr;
+			std::vector<vb01::Node*> nodes;
+			vb01::Node *projPar = nullptr;
 			static std::string LASER_FLAG;
 
-			vb01::Vector3 calcOrientVec(int);
-			void alignNode(vb01::Vector3, vb01::Node*, bool);
 			void initProjectileData(sol::table);
-			vb01::Node* initNode(sol::table, bool);
+			void initNodes(sol::table);
 			void useFx(FxManager::Fx*, vb01::Vector3, bool);
 			inline bool canFire(){return vb01::getTime() - lastFireTime > rateOfFire;}
 		protected:

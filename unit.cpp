@@ -71,6 +71,7 @@ namespace battleship{
 		vector<int> currTechs = player->getTechnologies();
 
 		string name = unitTable["name"];
+		alignToSurface = unitTable["alignToSurface"].get_or(false);
         vehicle = unitTable["isVehicle"];
         health += game->calcAbilFromTech(Ability::Type::HEALTH, currTechs, (int)GameObject::type, id);
 		maxHealth = unitTable["health"];
@@ -513,14 +514,29 @@ namespace battleship{
 
 	//TODO select only the closest cells based on unit size
 	void Unit::placeAt(Vector3 p){
+		Map *map = Map::getSingleton();
+
+		if(alignToSurface){
+			vector<RayCaster::CollisionResult> res = RayCaster::cast(Vector3(p.x, 100, p.z), -Vector3::VEC_J, map->getNodeParent()->getChildren(), 0, 20);
+			
+			if(res.empty() || res[0].mesh->getNode() != map->getNodeParent()->getChild(0))
+				model->lookAt(Vector3(dirVec.x, 0, dirVec.z).norm(), Vector3::VEC_J);
+			else if(res[0].mesh->getNode() == map->getNodeParent()->getChild(0)){
+				float angle = upVec.getAngleBetween(res[0].norm);
+
+				//if(angle > 0)
+					model->lookAt(leftVec.cross(res[0].norm), res[0].norm);
+			}
+		}
+
 		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
 
 		//check twice in case the unit is warped over a long distance
-		if(activeState) Map::getSingleton()->blockCells(this);
+		if(activeState) map->blockCells(this);
 		GameObject::placeAt(p);
 
 		if(activeState){
-			Map::getSingleton()->blockCells(this);
+			map->blockCells(this);
 
 			if(activeState->getPlayer())
 				Map::Minimap::getSingleton()->updateImage();

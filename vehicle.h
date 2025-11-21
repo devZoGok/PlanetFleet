@@ -41,10 +41,12 @@ namespace battleship{
 			std::vector<vb01::Vector3> pathPoints;
 			bool pursuingTarget = false;
 
+			void arrivedAtPathpoint(bool, float = 0);
+			void moveByTerrainQuads(vb01::Vector3, float);
+			void moveByPlane(vb01::Vector3, float);
         	void navigate(float = 0.);
 			void navigateToTarget(float);
 			void preparePathpoints(Order&, vb01::Vector3, bool = false);
-			void alignToSurface();
 			virtual void attack(Order);
 			void garrison(Order);
 			void patrol(Order);

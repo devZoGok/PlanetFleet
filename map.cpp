@@ -459,7 +459,7 @@ namespace battleship{
 				Vector3 pos = Vector3(unitTable[posInd]["x"], unitTable[posInd]["y"], unitTable[posInd]["z"]);
 
 				string rotInd = "rot";
-				Quaternion rot = Quaternion(unitTable[rotInd]["w"], unitTable[rotInd]["x"], unitTable[rotInd]["x"], unitTable[rotInd]["x"]);
+				Quaternion rot = Quaternion(unitTable[rotInd]["w"], unitTable[rotInd]["x"], unitTable[rotInd]["y"], unitTable[rotInd]["z"]);
 
 				int id = unitTable["id"];
 				int buildStatus = unitTable["buildStatus"].get_or(0);
