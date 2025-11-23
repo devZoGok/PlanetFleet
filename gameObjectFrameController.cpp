@@ -34,9 +34,11 @@ namespace battleship{
 		return gameObjectFrameController;
 	}
 
-	void GameObjectFrameController::paintSelect(Vector3 rowEnd, float width, float length){
+	void GameObjectFrameController::paintSelect(Vector3 rowEnd){
 		Vector3 rowDir = rowEnd - paintSelectRowStart;
 		float lenRow = rowDir.getLength();
+		float width = gameObjectFrames[0].getWidth(); 
+		float length = gameObjectFrames[0].getLength();
 		float hypothenuse = sqrt(width * width + length * length);
 		int numStructsInRow = int(lenRow / hypothenuse);
 		
@@ -151,6 +153,46 @@ namespace battleship{
 		mat->setVec4Uniform("diffuseColor", color);
 	}
 
+	void GameObjectFrameController::shiftVerticalPlacement(){
+		if(!minDepthCalculated){
+			Map *map = Map::getSingleton();
+			Node *nodeParent = map->getNodeParent();
+			Vector3 cellSize = map->getCellSize(), waterBodyPos;
+			bool inWater = false;
+		
+			for(int i = 1; i < nodeParent->getNumChildren(); i++){
+				Vector3 wPos = nodeParent->getChild(i)->getPosition();
+				Vector3 wSize = ((Quad*)nodeParent->getChild(i)->getMesh(0))->getSize();
+				
+				if(fabs(wPos.x - placementPos.x) < .5 * wSize.x && fabs(wPos.z - placementPos.z) < .5 * wSize.y){
+					waterBodyPos = wPos;
+					inWater = true;
+					break;
+				}
+			}
+
+			if(!inWater) return;
+		
+			vector<RayCaster::CollisionResult> res = map->raycastTerrain(
+				Vector3(placementPos.x, 100, placementPos.z), 
+				-Vector3::VEC_J,
+				false
+			);
+		
+			vector<Map::Cell> &cells = map->getCells();
+			int cid = map->getCellId(placementPos, false);
+			int numSubmarineCells = cells[cid].underWaterCellIds.size();
+			maxDepth = cells[cid].pos.y;
+			minDepth = (numSubmarineCells > 0 ? cells[cells[cid].underWaterCellIds[numSubmarineCells - 1]].pos.y : maxDepth) - .5 * cellSize.y;
+			minDepthCalculated = true;
+		}
+		else{
+			ActiveGameState *activeState = (ActiveGameState*)(GameManager::getSingleton()->getStateManager()->getAppStateByType((int)AppStateType::ACTIVE_STATE));
+			float newDepth = minDepth + activeState->getDepth() * (maxDepth - minDepth);
+			placementPos.y = newDepth;
+		}
+	}
+
 	void GameObjectFrameController::updatePlacement(){
 		for(GameObjectFrame &frame : gameObjectFrames)
 			frame.update();
@@ -162,59 +204,15 @@ namespace battleship{
 
 		if(results.empty()) return;
 
-    	float width, length;
+		if(paintSelecting) paintSelect(results[0].pos);
 
-		if(paintSelecting){
-			sol::table sizeTable = generateView()[gameObjectFrames[0].getGameObjTableName()][gameObjectFrames[0].getId() + 1]["size"]; 
-    		width = sizeTable["x"], length = sizeTable["z"];
-			paintSelect(results[0].pos, width, length);
-		}
-
-		if(placingVertically){
-			if(!minDepthCalculated){
-				placementPos = results[0].pos;
-
-				Node *nodeParent = map->getNodeParent();
-				Vector3 cellSize = map->getCellSize(), waterBodyPos;
-				bool inWater = false;
-		
-				for(int i = 1; i < nodeParent->getNumChildren(); i++){
-					Vector3 wPos = nodeParent->getChild(i)->getPosition();
-					Vector3 wSize = ((Quad*)nodeParent->getChild(i)->getMesh(0))->getSize();
-					
-					if(fabs(wPos.x - placementPos.x) < .5 * wSize.x && fabs(wPos.z - placementPos.z) < .5 * wSize.y){
-						waterBodyPos = wPos;
-						inWater = true;
-						break;
-					}
-				}
-
-				if(!inWater) return;
-		
-				vector<RayCaster::CollisionResult> res = map->raycastTerrain(
-					Vector3(placementPos.x, 100, placementPos.z), 
-					-Vector3::VEC_J,
-					false
-				);
-		
-				vector<Map::Cell> &cells = map->getCells();
-				int cid = map->getCellId(placementPos, false);
-				int numSubmarineCells = cells[cid].underWaterCellIds.size();
-				maxDepth = cells[cid].pos.y;
-				minDepth = (numSubmarineCells > 0 ? cells[cells[cid].underWaterCellIds[numSubmarineCells - 1]].pos.y : maxDepth) - .5 * cellSize.y;
-				minDepthCalculated = true;
-			}
-			else{
-				ActiveGameState *activeState = (ActiveGameState*)(GameManager::getSingleton()->getStateManager()->getAppStateByType((int)AppStateType::ACTIVE_STATE));
-				float newDepth = minDepth + activeState->getDepth() * (maxDepth - minDepth);
-				placementPos.y = newDepth;
-			}
-		}
-		else if(placingOnSurface)
-			placementPos = results[0].pos;
+		if(placingVertically) shiftVerticalPlacement();
+		else if(placingOnSurface) placementPos = results[0].pos;
 
 		for(int i = 0; i < gameObjectFrames.size(); i++){
 			if(paintSelecting){
+				float width = gameObjectFrames[0].getWidth(); 
+				float length = gameObjectFrames[0].getLength(); 
 				float hypothenuse = sqrt(width * width + length * length);
 				Vector3 dir = (results[0].pos - paintSelectRowStart).norm(); 
 				placementPos = paintSelectRowStart + dir * hypothenuse * i;

@@ -41,8 +41,9 @@ namespace battleship{
 			}
 		private:
 			GameObjectFrameController(){}
-			void paintSelect(vb01::Vector3, float, float);
+			void paintSelect(vb01::Vector3);
 			void snapToObj(GameObjectFrame&, GameObject::Type, int, float);
+			void shiftVerticalPlacement();
 			void updatePlacement();
 
 			std::vector<GameObjectFrame> gameObjectFrames;
