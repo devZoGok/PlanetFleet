@@ -21,7 +21,7 @@ namespace battleship{
 			void removeGameObjectFrame(int);
 			void removeGameObjectFrames();
 			void rotateGameObjectFrames(float);
-			void placeGameObjectFrame(int, vb01::Vector3, float, float);
+			void checkPlacement(GameObjectFrame&);
 			inline int getNumGameObjectFrames(){return gameObjectFrames.size();}
 			inline void addGameObjectFrame(GameObjectFrame u){gameObjectFrames.push_back(u);}
 			inline GameObjectFrame& getGameObjectFrame(int i){return gameObjectFrames[i];}

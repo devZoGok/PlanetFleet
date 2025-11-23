@@ -76,7 +76,7 @@ namespace battleship{
 	//TODO implement terrain evenness check
 	//TODO factor out literal values
 	//TODO fix which unit frames light green or red
-	void GameObjectFrameController::placeGameObjectFrame(int id, Vector3 newPos, float width, float length){
+	void GameObjectFrameController::checkPlacement(GameObjectFrame &s){
 		Map *map = Map::getSingleton();
 		MeshData meshData = map->getNodeParent()->getChild(0)->getMesh(0)->getMeshBase();
 		MeshData::Vertex *verts = meshData.vertices;
@@ -86,11 +86,11 @@ namespace battleship{
 		bool placeable = true;
 
 		for(int i = 0; i < numVerts; i++){
-			float diffX = fabs(newPos.x - verts[i].pos->x);
-			float diffY = fabs(newPos.y - verts[i].pos->y);
-			float diffZ = fabs(newPos.z - verts[i].pos->z);
+			float diffX = fabs(s.getPos().x - verts[i].pos->x);
+			float diffY = fabs(s.getPos().y - verts[i].pos->y);
+			float diffZ = fabs(s.getPos().z - verts[i].pos->z);
 
-			if(diffX < 0.5 * width && diffZ < 0.5 * length && diffY > unevenness){
+			if(diffX < 0.5 * s.getWidth() && diffZ < 0.5 * s.getLength() && diffY > unevenness){
 				unevenness = diffY;
 
 				if(unevenness > maxUnevenness){
@@ -100,12 +100,9 @@ namespace battleship{
 			}
 		}
 
-		GameObjectFrame &s = gameObjectFrames[id];
-		s.placeAt(newPos);
-
 		vector<Unit*> units;
 
-		for(Player *player : Game::getSingleton()->getPlayers()){
+		for(Player *player : Game::getSingleton()->getPlayers(true)){
 			vector<Unit*> u = player->getUnits();
 			units.insert(units.end(), u.begin(), u.end());
 		}
@@ -138,8 +135,6 @@ namespace battleship{
 				break;
 			}
 		}
-
-		snapToObj(s, GameObject::Type::UNIT, 20, 3);
 
 		Vector4 color;
 
@@ -226,7 +221,9 @@ namespace battleship{
 			}
 
 			if(!rotating && (placingOnSurface || placingVertically))
-				placeGameObjectFrame(i, placementPos, width, length);
+				gameObjectFrames[i].placeAt(placementPos);
+
+			checkPlacement(gameObjectFrames[i]);
 		}
 	}
 
