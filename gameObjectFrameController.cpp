@@ -75,8 +75,6 @@ namespace battleship{
 		}
 	}
 
-	//TODO implement terrain evenness check
-	//TODO factor out literal values
 	//TODO fix which unit frames light green or red
 	void GameObjectFrameController::checkPlacement(GameObjectFrame &s){
 		Map *map = Map::getSingleton();
@@ -84,23 +82,19 @@ namespace battleship{
 		MeshData::Vertex *verts = meshData.vertices;
 		int numVerts = 3 * meshData.numTris;
 
-		float maxUnevenness = .5, unevenness = 0;
 		bool placeable = true;
 
-		for(int i = 0; i < numVerts; i++){
-			float diffX = fabs(s.getPos().x - verts[i].pos->x);
-			float diffY = fabs(s.getPos().y - verts[i].pos->y);
-			float diffZ = fabs(s.getPos().z - verts[i].pos->z);
+		if(s.getMaxUnevenness() > 0)
+			for(int i = 0; i < numVerts; i++){
+				float diffX = fabs(s.getPos().x - verts[i].pos->x);
+				float diffY = fabs(s.getPos().y - verts[i].pos->y);
+				float diffZ = fabs(s.getPos().z - verts[i].pos->z);
 
-			if(diffX < 0.5 * s.getWidth() && diffZ < 0.5 * s.getLength() && diffY > unevenness){
-				unevenness = diffY;
-
-				if(unevenness > maxUnevenness){
+				if(diffX < 0.5 * s.getWidth() && diffZ < 0.5 * s.getLength() && diffY > s.getMaxUnevenness()){
 					placeable = false;
 					break;
 				}
 			}
-		}
 
 		vector<Unit*> units;
 
@@ -114,6 +108,9 @@ namespace battleship{
 			Vector3 gm1Dir = s.getDirVec();
 			gm1Dir = Vector3(gm1Dir.x, 0, gm1Dir.z).norm();
 
+			Vector3 gm1Left = s.getLeftVec();
+			gm1Left = Vector3(gm1Left.x, 0, gm1Left.z).norm();
+
 			Vector3 gm2Pos = unit->getPos();
 
 			Vector3 gm2Dir = unit->getDirVec();
@@ -125,6 +122,7 @@ namespace battleship{
 			bool intersects = rectanglesIntersect(
 					Vector2(gm1Pos.x, gm1Pos.z),
 					Vector2(gm1Dir.x, gm1Dir.z), 
+					Vector2(gm1Left.x, gm1Left.z), 
 					Vector2(s.getWidth(), s.getLength()), 
 					Vector2(gm2Pos.x, gm2Pos.z),
 					Vector2(gm2Dir.x, gm2Dir.z), 

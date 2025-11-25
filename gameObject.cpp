@@ -104,7 +104,10 @@ namespace battleship{
 	}
 
 	void GameObject::initProperties(){
-		sol::table sizeTable = generateView()[GameObject::getGameObjTableName()][id + 1]["size"];
+		sol::table objTable = generateView()[GameObject::getGameObjTableName()][id + 1]; 
+		maxUnevenness = objTable["maxUnevenness"].get_or(0);
+
+		sol::table sizeTable = objTable["size"];
         width = sizeTable["x"];
         height = sizeTable["y"];
         length = sizeTable["z"];
