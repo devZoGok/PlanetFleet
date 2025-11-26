@@ -10,7 +10,10 @@ namespace battleship{
 	struct GameObjectFrame : public GameObject{
 		enum Status{PLACEABLE, NOT_PLACEABLE, PLACED};
 	
-		GameObjectFrame(int i, GameObject::Type t, vb01::Vector3 pos = vb01::Vector3::VEC_ZERO, vb01::Quaternion rot = vb01::Quaternion::QUAT_W) : GameObject(t, i, nullptr, pos, rot) {
+		GameObjectFrame(int i, GameObject::Type t, Unit *ou = nullptr, vb01::Vector3 pos = vb01::Vector3::VEC_ZERO, vb01::Quaternion rot = vb01::Quaternion::QUAT_W) : 
+			originalUnit(ou), 
+			GameObject(t, i, nullptr, pos, rot)
+		{
 			initModel(false);
 			initProperties();
 			placeAt(pos);
@@ -18,8 +21,10 @@ namespace battleship{
 		}    
 		~GameObjectFrame(){}
 		void destroy(){destroyModel();}
+		inline Unit* getOriginalUnit(){return originalUnit;}
 	
 		Status status;
+		Unit *originalUnit = nullptr;
 	};
 }
 

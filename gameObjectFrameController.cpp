@@ -53,7 +53,7 @@ namespace battleship{
 				buildDir = gameObjectFrames[1].getModel()->getPosition() - gameObjectFrames[0].getModel()->getPosition();
 
 			Vector3 pos = paintSelectRowStart + buildDir.norm() * hypothenuse * gameObjectFrames.size();
-			addGameObjectFrame(GameObjectFrame(structureId, GameObject::Type::UNIT, pos));
+			addGameObjectFrame(GameObjectFrame(structureId, GameObject::Type::UNIT, nullptr, pos));
 		}
 	}
 
@@ -104,6 +104,8 @@ namespace battleship{
 		}
 
 		for(Unit *unit : units){
+			if(unit == s.getOriginalUnit()) continue;
+
 			Vector3 gm1Pos = s.getPos();
 			Vector3 gm1Dir = s.getDirVec();
 			gm1Dir = Vector3(gm1Dir.x, 0, gm1Dir.z).norm();
