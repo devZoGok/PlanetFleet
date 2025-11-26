@@ -57,20 +57,17 @@ namespace battleship{
 		}
 	}
 
-	//TODO specify what to snap the frame to
-	void GameObjectFrameController::snapToObj(GameObjectFrame &s, GameObject::Type type, int unitId, float maxDist){
-		if(s.getType() == GameObject::Type::UNIT && s.getId() == unitId){
-			s.status = GameObjectFrame::NOT_PLACEABLE;
-			Player *civPl = Game::getSingleton()->getCivilianPlayer();
+	void GameObjectFrameController::snapToObj(GameObjectFrame &s, vector<GameObject*> snapTargets, float maxDist){
+		s.status = GameObjectFrame::NOT_PLACEABLE;
 
-			for(ResourceDeposit *dep : civPl->getResourceDeposits()){
-				Vector3 depPos = dep->getPos();
+		for(GameObject *st : snapTargets){
+			Vector3 stPos = st->getPos();
 
-				if(!dep->getExtractor() && s.getPos().getDistanceFrom(depPos) < maxDist){
-					s.status = GameObjectFrame::PLACEABLE;
-					s.placeAt(depPos);
-					break;
-				}
+			if(s.getPos().getDistanceFrom(stPos) < maxDist){
+				s.status = GameObjectFrame::PLACEABLE;
+				s.placeAt(stPos);
+				checkPlacement(s);
+				break;
 			}
 		}
 	}
@@ -82,7 +79,7 @@ namespace battleship{
 		MeshData::Vertex *verts = meshData.vertices;
 		int numVerts = 3 * meshData.numTris;
 
-		bool placeable = true;
+		s.status = GameObjectFrame::PLACEABLE;
 
 		if(s.getMaxUnevenness() > 0)
 			for(int i = 0; i < numVerts; i++){
@@ -91,7 +88,7 @@ namespace battleship{
 				float diffZ = fabs(s.getPos().z - verts[i].pos->z);
 
 				if(diffX < 0.5 * s.getWidth() && diffZ < 0.5 * s.getLength() && diffY > s.getMaxUnevenness()){
-					placeable = false;
+					s.status = GameObjectFrame::NOT_PLACEABLE;
 					break;
 				}
 			}
@@ -133,24 +130,10 @@ namespace battleship{
 			);
 
 			if(intersects){
-				placeable = false;
+				s.status = GameObjectFrame::NOT_PLACEABLE;
 				break;
 			}
 		}
-
-		Vector4 color;
-
-		if(placeable){
-			s.status = GameObjectFrame::PLACEABLE;
-			color = Vector4(0, 1, 0, 1);
-		}
-		else{
-			s.status = GameObjectFrame::NOT_PLACEABLE;
-			color = Vector4(1, 0, 0, 1);
-		}
-
-		Material *mat = s.getModel()->getMaterial();
-		mat->setVec4Uniform("diffuseColor", color);
 	}
 
 	void GameObjectFrameController::shiftVerticalPlacement(){
@@ -193,10 +176,7 @@ namespace battleship{
 		}
 	}
 
-	void GameObjectFrameController::updatePlacement(){
-		for(GameObjectFrame &frame : gameObjectFrames)
-			frame.update();
-
+	void GameObjectFrameController::update(){
 		Map *map = Map::getSingleton();
 		Vector3 startPos = Root::getSingleton()->getCamera()->getPosition();
 		Vector3 endPos = screenToSpace(getCursorPos());
@@ -209,7 +189,13 @@ namespace battleship{
 		if(placingVertically) shiftVerticalPlacement();
 		else if(placingOnSurface) placementPos = results[0].pos;
 
+		vector<GameObject*> deposits;
+		for(ResourceDeposit *rd : Game::getSingleton()->getCivilianPlayer()->getResourceDeposits())
+			deposits.push_back((GameObject*)rd);
+
 		for(int i = 0; i < gameObjectFrames.size(); i++){
+			gameObjectFrames[i].update();
+
 			if(paintSelecting){
 				float width = gameObjectFrames[0].getWidth(); 
 				float length = gameObjectFrames[0].getLength(); 
@@ -221,12 +207,15 @@ namespace battleship{
 			if(!rotating && (placingOnSurface || placingVertically))
 				gameObjectFrames[i].placeAt(placementPos);
 
-			checkPlacement(gameObjectFrames[i]);
-		}
-	}
+			if(gameObjectFrames[i].getId() == 23)
+				snapToObj(gameObjectFrames[i], deposits, 20);
+			else
+				checkPlacement(gameObjectFrames[i]);
 
-	void GameObjectFrameController::update(){
-		updatePlacement();
+			bool placeable = (gameObjectFrames[i].status == GameObjectFrame::PLACEABLE);
+			Vector4 color = (placeable ? Vector4(0, 1, 0, 1) : Vector4(1, 0, 0, 1));
+			gameObjectFrames[i].getModel()->getMaterial()->setVec4Uniform("diffuseColor", color);
+		}
 
 		if(!placingVertically) minDepthCalculated = false;
 	}
