@@ -10,6 +10,7 @@
 
 namespace battleship{
 	class ResourceDeposit;
+	class Destructable;
 	class Projectile;
 	class Unit;
 	struct TradeOffer;
@@ -37,6 +38,8 @@ namespace battleship{
 		void addTradeOffer(Player*, TradeOffer*);
 		std::vector<TradeOffer*> getTradeOffers(Player*);
 		void deselectUnit(Unit*);
+        std::vector<Projectile*> getDestructableProjectiles();
+		std::vector<Destructable*> getDestructables();
 		inline int getResource(ResourceType rt){return resources[(int)rt];}
 		inline void updateResource(ResourceType rt, int amount, bool add){resources[(int)rt] = (add ? resources[(int)rt] + amount : amount);}
 		inline Trader* getTrader(){return trader;}

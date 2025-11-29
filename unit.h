@@ -40,11 +40,11 @@ namespace battleship{
     struct Order {
         enum class TYPE {ATTACK, BUILD, MOVE, GARRISON, EJECT, PATROL, LAUNCH, SUPPLY, LOAD, UNLOAD, HACK};
 			struct Target{
-				Unit *unit = nullptr;
+				Destructable *unit = nullptr;
 				vb01::Vector3 pos;
 
 				Target(){}
-				Target(Unit *u, vb01::Vector3 p = vb01::Vector3::VEC_ZERO) : unit(u), pos(p){}
+				Target(Destructable *u, vb01::Vector3 p = vb01::Vector3::VEC_ZERO) : unit(u), pos(p){}
 			};
 
         TYPE type;
@@ -175,7 +175,7 @@ namespace battleship{
 		virtual void startCurrentOrder(){currOrderStarted = true;}
 		virtual bool validateLaunchOrder(){return !getWeaponsByOrder(Order::TYPE::LAUNCH).empty();}
 		virtual bool validateGarrisonOrder(Order){return false;}
-		virtual void targetUnitsAutomatically();
+		virtual void autoAttackTargets();
 		virtual void reinit();
 		virtual void initProperties();
 		virtual void destroySound();

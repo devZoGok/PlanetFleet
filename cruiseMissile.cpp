@@ -18,6 +18,8 @@ namespace battleship{
 		targetPoint(tp), 
 		flightStage(FlightStage::ASCENT)
 	{
+		Destructable::initProperties();
+
 		Vector3 unitDir = unit->getDirVec(); 
 		Vector3 leftDir = unit->getLeftVec();
 		Vector3 targDir = (Vector3(targetPoint.x, pos.y, targetPoint.z) - pos).norm();

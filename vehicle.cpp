@@ -57,7 +57,7 @@ namespace battleship{
 	}
 
 	bool Vehicle::validateGarrisonOrder(Order order){
-		Unit *targUnit = order.targets[0].unit;
+		Unit *targUnit = (Unit*)order.targets[0].unit;
 
 		for(GarrisonSlot slot : targUnit->getGarrisonSlots())
 			if(!slot.vehicle && slot.category >= garrisonCategory)
@@ -259,7 +259,7 @@ namespace battleship{
 	}
 
 	void Vehicle::enterGarrisonable(){
-		Unit *targUnit = orders[0].targets[0].unit; 
+		Unit *targUnit = (Unit*)orders[0].targets[0].unit; 
 		targUnit->updateGarrison(this, true);
 
 		removeAllPathpoints();
@@ -282,7 +282,7 @@ namespace battleship{
 	}
 
 	void Vehicle::garrison(Order order){
-		Unit *targUnit = order.targets[0].unit;
+		Unit *targUnit = (Unit*)order.targets[0].unit;
 		float distToGarrisonable = pos.getDistanceFrom(targUnit->getPos()), garrisonDist = Map::getSingleton()->getCellSize().x;
 
 		if(distToGarrisonable > garrisonDist)
@@ -426,7 +426,7 @@ namespace battleship{
 	void Vehicle::build(Order order){
 		if(pathPoints.empty()){
 			if(!order.targets[0].unit)
-				player->addUnit(order.targets[0].unit);
+				player->addUnit((Unit*)order.targets[0].unit);
 			else {
 				Structure *structure = (Structure*)order.targets[0].unit;
 				sol::table targTable = generateView()["units"][structure->getId()];

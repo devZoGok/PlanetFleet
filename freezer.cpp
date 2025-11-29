@@ -9,7 +9,7 @@ namespace battleship{
 	void Freezer::attack(Order order){
 		Vehicle::attack(order);
 
-		Unit *target = order.targets[0].unit;
+		Unit *target = (Unit*)order.targets[0].unit;
 
 		if(target && target->getFreezeStatus() == 100)
 			removeOrder(0);

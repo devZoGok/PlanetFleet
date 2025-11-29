@@ -54,6 +54,8 @@ namespace battleship{
 		vector<int> currTechs = player->getTechnologies();
 
 		sol::table projTable = generateView()[GameObject::getGameObjTableName()][id + 1];
+		projClass = (ProjectileClass)projTable["projectileClass"];
+
         rayLength = projTable["rayLength"];
         directHitDamage = projTable["directHitDamage"]; directHitDamage += game->calcAbilFromTech(Ability::Type::DIRECT_HIT_DAMAGE, currTechs, (int)GameObject::type, id);
 

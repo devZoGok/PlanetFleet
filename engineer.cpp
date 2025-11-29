@@ -52,7 +52,7 @@ namespace battleship{
 
 	//TODO change unit colors after faction change
 	void Engineer::hack(Order order){
-		Unit *targUnit = order.targets[0].unit;
+		Unit *targUnit = (Unit*)order.targets[0].unit;
 		bool withinRange = (targUnit->getPos().getDistanceFrom(pos) < hackRange);
 		int hackRate = int(generateView()["units"][id + 1]["hackTime"]) / 100;
 		bool canHack = (getTime() - lastHackTime > hackRate);

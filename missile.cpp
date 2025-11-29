@@ -7,7 +7,10 @@ namespace battleship{
 	Missile::Missile(Unit *un, int id, Vector3 tp, Vector3 pos, Quaternion rot) : 
 		Projectile(un, id, pos, rot),
 		Destructable(un->getPlayer(), id, GameObject::Type::PROJECTILE, pos, rot), 
-		targetPos(tp){}
+		targetPos(tp)
+	{
+		Destructable::initProperties();
+	}
 
 	void Missile::update(){
 		Vector3 targDir = (targetPos - Projectile::pos).norm();

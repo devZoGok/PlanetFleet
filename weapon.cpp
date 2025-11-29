@@ -106,7 +106,7 @@ namespace battleship{
 
 		int numOrders = unit->getNumOrders();
 		int ordTp = (numOrders > 0 ? (int)unit->getOrder(0).type : -1);
-		Unit *targUnit = (ordTp != -1 ? unit->getOrder(0).targets[0].unit : nullptr);
+		Destructable *targUnit = (ordTp != -1 ? unit->getOrder(0).targets[0].unit : nullptr);
 
 		if(ordTp == (int)orderType){
 			Vector3 targPos = (targUnit ? targUnit->getPos() : unit->getOrder(0).targets[0].pos);
@@ -164,17 +164,19 @@ namespace battleship{
 		}
 	}
 
-	void Weapon::updateTargetUnit(Unit *targetUnit){
-		targetUnit->takeDamage(damage);
-		unit->updateGameStats(targetUnit);
+	void Weapon::updateTarget(Destructable *target){
+		target->takeDamage(damage);
+
+		if(target->getType() == GameObject::Type::UNIT)
+			unit->updateGameStats((Unit*)target);
 	}
 
 	//TODO replace the 'laser' flag literal 
 	void Weapon::fire(Order order){
 		if(!canFire()) return;
 
-		Unit *targetUnit = order.targets[0].unit;
-		Vector3 targPos = (targetUnit ? targetUnit->getPos() : order.targets[0].pos);
+		Destructable *target = order.targets[0].unit;
+		Vector3 targPos = (target ? target->getPos() : order.targets[0].pos);
 
 		if(fireFx) useFx(fireFx, targPos, true);
 
@@ -183,8 +185,7 @@ namespace battleship{
 			FxManager *fxManager = FxManager::getSingleton();
 			string fxKey = "unitHitFx";
 
-			if(targetUnit)
-				updateTargetUnit(targetUnit);
+			if(target) updateTarget(target);
 			else{
 				Map *map = Map::getSingleton();
 				Map::Cell::Type cellType = map->getCells()[map->getCellId(targPos)].type;

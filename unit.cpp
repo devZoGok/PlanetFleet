@@ -235,22 +235,28 @@ namespace battleship{
         }
 	}
 
-	void Unit::targetUnitsAutomatically(){
+	//TODO clean up method code
+	void Unit::autoAttackTargets(){
+		if(!orders.empty()) return;
+
 		vector<Player*> players = Game::getSingleton()->getPlayers();
-		vector<Unit*> units;
+		vector<Destructable*> targets;
 
 		for(Player *pl : players)
 			if(!(pl == player || pl->getTeam() == player->getTeam())){
 				vector<Unit*> un = pl->getUnits();
-				units.insert(units.end(), un.begin(), un.end());
+				targets.insert(targets.end(), un.begin(), un.end());
+				vector<Projectile*> dp = pl->getDestructableProjectiles();
+
+				for(Projectile *p : dp)
+					targets.push_back((Destructable*)p);
 			}
 
-		if(orders.empty())
-			for(Unit *unit : units)
-				if(unit->getPos().getDistanceFrom(pos) < lineOfSight){
-					receiveOrder(Order(Order::TYPE::ATTACK, vector<Order::Target>{Order::Target(unit)}, Vector3::VEC_ZERO, -1, false), false);
-					break;
-				}
+		for(Destructable *targ : targets)
+			if(targ->getPos().getDistanceFrom(pos) < lineOfSight){
+				receiveOrder(Order(Order::TYPE::ATTACK, vector<Order::Target>{Order::Target(targ)}, Vector3::VEC_ZERO, -1, false), false);
+				break;
+			}
 	}
 
     void Unit::update() {
@@ -262,7 +268,7 @@ namespace battleship{
 		if(freezeStatus >= 100) condition = Condition::FROZEN;
 
 		if(state != State::HOLD_FIRE)
-			targetUnitsAutomatically();
+			autoAttackTargets();
 
 		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
 		Player *mainPlayer = (activeState ? activeState->getPlayer() : nullptr);
@@ -350,16 +356,16 @@ namespace battleship{
 	}
 
 	void Unit::attack(Order order){
-		vector<Unit*> units;
+		vector<Destructable*> targets;
 
 		for(Player *pl : Game::getSingleton()->getPlayers()){
-			vector<Unit*> un = pl->getUnits();
-			units.insert(units.end(), un.begin(), un.end());
+			vector<Destructable*> targs = pl->getDestructables();
+			targets.insert(targets.end(), targs.begin(), targs.end());
 		}
 
 		for(Order::Target &target : orders[0].targets)
 			if(target.unit){
-				if(find(units.begin(), units.end(), target.unit) != units.end())
+				if(find(targets.begin(), targets.end(), target.unit) != targets.end())
 					break;
 
 				removeOrder(0);

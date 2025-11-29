@@ -255,4 +255,30 @@ namespace battleship{
 				break;
 			}
 	}
+
+	vector<Projectile*> Player::getDestructableProjectiles(){
+		vector<Projectile*> destProj;
+
+		for(Projectile *proj : projectiles)
+			switch(proj->getProjectileClass()){
+				case ProjectileClass::CRUISE_MISSILE:
+				case ProjectileClass::MISSILE:
+					destProj.push_back(proj);
+					break;
+			}
+
+		return destProj;
+	}
+
+	vector<Destructable*> Player::getDestructables(){
+		vector<Projectile*> destProj = getDestructableProjectiles();
+		vector<Destructable*> destructables;
+
+		for(Projectile *p : destProj)
+			destructables.push_back((Destructable*)p);
+
+		destructables.insert(destructables.end(), units.begin(), units.end());
+
+		return destructables;
+	}
 }

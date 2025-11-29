@@ -15,6 +15,7 @@ namespace vb01{
 
 namespace battleship{
 	class FxManager;
+	class Destructable;
 
 	class Weapon{
 		public:
@@ -53,7 +54,7 @@ namespace battleship{
 		protected:
 			int rateOfFire;
 
-			virtual void updateTargetUnit(Unit*);
+			virtual void updateTarget(Destructable*);
 	};
 
 	class CryoGun : public Weapon{
