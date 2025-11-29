@@ -48,7 +48,7 @@ namespace battleship{
 			researchStatusForeground->setVisible(false);
 		}
 		else if(!researchQueue.empty()){
-			Unit::displayUnitStats(researchStatusForeground, researchStatusBackground, researchStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
+			Unit::displayStats(researchStatusForeground, researchStatusBackground, researchStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
 
 			int techCost = Game::getSingleton()->getTechnology(researchQueue[0]).cost;
 			int playerResearch = player->getResource(ResourceType::RESEARCH);

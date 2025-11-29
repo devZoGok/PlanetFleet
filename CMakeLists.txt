@@ -35,7 +35,7 @@ set(PROJECTILES projectile.cpp missile.cpp cruiseMissile.cpp shell.cpp)
 set(VEHICLES vehicle.cpp submarine.cpp engineer.cpp resourceRover.cpp freezer.cpp)
 set(STRUCTURES structure.cpp factory.cpp pointDefense.cpp extractor.cpp researchStruct.cpp iceSheet.cpp)
 set(UNITS gameObjectFactory.cpp unit.cpp weapon.cpp ${STRUCTURES} ${VEHICLES})
-set(CONTENT player.cpp trader.cpp pathfinder.cpp map.cpp gameObject.cpp gameObjectFrame.h resourceDeposit.cpp ${UNITS} ${PROJECTILES})
+set(CONTENT player.cpp trader.cpp pathfinder.cpp map.cpp gameObject.cpp destructable.cpp gameObjectFrame.h resourceDeposit.cpp ${UNITS} ${PROJECTILES})
 
 set(UTIL util.cpp binds.h)
 

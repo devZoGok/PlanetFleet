@@ -2,9 +2,10 @@
 #define CRUISE_MISSILE_H
 
 #include "projectile.h"
+#include "destructable.h"
 
 namespace battleship{
-	class CruiseMissile : public Projectile{
+	class CruiseMissile : public Projectile, Destructable{
 		public:
 			CruiseMissile(Unit*, int, vb01::Vector3, vb01::Vector3, vb01::Quaternion);
 			void update();
@@ -15,7 +16,6 @@ namespace battleship{
 
 			void pitch(float, vb01::Vector3);
 			void cruise();
-			void checkCollision();
 	};
 }
 

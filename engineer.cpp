@@ -40,7 +40,7 @@ namespace battleship{
 		bool mainPlayerSelecting = (activeState && find(selectingPlayers.begin(), selectingPlayers.end(), mainPlayer) != selectingPlayers.end());
 
 		if(hackStatus < 100)
-			Unit::displayUnitStats(hackStatusForeground, hackStatusBackground, hackStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
+			Unit::displayStats(hackStatusForeground, hackStatusBackground, hackStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
 		else{
 			hackStatusBackground->setVisible(false);
 			hackStatusForeground->setVisible(false);

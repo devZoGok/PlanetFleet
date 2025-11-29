@@ -21,16 +21,12 @@ namespace battleship{
 
 		if(!isComplete()) return;
 
-		if(!unitQueue.empty())
-			train();
+		if(!unitQueue.empty()) train();
 	}
 
 	//TODO replace repetetive string literals
 	void Factory::initProperties(){
 		Structure::initProperties();
-		Game *game = Game::getSingleton();
-		vector<int> currTechs = player->getTechnologies();
-
 	}
 
 	int Factory::getNumQueueUnitsById(int unitId){
@@ -60,7 +56,7 @@ namespace battleship{
 			vector<Player*> selectingPlayers = getSelectingPlayers();
 			bool mainPlayerSelecting = (activeState && find(selectingPlayers.begin(), selectingPlayers.end(), mainPlayer) != selectingPlayers.end());
 
-			Unit::displayUnitStats(buildStatusForeground, buildStatusBackground, trainingStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
+			Unit::displayStats(buildStatusForeground, buildStatusBackground, trainingStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
 			sol::table targTable = generateView()["units"][unitQueue[0] + 1];
 			int costRate = (int)targTable["cost"] / 100, trainRate = (int)targTable["buildTime"] / 100;
 

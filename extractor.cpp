@@ -58,7 +58,7 @@ namespace battleship{
 			initAmmount = deposit->getInitAmmount();
 		}
 
-		Unit::displayUnitStats(ammountForeground, ammountBackground, ammount, initAmmount, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
+		Unit::displayStats(ammountForeground, ammountBackground, ammount, initAmmount, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
 	}
 
 	void Extractor::draw(){

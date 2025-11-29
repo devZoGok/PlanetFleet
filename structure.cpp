@@ -31,7 +31,7 @@ namespace battleship{
 		bool mainPlayerSelecting = (activeState && find(selectingPlayers.begin(), selectingPlayers.end(), mainPlayer) != selectingPlayers.end());
 
 		if(buildStatus < 100)
-			Unit::displayUnitStats(buildStatusForeground, buildStatusBackground, buildStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
+			Unit::displayStats(buildStatusForeground, buildStatusBackground, buildStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
 		else{
 			buildStatusBackground->setVisible(false);
 			buildStatusForeground->setVisible(false);
