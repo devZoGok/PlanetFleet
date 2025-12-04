@@ -1,4 +1,5 @@
 #include "cruiseMissile.h"
+#include "destructable.h"
 #include "player.h"
 #include "unit.h"
 #include "map.h"
@@ -14,11 +15,10 @@ namespace battleship{
 
 	CruiseMissile::CruiseMissile(Unit *unit, int id, Vector3 tp, Vector3 pos, Quaternion rot) : 
 		Projectile(unit, id, pos, rot), 
-		Destructable(unit->getPlayer(), id, GameObject::Type::PROJECTILE, pos, rot), 
 		targetPoint(tp), 
 		flightStage(FlightStage::ASCENT)
 	{
-		Destructable::initProperties();
+		destructable = new Destructable(this);
 
 		Vector3 unitDir = unit->getDirVec(); 
 		Vector3 leftDir = unit->getLeftVec();
@@ -26,8 +26,10 @@ namespace battleship{
 		
 		bool left = (leftDir.getAngleBetween(targDir) < PI / 2);
 		float angle = unitDir.getAngleBetween(targDir) * (left ? 1 : -1);
-		Projectile::orientAt(Quaternion(angle, Vector3::VEC_J) * rot);
+		orientAt(Quaternion(angle, Vector3::VEC_J) * rot);
 	}
+
+	CruiseMissile::~CruiseMissile(){delete destructable;}
 
 	void CruiseMissile::pitch(float rotAngle, Vector3 compVec){
 		float minHeight = 20;
@@ -56,6 +58,7 @@ namespace battleship{
 
 	void CruiseMissile::update(){
 		Projectile::update();
+		destructable->update();
 
 		switch(flightStage){
 			case FlightStage::ASCENT:

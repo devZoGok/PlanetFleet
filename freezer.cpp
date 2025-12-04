@@ -1,4 +1,5 @@
 #include "freezer.h"
+#include "destructable.h"
 
 namespace battleship{
 	using namespace vb01;
@@ -9,7 +10,7 @@ namespace battleship{
 	void Freezer::attack(Order order){
 		Vehicle::attack(order);
 
-		Unit *target = (Unit*)order.targets[0].unit;
+		Destructable *target = order.targets[0].unit->getDestructable();
 
 		if(target && target->getFreezeStatus() == 100)
 			removeOrder(0);

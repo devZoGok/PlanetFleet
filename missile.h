@@ -2,13 +2,12 @@
 #define MISSILE_H
 
 #include "projectile.h"
-#include "destructable.h"
 
 namespace battleship{
-	class Missile : public Projectile, Destructable{
+	class Missile : public Projectile{
 		public:
 			Missile(Unit*, int, vb01::Vector3, vb01::Vector3, vb01::Quaternion);
-			~Missile(){}
+			~Missile();
 			void update();
 		private:
 			vb01::Vector3 targetPos;

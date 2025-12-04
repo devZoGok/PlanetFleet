@@ -1,5 +1,6 @@
 #include "researchStruct.h"
 #include "activeGameState.h"
+#include "destructable.h"
 #include "player.h"
 #include "game.h"
 
@@ -17,13 +18,13 @@ namespace battleship{
 		researchCost = unitTable["researchCost"];
 
 		Vector2 size = Vector2(lenHpBar, 10);
-		researchStatusBackground = Unit::createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 0, 1));
-		researchStatusForeground = Unit::createBar(Vector2::VEC_ZERO, size,  Vector4(1, 0, 1, 1));
+		researchStatusBackground = destructable->createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 0, 1));
+		researchStatusForeground = destructable->createBar(Vector2::VEC_ZERO, size,  Vector4(1, 0, 1, 1));
 	}
 
 	ResearchStruct::~ResearchStruct(){
-		removeBar(researchStatusBackground);
-		removeBar(researchStatusForeground);
+		destructable->removeBar(researchStatusBackground);
+		destructable->removeBar(researchStatusForeground);
 	}
 
 	void ResearchStruct::update(){
@@ -38,7 +39,7 @@ namespace battleship{
 		bool mainPlayerSelecting = (activeState && find(selectingPlayers.begin(), selectingPlayers.end(), mainPlayer) != selectingPlayers.end());
 
 		if(researchQueue.empty()){
-			if(health > .3 * maxHealth && player->getResource(ResourceType::REFINEDS) >= researchCost && canUpdateResearch()){
+			if(destructable->getHealth() > .3 * destructable->getMaxHealth() && player->getResource(ResourceType::REFINEDS) >= researchCost && canUpdateResearch()){
 				player->updateResource(ResourceType::RESEARCH, generationSpeed, true);
 				player->updateResource(ResourceType::REFINEDS, -researchCost, true);
 				lastUpdateTime = getTime();
@@ -48,7 +49,7 @@ namespace battleship{
 			researchStatusForeground->setVisible(false);
 		}
 		else if(!researchQueue.empty()){
-			Unit::displayStats(researchStatusForeground, researchStatusBackground, researchStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
+			destructable->displayStats(researchStatusForeground, researchStatusBackground, researchStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
 
 			int techCost = Game::getSingleton()->getTechnology(researchQueue[0]).cost;
 			int playerResearch = player->getResource(ResourceType::RESEARCH);

@@ -13,6 +13,7 @@
 #include "environment.h"
 #include "projectile.h"
 #include "defConfigs.h"
+#include "destructable.h"
 #include "resourceDeposit.h"
 #include "inGameAppState.h"
 
@@ -72,7 +73,7 @@ namespace battleship{
     }
 
 	void Projectile::detonate(Unit *target){
-		if(target) target->takeDamage(directHitDamage);
+		if(target) target->getDestructable()->takeDamage(directHitDamage);
 
 		sol::table tbl = generateView()[getGameObjTableName()][id + 1]["explosion"];
 		FxManager::Fx *fx = FxManager::getSingleton()->initFx(tbl["fx"], model, false, pos);

@@ -8,7 +8,7 @@
 
 #include <solUtil.h>
 
-#include "destructable.h"
+#include "gameObject.h"
 #include "buildableUnit.h"
 #include "fxManager.h"
 
@@ -36,15 +36,16 @@ namespace battleship{
 	class Engineer;
 	class PointDefense;
 	class Projectile;
+	class GameObject;
     
     struct Order {
         enum class TYPE {ATTACK, BUILD, MOVE, GARRISON, EJECT, PATROL, LAUNCH, SUPPLY, LOAD, UNLOAD, HACK};
 			struct Target{
-				Destructable *unit = nullptr;
+				GameObject *unit = nullptr;
 				vb01::Vector3 pos;
 
 				Target(){}
-				Target(Destructable *u, vb01::Vector3 p = vb01::Vector3::VEC_ZERO) : unit(u), pos(p){}
+				Target(GameObject *u, vb01::Vector3 p = vb01::Vector3::VEC_ZERO) : unit(u), pos(p){}
 			};
 
         TYPE type;
@@ -89,7 +90,7 @@ namespace battleship{
 		ICE_SHEET
 	};
     
-    class Unit : public Destructable{
+    class Unit : public GameObject{
     public:
 		struct GarrisonSlot{
 			Vehicle *vehicle = nullptr;
@@ -122,6 +123,7 @@ namespace battleship{
 		inline Factory* toFactory(){return (Factory*)this;}
 		inline Cruiser* toCruiser(){return (Cruiser*)this;}
 		inline PointDefense* toPointDefense(){return (PointDefense*)this;}
+		inline GameObject* toGameObject(){return (GameObject*)this;}
 		inline int getNumGarrisonSlots(){return garrisonSlots.size();}
 		inline const std::vector<GarrisonSlot>& getGarrisonSlots(){return garrisonSlots;}
         inline float getLineOfSight() {return lineOfSight;}
@@ -135,8 +137,6 @@ namespace battleship{
 		inline std::string getGuiScreen(){return guiScreen;}
 		inline BuildableUnit getBuildableUnit(int i){return buildableUnits[i];}
 		inline vb01::Node* getLosLightNode(){return losLightNode;}
-		inline void setFreezeStatus(int fs){this->freezeStatus = std::clamp(fs, 0, 100);}
-		inline int getFreezeStatus(){return freezeStatus;}
 		inline Condition getCondition(){return condition;}
 		inline void setCondition(Condition cond){
 			this->condition = cond;
@@ -161,13 +161,14 @@ namespace battleship{
         UnitClass unitClass;
         std::vector<Order> orders;
 		std::string guiScreen = "";
-        int playerId, restartTime;
+        int playerId, restartTime, lenHpBar = 200;
 		vb01::s64 orderLineDispTime = 0, lastFireTime = 0, lastJamTime = 0;
         float lineOfSight;
 		std::vector<Weapon*> weapons;
 		std::vector<GarrisonSlot> garrisonSlots;
 		std::vector<BuildableUnit> buildableUnits;
 		State state = State::STAND_GROUND;
+		vb01::Node *hpBackgroundNode = nullptr, *hpForegroundNode = nullptr;
 
 		void placeAt(vb01::Vector3);
 		std::vector<Player*> getSelectingPlayers();

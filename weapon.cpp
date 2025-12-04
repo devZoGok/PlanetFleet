@@ -7,6 +7,7 @@
 #include "weapon.h"
 #include "player.h"
 #include "fxManager.h"
+#include "destructable.h"
 #include "gameObjectFactory.h"
 #include "projectile.h"
 
@@ -106,10 +107,10 @@ namespace battleship{
 
 		int numOrders = unit->getNumOrders();
 		int ordTp = (numOrders > 0 ? (int)unit->getOrder(0).type : -1);
-		Destructable *targUnit = (ordTp != -1 ? unit->getOrder(0).targets[0].unit : nullptr);
+		GameObject *targDestruct = (ordTp != -1 ? unit->getOrder(0).targets[0].unit : nullptr);
 
 		if(ordTp == (int)orderType){
-			Vector3 targPos = (targUnit ? targUnit->getPos() : unit->getOrder(0).targets[0].pos);
+			Vector3 targPos = (targDestruct ? targDestruct->getPos() : unit->getOrder(0).targets[0].pos);
 			float targDist = unit->getPos().getDistanceFrom(targPos);
 
 			bool withinRange = (minRange <= targDist && targDist <= maxRange);
@@ -164,18 +165,18 @@ namespace battleship{
 		}
 	}
 
-	void Weapon::updateTarget(Destructable *target){
-		target->takeDamage(damage);
+	void Weapon::updateTarget(GameObject *target){
+		target->getDestructable()->takeDamage(damage);
 
 		if(target->getType() == GameObject::Type::UNIT)
-			unit->updateGameStats((Unit*)target);
+			unit->getPlayer()->updateGameStats((Unit*)target);
 	}
 
 	//TODO replace the 'laser' flag literal 
 	void Weapon::fire(Order order){
 		if(!canFire()) return;
 
-		Destructable *target = order.targets[0].unit;
+		GameObject *target = order.targets[0].unit;
 		Vector3 targPos = (target ? target->getPos() : order.targets[0].pos);
 
 		if(fireFx) useFx(fireFx, targPos, true);
@@ -231,9 +232,10 @@ namespace battleship{
 
 	CryoGun::CryoGun(Unit *u, sol::table unitTable, int wid) : Weapon(u, unitTable, wid){}
 
-	void CryoGun::updateTargetUnit(Unit *targetUnit){
+	void CryoGun::updateTarget(GameObject *target){
 		if(canFreeze()){
-			targetUnit->setFreezeStatus(targetUnit->getFreezeStatus() + 1);
+			Destructable *destructTarg = target->getDestructable();
+			destructTarg->setFreezeStatus(destructTarg->getFreezeStatus() + 1);
 			lastFreezeTime = getTime();
 		}
 	}

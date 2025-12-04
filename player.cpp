@@ -6,6 +6,7 @@
 #include "structure.h"
 #include "projectile.h"
 #include "tradeOffer.h"
+#include "destructable.h"
 #include "activeGameState.h"
 #include "resourceDeposit.h"
 
@@ -256,29 +257,33 @@ namespace battleship{
 			}
 	}
 
-	vector<Projectile*> Player::getDestructableProjectiles(){
-		vector<Projectile*> destProj;
+	vector<GameObject*> Player::getDestructables(){
+		vector<GameObject*> destructables;
 
-		for(Projectile *proj : projectiles)
-			switch(proj->getProjectileClass()){
-				case ProjectileClass::CRUISE_MISSILE:
-				case ProjectileClass::MISSILE:
-					destProj.push_back(proj);
-					break;
-			}
+		for(Projectile *p : projectiles)
+			if(p->getDestructable())
+				destructables.push_back(p);
 
-		return destProj;
-	}
-
-	vector<Destructable*> Player::getDestructables(){
-		vector<Projectile*> destProj = getDestructableProjectiles();
-		vector<Destructable*> destructables;
-
-		for(Projectile *p : destProj)
-			destructables.push_back((Destructable*)p);
-
-		destructables.insert(destructables.end(), units.begin(), units.end());
+		for(Unit *unit : units)
+			destructables.push_back((GameObject*)unit);
 
 		return destructables;
+	}
+
+	void Player::updateGameStats(Unit *targetUnit){
+		Destructable *destructTarg = targetUnit->getDestructable();
+
+		if(destructTarg->getHealth() <= destructTarg->getDeathHp()){
+			Player *targUnitPlayer = targetUnit->getPlayer();
+
+			if(targetUnit->isVehicle()){
+				incVehiclesDestroyed();
+				targUnitPlayer->incVehiclesLost();
+			}
+			else{
+				incStructuresDestroyed();
+				targUnitPlayer->incStructuresLost();
+			}
+		}
 	}
 }

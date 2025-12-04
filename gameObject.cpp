@@ -1,5 +1,6 @@
 #include "gameObject.h"
 #include "gameManager.h"
+#include "destructable.h"
 #include "defConfigs.h"
 #include "player.h"
 #include "game.h"
@@ -220,21 +221,6 @@ namespace battleship{
 				return "projectiles";
 			case GameObject::Type::RESOURCE_DEPOSIT:
 				return "resources";
-		}
-	}
-
-	void GameObject::updateGameStats(Unit *targetUnit){
-		if(targetUnit->getHealth() <= targetUnit->getDeathHp()){
-			Player *targUnitPlayer = targetUnit->getPlayer();
-
-			if(targetUnit->isVehicle()){
-				player->incVehiclesDestroyed();
-				targUnitPlayer->incVehiclesLost();
-			}
-			else{
-				player->incStructuresDestroyed();
-				targUnitPlayer->incStructuresLost();
-			}
 		}
 	}
 }

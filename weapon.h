@@ -15,7 +15,7 @@ namespace vb01{
 
 namespace battleship{
 	class FxManager;
-	class Destructable;
+	class GameObject;
 
 	class Weapon{
 		public:
@@ -54,7 +54,7 @@ namespace battleship{
 		protected:
 			int rateOfFire;
 
-			virtual void updateTarget(Destructable*);
+			virtual void updateTarget(GameObject*);
 	};
 
 	class CryoGun : public Weapon{
@@ -63,7 +63,7 @@ namespace battleship{
 		private:
 			vb01::s64 lastFreezeTime = 0;
 
-			void updateTargetUnit(Unit*);
+			void updateTarget(GameObject*);
 			inline bool canFreeze(){return vb01::getTime() - lastFreezeTime > rateOfFire;}
 	};
 }

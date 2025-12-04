@@ -17,17 +17,20 @@ using namespace vb01;
 using namespace gameBase;
 
 namespace battleship{
-	Destructable::Destructable(Player *player, int id, GameObject::Type type, vb01::Vector3 pos, vb01::Quaternion rot) : GameObject(type, id, player, pos, rot){}
+	Destructable::Destructable(GameObject *obj) : gameObject(obj){
+		initProperties();
+	}
 
 	void Destructable::initProperties(){
-		GameObject::initProperties();
+		//GameObject::initProperties();
 
+		int id = gameObject->getId();
 		sol::state_view SOL_LUA_VIEW = generateView();
-		string objType = GameObject::getGameObjTableName();
-		sol::table objTable = SOL_LUA_VIEW[objType][id + 1];
+		string objType = gameObject->getGameObjTableName();
+		sol::table objTable = SOL_LUA_VIEW[objType][gameObject->getId() + 1];
 
-		vector<int> currTechs = player->getTechnologies();
-        health += Game::getSingleton()->calcAbilFromTech(Ability::Type::HEALTH, currTechs, (int)GameObject::type, id);
+		vector<int> currTechs = gameObject->getPlayer()->getTechnologies();
+        health += Game::getSingleton()->calcAbilFromTech(Ability::Type::HEALTH, currTechs, (int)gameObject->getType(), id);
 		maxHealth = objTable["health"];
 
 		if(health == 0) health = maxHealth;
@@ -47,14 +50,19 @@ namespace battleship{
 		}
 	}
 
+	//TODO make this class a friend to GameObject
 	void Destructable::update(){
-		GameObject::update();
-
         if (health <= DEATH_HP){
-			sol::table tbl = generateView()[getGameObjTableName()][id + 1]["deathFx"];
-			FxManager::Fx *fx = FxManager::getSingleton()->initFx(tbl, model, false, pos);
+			gameObject->setRemove(true);
+
+			sol::optional<sol::table> tblOpt = generateView()[gameObject->getGameObjTableName()][gameObject->getId() + 1]["deathFx"];
+
+			if(tblOpt == sol::nullopt) return;
+
+			Vector3 pos = gameObject->getPos();
+			sol::table tbl = generateView()[gameObject->getGameObjTableName()][gameObject->getId() + 1]["deathFx"];
+			FxManager::Fx *fx = FxManager::getSingleton()->initFx(tbl, gameObject->getModel(), false, pos);
 			Environment::explode(fx, Environment::Detonation::EXPLOSION, pos);
-			remove = true;
 		}
 	}
 
@@ -81,6 +89,7 @@ namespace battleship{
 
 		if(render){
 			Vector3 offset3d = Vector3(offset.x, offset.y, 0);
+			Vector2 screenPos = gameObject->getScreenPos();
 
 			Quad *bgQuad = (Quad*)background->getMesh(0);
 			Vector3 size = bgQuad->getSize();
