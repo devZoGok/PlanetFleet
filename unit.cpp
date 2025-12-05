@@ -13,6 +13,7 @@
 #include <ext.hpp>
 
 #include "unit.h"
+#include "cryoGun.h"
 #include "weapon.h"
 #include "util.h"
 #include "game.h"
@@ -141,8 +142,14 @@ namespace battleship{
 
 				if(wtOpt != sol::nullopt) wt = unitTable[tblName][i + 1]["type"];
 
-				Weapon *weapon = ((Weapon::Type)wt == Weapon::Type::FREEZER ? new CryoGun(this, unitTable, i) : new Weapon(this, unitTable, i));
-				weapons.push_back(weapon);
+				switch((Weapon::Type)wt){
+					case Weapon::Type::FREEZER:
+						weapons.push_back(new CryoGun(this, unitTable, i));
+						break;
+					default:
+						weapons.push_back(new Weapon(this, unitTable, i));
+						break;
+				}
 			}
 		}
 	}

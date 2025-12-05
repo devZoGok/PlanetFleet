@@ -1,13 +1,13 @@
 #ifndef WEAPON_H
 #define WEAPON_H
 
+#include "unit.h"
+
 #include <vector>
 #include <util.h>
 #include <quaternion.h>
 
 #include <solUtil.h>
-
-#include "unit.h"
 
 namespace vb01{
 	class Node;
@@ -37,12 +37,11 @@ namespace battleship{
 			Unit *unit = nullptr;
 			Order::TYPE orderType;
 			int id, projId = -1, damage = 0;
-			float minRange = 0, maxRange, rotSpeed, maxFireAngle;
+			float minRange = 0, maxRange, rotSpeed, maxFireAngle, horConstraint = 1.57, vertConstraint = 1.57, maxAngle;
 			vb01::s64 lastFireTime = 0;
 			FxManager::Fx *fireFx = nullptr;
 			vb01::Quaternion projRot;
 			vb01::Vector3 projPos;
-			float horConstraint = 1.57, vertConstraint = 1.57;
 			std::vector<vb01::Node*> nodes;
 			vb01::Node *projPar = nullptr;
 			static std::string LASER_FLAG;
@@ -50,21 +49,12 @@ namespace battleship{
 			void initProjectileData(sol::table);
 			void initNodes(sol::table);
 			void useFx(FxManager::Fx*, vb01::Vector3, bool);
+			void alignNode(vb01::Node*, vb01::Vector3, bool);
 			inline bool canFire(){return vb01::getTime() - lastFireTime > rateOfFire;}
 		protected:
 			int rateOfFire;
 
 			virtual void updateTarget(GameObject*);
-	};
-
-	class CryoGun : public Weapon{
-		public:
-			CryoGun(Unit*, sol::table, int);
-		private:
-			vb01::s64 lastFreezeTime = 0;
-
-			void updateTarget(GameObject*);
-			inline bool canFreeze(){return vb01::getTime() - lastFreezeTime > rateOfFire;}
 	};
 }
 

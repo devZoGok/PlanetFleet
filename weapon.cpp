@@ -3,6 +3,7 @@
 #include <particleEmitter.h>
 
 #include "map.h"
+#include "unit.h"
 #include "util.h"
 #include "weapon.h"
 #include "player.h"
@@ -19,11 +20,13 @@ namespace battleship{
 	Weapon::Weapon(Unit *u, sol::table unitTable, int wid) : 
 		unit(u), 
 		id(wid),
+		maxAngle(PI / 2 * .7),
 		rateOfFire(unitTable["weapons"][wid + 1]["rateOfFire"]),
 		damage(unitTable["weapons"][wid + 1]["damage"].get_or(0))
 	{
 		sol::table weaponTable = unitTable["weapons"][wid + 1];
 		maxRange = weaponTable["maxRange"];
+		maxFireAngle = weaponTable["maxFireAngle"].get_or(.4);
 		orderType = (Order::TYPE)weaponTable["orderType"];
 
 		initProjectileData(weaponTable);
@@ -49,7 +52,6 @@ namespace battleship{
 
 		for(int i = 0; i < numNodes; i++){
 			sol::table nodeTbl = weaponTable["nodes"][i + 1];
-			maxFireAngle = nodeTbl["maxFireAngle"];
 			rotSpeed = nodeTbl["rotationSpeed"];
 
 			string name = nodeTbl["name"];
@@ -117,7 +119,7 @@ namespace battleship{
 			bool withinAngle = true;
 
 			if(!nodes.empty()){
-				Vector3 dirVec = nodes[0]->getGlobalAxis(2);
+				Vector3 dirVec = nodes[nodes.size() - 1]->getGlobalAxis(2);
 				withinAngle = Vector3(dirVec.x, 0, dirVec.z).norm().getAngleBetween((targPos - unit->getPos()).norm()) <= maxFireAngle;
 			}
 
@@ -129,10 +131,8 @@ namespace battleship{
 	}
 
 	void Weapon::useFx(FxManager::Fx *fx, Vector3 targPos, bool fire){
-		if(fx && !fire)
-			FxManager::getSingleton()->addFx(fx);
-		else if(!fx)
-			return;
+		if(fx && !fire) FxManager::getSingleton()->addFx(fx);
+		else if(!fx) return;
 
 		fx->toggleComponents(true);
 
@@ -211,32 +211,42 @@ namespace battleship{
 		lastFireTime = getTime();
 	}
 
-	//TODO improve to allow for vertical alignment 
-	void Weapon::trackTarget(Vector3 targPos){
-		if(nodes.empty()) return;
-
+	void Weapon::alignNode(Node *node, Vector3 targPos, bool vertical){
 		Vector3 unitPos = unit->getPos();
+		Vector3 unitUp = unit->getUpVec();
 		Vector3 targDir = (targPos - unitPos).norm();
-		targDir = getVecToPlane(unitPos, targDir, unit->getUpVec());
 
-		Vector3 dirVec = getVecToPlane(unitPos, nodes[0]->getGlobalAxis(2), unit->getUpVec());
-		Vector3 leftVec = nodes[0]->getGlobalAxis(0);
-		bool negate = (leftVec.getAngleBetween(targDir) < PI / 2);
+		Vector3 compVec, rotAxis;
+		float rotAngle;
 
-		float angle = dirVec.getAngleBetween(targDir);
-		float rotAngle = (rotSpeed < angle ? rotSpeed : angle);
+		if(vertical){
+			compVec = getVecToPlane(unitPos, targDir, unitUp);
+			float angle1 = targDir.getAngleBetween(compVec);
+			float angle2 = node->getGlobalAxis(2).getAngleBetween(getVecToPlane(unitPos, node->getGlobalAxis(2), unitUp));
+			float angleDiff = angle1 - angle2;
+			rotAngle = (rotSpeed < fabs(angleDiff) ? rotSpeed : fabs(angleDiff)) * (angleDiff > 0 ? -1 : 1);
 
-		Quaternion rot = Quaternion((negate ? 1 : -1) * rotAngle, Vector3::VEC_J) * nodes[0]->getOrientation();
-		nodes[0]->setOrientation(rot);
+			if(angle2 - rotAngle > maxAngle)
+				rotAngle = -(fabs(rotAngle) - (angle2 + fabs(rotAngle) - maxAngle));
+
+			rotAxis = Vector3::VEC_I;
+		}
+		else{
+			targDir = getVecToPlane(unitPos, targDir, unitUp);
+			compVec = node->getGlobalAxis(2);
+			bool negate = (node->getGlobalAxis(0).getAngleBetween(targDir) < PI / 2);
+			float angle = compVec.getAngleBetween(targDir);
+			rotAngle = (negate ? 1 : -1) * (rotSpeed < angle ? rotSpeed : angle);
+			rotAxis = Vector3::VEC_J;
+		}
+
+		Quaternion rot = Quaternion(rotAngle, rotAxis) * node->getOrientation();
+		node->setOrientation(rot);
 	}
 
-	CryoGun::CryoGun(Unit *u, sol::table unitTable, int wid) : Weapon(u, unitTable, wid){}
-
-	void CryoGun::updateTarget(GameObject *target){
-		if(canFreeze()){
-			Destructable *destructTarg = target->getDestructable();
-			destructTarg->setFreezeStatus(destructTarg->getFreezeStatus() + 1);
-			lastFreezeTime = getTime();
-		}
+	//TODO improve to allow for vertical alignment 
+	void Weapon::trackTarget(Vector3 targPos){
+		if(nodes.size() >= 1) alignNode(nodes[0], targPos, false);
+		if(nodes.size() >= 2) alignNode(nodes[1], targPos, true);
 	}
 }
