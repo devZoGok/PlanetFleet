@@ -34,9 +34,11 @@ namespace battleship{
 		return gameObjectFrameController;
 	}
 
-	void GameObjectFrameController::paintSelect(Vector3 rowEnd, float width, float length){
+	void GameObjectFrameController::paintSelect(Vector3 rowEnd){
 		Vector3 rowDir = rowEnd - paintSelectRowStart;
 		float lenRow = rowDir.getLength();
+		float width = gameObjectFrames[0].getWidth(); 
+		float length = gameObjectFrames[0].getLength();
 		float hypothenuse = sqrt(width * width + length * length);
 		int numStructsInRow = int(lenRow / hypothenuse);
 		
@@ -51,79 +53,130 @@ namespace battleship{
 				buildDir = gameObjectFrames[1].getModel()->getPosition() - gameObjectFrames[0].getModel()->getPosition();
 
 			Vector3 pos = paintSelectRowStart + buildDir.norm() * hypothenuse * gameObjectFrames.size();
-			addGameObjectFrame(GameObjectFrame(structureId, GameObject::Type::UNIT, pos));
+			addGameObjectFrame(GameObjectFrame(structureId, GameObject::Type::UNIT, nullptr, pos));
 		}
 	}
 
-	//TODO specify what to snap the frame to
-	void GameObjectFrameController::snapToObj(GameObjectFrame &s, GameObject::Type type, int unitId, float maxDist){
-		if(s.getType() == GameObject::Type::UNIT && s.getId() == unitId){
-			s.status = GameObjectFrame::NOT_PLACEABLE;
-			Player *civPl = Game::getSingleton()->getCivilianPlayer();
+	void GameObjectFrameController::snapToObj(GameObjectFrame &s, vector<GameObject*> snapTargets, float maxDist){
+		s.status = GameObjectFrame::NOT_PLACEABLE;
 
-			for(ResourceDeposit *dep : civPl->getResourceDeposits()){
-				Vector3 depPos = dep->getPos();
+		for(GameObject *st : snapTargets){
+			Vector3 stPos = st->getPos();
 
-				if(!dep->getExtractor() && s.getPos().getDistanceFrom(depPos) < maxDist){
-					s.status = GameObjectFrame::PLACEABLE;
-					s.placeAt(depPos);
-					break;
-				}
+			if(s.getPos().getDistanceFrom(stPos) < maxDist){
+				s.status = GameObjectFrame::PLACEABLE;
+				s.placeAt(stPos);
+				checkPlacement(s);
+				break;
 			}
 		}
 	}
 
-	//TODO implement terrain evenness check
-	//TODO factor out literal values
 	//TODO fix which unit frames light green or red
-	void GameObjectFrameController::placeGameObjectFrame(int id, Vector3 newPos, float width, float length){
+	void GameObjectFrameController::checkPlacement(GameObjectFrame &s){
 		Map *map = Map::getSingleton();
 		MeshData meshData = map->getNodeParent()->getChild(0)->getMesh(0)->getMeshBase();
 		MeshData::Vertex *verts = meshData.vertices;
 		int numVerts = 3 * meshData.numTris;
 
-		float maxUnevenness = .5, unevenness = 0;
-		bool placeable = true;
+		s.status = GameObjectFrame::PLACEABLE;
 
-		for(int i = 0; i < numVerts; i++){
-			float diffX = fabs(newPos.x - verts[i].pos->x);
-			float diffY = fabs(newPos.y - verts[i].pos->y);
-			float diffZ = fabs(newPos.z - verts[i].pos->z);
+		if(s.getMaxUnevenness() > 0)
+			for(int i = 0; i < numVerts; i++){
+				float diffX = fabs(s.getPos().x - verts[i].pos->x);
+				float diffY = fabs(s.getPos().y - verts[i].pos->y);
+				float diffZ = fabs(s.getPos().z - verts[i].pos->z);
 
-			if(diffX < 0.5 * width && diffZ < 0.5 * length && diffY > unevenness){
-				unevenness = diffY;
-
-				if(unevenness > maxUnevenness){
-					placeable = false;
+				if(diffX < 0.5 * s.getWidth() && diffZ < 0.5 * s.getLength() && diffY > s.getMaxUnevenness()){
+					s.status = GameObjectFrame::NOT_PLACEABLE;
 					break;
 				}
 			}
+
+		vector<Unit*> units;
+
+		for(Player *player : Game::getSingleton()->getPlayers(true)){
+			vector<Unit*> u = player->getUnits();
+			units.insert(units.end(), u.begin(), u.end());
 		}
 
-		GameObjectFrame &s = gameObjectFrames[id];
-		s.placeAt(newPos);
+		for(Unit *unit : units){
+			if(unit == s.getOriginalUnit()) continue;
 
-		snapToObj(s, GameObject::Type::UNIT, 20, 3);
+			Vector3 gm1Pos = s.getPos();
+			Vector3 gm1Dir = s.getDirVec();
+			gm1Dir = Vector3(gm1Dir.x, 0, gm1Dir.z).norm();
 
-		Vector4 color;
+			Vector3 gm1Left = s.getLeftVec();
+			gm1Left = Vector3(gm1Left.x, 0, gm1Left.z).norm();
 
-		if(placeable){
-			s.status = GameObjectFrame::PLACEABLE;
-			color = Vector4(0, 1, 0, 1);
+			Vector3 gm2Pos = unit->getPos();
+
+			Vector3 gm2Dir = unit->getDirVec();
+			gm2Dir = Vector3(gm2Dir.x, 0, gm2Dir.z).norm();
+
+			Vector3 gm2Left = unit->getLeftVec();
+			gm2Left = Vector3(gm2Left.x, 0, gm2Left.z).norm();
+
+			bool intersects = rectanglesIntersect(
+					Vector2(gm1Pos.x, gm1Pos.z),
+					Vector2(gm1Dir.x, gm1Dir.z), 
+					Vector2(gm1Left.x, gm1Left.z), 
+					Vector2(s.getWidth(), s.getLength()), 
+					Vector2(gm2Pos.x, gm2Pos.z),
+					Vector2(gm2Dir.x, gm2Dir.z), 
+					Vector2(gm2Left.x, gm2Left.z), 
+					Vector2(unit->getWidth(), unit->getLength())
+			);
+
+			if(intersects){
+				s.status = GameObjectFrame::NOT_PLACEABLE;
+				break;
+			}
 		}
-		else{
-			s.status = GameObjectFrame::NOT_PLACEABLE;
-			color = Vector4(1, 0, 0, 1);
-		}
-
-		Material *mat = s.getModel()->getMaterial();
-		mat->setVec4Uniform("diffuseColor", color);
 	}
 
-	void GameObjectFrameController::updatePlacement(){
-		for(GameObjectFrame &frame : gameObjectFrames)
-			frame.update();
+	void GameObjectFrameController::shiftVerticalPlacement(){
+		if(!minDepthCalculated){
+			Map *map = Map::getSingleton();
+			Node *nodeParent = map->getNodeParent();
+			Vector3 cellSize = map->getCellSize(), waterBodyPos;
+			bool inWater = false;
+		
+			for(int i = 1; i < nodeParent->getNumChildren(); i++){
+				Vector3 wPos = nodeParent->getChild(i)->getPosition();
+				Vector3 wSize = ((Quad*)nodeParent->getChild(i)->getMesh(0))->getSize();
+				
+				if(fabs(wPos.x - placementPos.x) < .5 * wSize.x && fabs(wPos.z - placementPos.z) < .5 * wSize.y){
+					waterBodyPos = wPos;
+					inWater = true;
+					break;
+				}
+			}
 
+			if(!inWater) return;
+		
+			vector<RayCaster::CollisionResult> res = map->raycastTerrain(
+				Vector3(placementPos.x, 100, placementPos.z), 
+				-Vector3::VEC_J,
+				false
+			);
+		
+			vector<Map::Cell> &cells = map->getCells();
+			int cid = map->getCellId(placementPos, false);
+			int numSubmarineCells = cells[cid].underWaterCellIds.size();
+			maxDepth = cells[cid].pos.y;
+			minDepth = (numSubmarineCells > 0 ? cells[cells[cid].underWaterCellIds[numSubmarineCells - 1]].pos.y : maxDepth) - .5 * cellSize.y;
+			minDepthCalculated = true;
+		}
+		else{
+			ActiveGameState *activeState = (ActiveGameState*)(GameManager::getSingleton()->getStateManager()->getAppStateByType((int)AppStateType::ACTIVE_STATE));
+			float newDepth = minDepth + activeState->getDepth() * (maxDepth - minDepth);
+			placementPos.y = newDepth;
+		}
+	}
+
+	void GameObjectFrameController::update(){
 		Map *map = Map::getSingleton();
 		Vector3 startPos = Root::getSingleton()->getCamera()->getPosition();
 		Vector3 endPos = screenToSpace(getCursorPos());
@@ -131,71 +184,38 @@ namespace battleship{
 
 		if(results.empty()) return;
 
-    	float width, length;
+		if(paintSelecting) paintSelect(results[0].pos);
 
-		if(paintSelecting){
-			sol::table sizeTable = generateView()[gameObjectFrames[0].getGameObjTableName()][gameObjectFrames[0].getId() + 1]["size"]; 
-    		width = sizeTable["x"], length = sizeTable["z"];
-			paintSelect(results[0].pos, width, length);
-		}
+		if(placingVertically) shiftVerticalPlacement();
+		else if(placingOnSurface) placementPos = results[0].pos;
 
-		if(placingVertically){
-			if(!minDepthCalculated){
-				placementPos = results[0].pos;
-
-				Node *nodeParent = map->getNodeParent();
-				Vector3 cellSize = map->getCellSize(), waterBodyPos;
-				bool inWater = false;
-		
-				for(int i = 1; i < nodeParent->getNumChildren(); i++){
-					Vector3 wPos = nodeParent->getChild(i)->getPosition();
-					Vector3 wSize = ((Quad*)nodeParent->getChild(i)->getMesh(0))->getSize();
-					
-					if(fabs(wPos.x - placementPos.x) < .5 * wSize.x && fabs(wPos.z - placementPos.z) < .5 * wSize.y){
-						waterBodyPos = wPos;
-						inWater = true;
-						break;
-					}
-				}
-
-				if(!inWater) return;
-		
-				vector<RayCaster::CollisionResult> res = map->raycastTerrain(
-					Vector3(placementPos.x, 100, placementPos.z), 
-					-Vector3::VEC_J,
-					false
-				);
-		
-				vector<Map::Cell> &cells = map->getCells();
-				int cid = map->getCellId(placementPos, false);
-				int numSubmarineCells = cells[cid].underWaterCellIds.size();
-				maxDepth = cells[cid].pos.y;
-				minDepth = (numSubmarineCells > 0 ? cells[cells[cid].underWaterCellIds[numSubmarineCells - 1]].pos.y : maxDepth) - .5 * cellSize.y;
-				minDepthCalculated = true;
-			}
-			else{
-				ActiveGameState *activeState = (ActiveGameState*)(GameManager::getSingleton()->getStateManager()->getAppStateByType((int)AppStateType::ACTIVE_STATE));
-				float newDepth = minDepth + activeState->getDepth() * (maxDepth - minDepth);
-				placementPos.y = newDepth;
-			}
-		}
-		else if(placingOnSurface)
-			placementPos = results[0].pos;
+		vector<GameObject*> deposits;
+		for(ResourceDeposit *rd : Game::getSingleton()->getCivilianPlayer()->getResourceDeposits())
+			deposits.push_back((GameObject*)rd);
 
 		for(int i = 0; i < gameObjectFrames.size(); i++){
+			gameObjectFrames[i].update();
+
 			if(paintSelecting){
+				float width = gameObjectFrames[0].getWidth(); 
+				float length = gameObjectFrames[0].getLength(); 
 				float hypothenuse = sqrt(width * width + length * length);
 				Vector3 dir = (results[0].pos - paintSelectRowStart).norm(); 
 				placementPos = paintSelectRowStart + dir * hypothenuse * i;
 			}
 
 			if(!rotating && (placingOnSurface || placingVertically))
-				placeGameObjectFrame(i, placementPos, width, length);
-		}
-	}
+				gameObjectFrames[i].placeAt(placementPos);
 
-	void GameObjectFrameController::update(){
-		updatePlacement();
+			if(gameObjectFrames[i].getId() == 23)
+				snapToObj(gameObjectFrames[i], deposits, 20);
+			else
+				checkPlacement(gameObjectFrames[i]);
+
+			bool placeable = (gameObjectFrames[i].status == GameObjectFrame::PLACEABLE);
+			Vector4 color = (placeable ? Vector4(0, 1, 0, 1) : Vector4(1, 0, 0, 1));
+			gameObjectFrames[i].getModel()->getMaterial()->setVec4Uniform("diffuseColor", color);
+		}
 
 		if(!placingVertically) minDepthCalculated = false;
 	}

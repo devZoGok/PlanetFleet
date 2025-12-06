@@ -30,6 +30,7 @@ namespace battleship{
 			static sf::Sound* prepareSfx(sf::SoundBuffer*, std::string);
 			bool pointWithinObj(vb01::Vector3, float = 0, float = 0, bool = false, float = 0);
 			void changePlayer(Player *newPlayer);
+			inline float getMaxUnevenness(){return maxUnevenness;}
         	inline vb01::Vector2 getScreenPos(){return screenPos;}
 			inline vb01::Vector3 getCorner(int i){return corners[i];}
 			inline bool isSelectable(){return selectable;}
@@ -69,7 +70,7 @@ namespace battleship{
 			vb01::Vector2 screenPos;
 			vb01::Quaternion rot;
 			bool selectable = false, debugging = false, remove = false;
-			float width, height, length;
+			float width, height, length, maxUnevenness;
 	};
 }
 
