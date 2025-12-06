@@ -10,6 +10,7 @@
 #include <quaternion.h>
 
 #include "pathfinder.h"
+#include "destructable.h"
 #include "defConfigs.h"
 #include "structure.h"
 #include "vehicle.h"
@@ -57,7 +58,7 @@ namespace battleship{
 	}
 
 	bool Vehicle::validateGarrisonOrder(Order order){
-		Unit *targUnit = order.targets[0].unit;
+		Unit *targUnit = (Unit*)order.targets[0].unit;
 
 		for(GarrisonSlot slot : targUnit->getGarrisonSlots())
 			if(!slot.vehicle && slot.category >= garrisonCategory)
@@ -259,7 +260,7 @@ namespace battleship{
 	}
 
 	void Vehicle::enterGarrisonable(){
-		Unit *targUnit = orders[0].targets[0].unit; 
+		Unit *targUnit = (Unit*)orders[0].targets[0].unit; 
 		targUnit->updateGarrison(this, true);
 
 		removeAllPathpoints();
@@ -282,7 +283,7 @@ namespace battleship{
 	}
 
 	void Vehicle::garrison(Order order){
-		Unit *targUnit = order.targets[0].unit;
+		Unit *targUnit = (Unit*)order.targets[0].unit;
 		float distToGarrisonable = pos.getDistanceFrom(targUnit->getPos()), garrisonDist = Map::getSingleton()->getCellSize().x;
 
 		if(distToGarrisonable > garrisonDist)
@@ -425,22 +426,18 @@ namespace battleship{
 
 	void Vehicle::build(Order order){
 		if(pathPoints.empty()){
-			if(!order.targets[0].unit)
-				player->addUnit(order.targets[0].unit);
-			else {
-				Structure *structure = (Structure*)order.targets[0].unit;
-				sol::table targTable = generateView()["units"][structure->getId()];
-				int costRate = (int)targTable["cost"] / 100, buildRate = (int)targTable["buildTime"] / 100;
+			Structure *structure = (Structure*)order.targets[0].unit;
+			sol::table targTable = generateView()["units"][structure->getId()];
+			int costRate = (int)targTable["cost"] / 100, buildRate = (int)targTable["buildTime"] / 100;
 
-				if(structure->getBuildStatus() < 100 && player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastBuildTime > buildRate){
-					structure->incrementBuildStatus();
-					player->updateResource(ResourceType::REFINEDS, -costRate, true);
-					lastBuildTime = getTime();
-				}
-				else if(structure->getBuildStatus() >= 100){
-					removeOrder(0);
-					player->incStructuresBuilt();
-				}
+			if(structure->getBuildStatus() < 100 && player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastBuildTime > buildRate){
+				structure->incrementBuildStatus();
+				player->updateResource(ResourceType::REFINEDS, -costRate, true);
+				lastBuildTime = getTime();
+			}
+			else if(structure->getBuildStatus() >= 100){
+				removeOrder(0);
+				player->incStructuresBuilt();
 			}
 		}
 		else navigate(0.5 * Map::getSingleton()->getCellSize().x);

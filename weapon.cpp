@@ -3,10 +3,12 @@
 #include <particleEmitter.h>
 
 #include "map.h"
+#include "unit.h"
 #include "util.h"
 #include "weapon.h"
 #include "player.h"
 #include "fxManager.h"
+#include "destructable.h"
 #include "gameObjectFactory.h"
 #include "projectile.h"
 
@@ -23,6 +25,7 @@ namespace battleship{
 	{
 		sol::table weaponTable = unitTable["weapons"][wid + 1];
 		maxRange = weaponTable["maxRange"];
+		maxFireAngle = weaponTable["maxFireAngle"].get_or(.1);
 		orderType = (Order::TYPE)weaponTable["orderType"];
 
 		initProjectileData(weaponTable);
@@ -48,11 +51,20 @@ namespace battleship{
 
 		for(int i = 0; i < numNodes; i++){
 			sol::table nodeTbl = weaponTable["nodes"][i + 1];
-			maxFireAngle = nodeTbl["maxFireAngle"];
-			rotSpeed = nodeTbl["rotationSpeed"];
+			float rotSpeed = nodeTbl["rotationSpeed"];
+			bool vertical = nodeTbl["vertical"];
+
+			sol::optional<float> angleConstrOpt = nodeTbl["angleConstraint"];
+			float angleConstr;
+
+			if(angleConstrOpt != sol::nullopt)
+				angleConstr = nodeTbl["angleConstraint"];
+			else angleConstr = (vertical ? PI / 2 : 0);
 
 			string name = nodeTbl["name"];
-			nodes.push_back(unit->getModel()->findDescendant(name, true));
+			Node *node = unit->getModel()->findDescendant(name, true);
+
+			components.push_back(Component(node, rotSpeed, angleConstr, vertical));
 		}
 	}
 
@@ -106,19 +118,15 @@ namespace battleship{
 
 		int numOrders = unit->getNumOrders();
 		int ordTp = (numOrders > 0 ? (int)unit->getOrder(0).type : -1);
-		Unit *targUnit = (ordTp != -1 ? unit->getOrder(0).targets[0].unit : nullptr);
+		GameObject *targDestruct = (ordTp != -1 ? unit->getOrder(0).targets[0].unit : nullptr);
 
 		if(ordTp == (int)orderType){
-			Vector3 targPos = (targUnit ? targUnit->getPos() : unit->getOrder(0).targets[0].pos);
+			Vector3 targPos = (targDestruct ? targDestruct->getPos() : unit->getOrder(0).targets[0].pos);
 			float targDist = unit->getPos().getDistanceFrom(targPos);
-
 			bool withinRange = (minRange <= targDist && targDist <= maxRange);
-			bool withinAngle = true;
 
-			if(!nodes.empty()){
-				Vector3 dirVec = nodes[0]->getGlobalAxis(2);
-				withinAngle = Vector3(dirVec.x, 0, dirVec.z).norm().getAngleBetween((targPos - unit->getPos()).norm()) <= maxFireAngle;
-			}
+			Vector3 dirVec = (components.empty() ? unit->getDirVec() : components[components.size() - 1].node->getGlobalAxis(2));
+			bool withinAngle = (dirVec.getAngleBetween((targPos - unit->getPos()).norm()) <= maxFireAngle);
 
 			if((Order::TYPE)ordTp == Order::TYPE::ATTACK && withinRange && withinAngle)
 				fire(unit->getOrder(0));
@@ -128,10 +136,8 @@ namespace battleship{
 	}
 
 	void Weapon::useFx(FxManager::Fx *fx, Vector3 targPos, bool fire){
-		if(fx && !fire)
-			FxManager::getSingleton()->addFx(fx);
-		else if(!fx)
-			return;
+		if(fx && !fire) FxManager::getSingleton()->addFx(fx);
+		else if(!fx) return;
 
 		fx->toggleComponents(true);
 
@@ -164,17 +170,19 @@ namespace battleship{
 		}
 	}
 
-	void Weapon::updateTargetUnit(Unit *targetUnit){
-		targetUnit->takeDamage(damage);
-		unit->updateGameStats(targetUnit);
+	void Weapon::updateTarget(GameObject *target){
+		target->getDestructable()->takeDamage(damage);
+
+		if(target->getType() == GameObject::Type::UNIT)
+			unit->getPlayer()->updateGameStats((Unit*)target);
 	}
 
 	//TODO replace the 'laser' flag literal 
 	void Weapon::fire(Order order){
 		if(!canFire()) return;
 
-		Unit *targetUnit = order.targets[0].unit;
-		Vector3 targPos = (targetUnit ? targetUnit->getPos() : order.targets[0].pos);
+		GameObject *target = order.targets[0].unit;
+		Vector3 targPos = (target ? target->getPos() : order.targets[0].pos);
 
 		if(fireFx) useFx(fireFx, targPos, true);
 
@@ -183,8 +191,7 @@ namespace battleship{
 			FxManager *fxManager = FxManager::getSingleton();
 			string fxKey = "unitHitFx";
 
-			if(targetUnit)
-				updateTargetUnit(targetUnit);
+			if(target) updateTarget(target);
 			else{
 				Map *map = Map::getSingleton();
 				Map::Cell::Type cellType = map->getCells()[map->getCellId(targPos)].type;
@@ -211,29 +218,37 @@ namespace battleship{
 
 	//TODO improve to allow for vertical alignment 
 	void Weapon::trackTarget(Vector3 targPos){
-		if(nodes.empty()) return;
+		for(Component &component : components){
+			Vector3 unitPos = unit->getPos();
+			Vector3 unitUp = unit->getUpVec();
+			Vector3 targDir = (targPos - unitPos).norm();
+			Vector3 targDirProj = getVecToPlane(unitPos, targDir, unitUp);
 
-		Vector3 unitPos = unit->getPos();
-		Vector3 targDir = (targPos - unitPos).norm();
-		targDir = getVecToPlane(unitPos, targDir, unit->getUpVec());
+			Vector3 nodeDir = component.node->getGlobalAxis(2);
 
-		Vector3 dirVec = getVecToPlane(unitPos, nodes[0]->getGlobalAxis(2), unit->getUpVec());
-		Vector3 leftVec = nodes[0]->getGlobalAxis(0);
-		bool negate = (leftVec.getAngleBetween(targDir) < PI / 2);
+			Vector3 rotAxis;
+			float rotAngle;
 
-		float angle = dirVec.getAngleBetween(targDir);
-		float rotAngle = (rotSpeed < angle ? rotSpeed : angle);
+			if(component.vertical){
+				float angle1 = targDir.getAngleBetween(targDirProj);
+				float angle2 = nodeDir.getAngleBetween(getVecToPlane(unitPos, nodeDir, unitUp));
+				float angleDiff = angle1 - angle2;
+				rotAngle = (component.rotSpeed < fabs(angleDiff) ? component.rotSpeed : fabs(angleDiff)) * (angleDiff > 0 ? -1 : 1);
 
-		Quaternion rot = Quaternion((negate ? 1 : -1) * rotAngle, Vector3::VEC_J) * nodes[0]->getOrientation();
-		nodes[0]->setOrientation(rot);
-	}
+				if(angle2 - rotAngle > component.angleConstr)
+					rotAngle = -(fabs(rotAngle) - (angle2 + fabs(rotAngle) - component.angleConstr));
 
-	CryoGun::CryoGun(Unit *u, sol::table unitTable, int wid) : Weapon(u, unitTable, wid){}
+				rotAxis = Vector3::VEC_I;
+			}
+			else{
+				bool negate = (component.node->getGlobalAxis(0).getAngleBetween(targDirProj) < PI / 2);
+				float angle = nodeDir.getAngleBetween(targDirProj);
+				rotAngle = (negate ? 1 : -1) * (component.rotSpeed < angle ? component.rotSpeed : angle);
+				rotAxis = Vector3::VEC_J;
+			}
 
-	void CryoGun::updateTargetUnit(Unit *targetUnit){
-		if(canFreeze()){
-			targetUnit->setFreezeStatus(targetUnit->getFreezeStatus() + 1);
-			lastFreezeTime = getTime();
+			Quaternion rot = Quaternion(rotAngle, rotAxis) * component.node->getOrientation();
+			component.node->setOrientation(rot);
 		}
 	}
 }

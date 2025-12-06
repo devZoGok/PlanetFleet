@@ -51,6 +51,7 @@ projectiles = {
 	},
 	{
 		projectileClass = ProjectileClass.CRUISE_MISSILE,
+		health = 75,
 		size = {x = 6, y = 13.5, z = 2.54},
 		speed = .5,
 		rotAngle = .1,
@@ -64,6 +65,7 @@ projectiles = {
 	},
 	{
 		projectileClass = ProjectileClass.MISSILE,
+		health = 25,
 		size = {x = 3, y = 7., z = 1.27},
 		speed = .5,
 		rotAngle = .1,

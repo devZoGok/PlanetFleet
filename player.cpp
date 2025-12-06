@@ -6,6 +6,7 @@
 #include "structure.h"
 #include "projectile.h"
 #include "tradeOffer.h"
+#include "destructable.h"
 #include "activeGameState.h"
 #include "resourceDeposit.h"
 
@@ -254,5 +255,35 @@ namespace battleship{
 				selectedUnits.erase(selectedUnits.begin() + i);
 				break;
 			}
+	}
+
+	vector<GameObject*> Player::getDestructables(){
+		vector<GameObject*> destructables;
+
+		for(Projectile *p : projectiles)
+			if(p->getDestructable())
+				destructables.push_back(p);
+
+		for(Unit *unit : units)
+			destructables.push_back((GameObject*)unit);
+
+		return destructables;
+	}
+
+	void Player::updateGameStats(Unit *targetUnit){
+		Destructable *destructTarg = targetUnit->getDestructable();
+
+		if(destructTarg->getHealth() <= destructTarg->getDeathHp()){
+			Player *targUnitPlayer = targetUnit->getPlayer();
+
+			if(targetUnit->isVehicle()){
+				incVehiclesDestroyed();
+				targUnitPlayer->incVehiclesLost();
+			}
+			else{
+				incStructuresDestroyed();
+				targUnitPlayer->incStructuresLost();
+			}
+		}
 	}
 }

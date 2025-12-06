@@ -1,5 +1,6 @@
 #include "engineer.h"
 #include "activeGameState.h"
+#include "destructable.h"
 #include "structure.h"
 #include "player.h"
 #include "game.h"
@@ -21,13 +22,13 @@ namespace battleship{
 		hackRange = generateView()["units"][id + 1]["hackRange"]; hackRange += game->calcAbilFromTech(Ability::Type::HACK_RANGE, currTechs, (int)GameObject::type, id);
 
 		Vector2 size = Vector2(lenHpBar, 10);
-		hackStatusBackground = Unit::createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 0, 1));
-		hackStatusForeground = Unit::createBar(Vector2::VEC_ZERO, size,  Vector4(1, 0, 1, 1));
+		hackStatusBackground = destructable->createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 0, 1));
+		hackStatusForeground = destructable->createBar(Vector2::VEC_ZERO, size,  Vector4(1, 0, 1, 1));
 	}
 
 	Engineer::~Engineer(){
-		removeBar(hackStatusBackground);
-		removeBar(hackStatusForeground);
+		destructable->removeBar(hackStatusBackground);
+		destructable->removeBar(hackStatusForeground);
 	}
 
 	void Engineer::update(){
@@ -40,7 +41,7 @@ namespace battleship{
 		bool mainPlayerSelecting = (activeState && find(selectingPlayers.begin(), selectingPlayers.end(), mainPlayer) != selectingPlayers.end());
 
 		if(hackStatus < 100)
-			Unit::displayUnitStats(hackStatusForeground, hackStatusBackground, hackStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
+			destructable->displayStats(hackStatusForeground, hackStatusBackground, hackStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
 		else{
 			hackStatusBackground->setVisible(false);
 			hackStatusForeground->setVisible(false);
@@ -52,7 +53,7 @@ namespace battleship{
 
 	//TODO change unit colors after faction change
 	void Engineer::hack(Order order){
-		Unit *targUnit = order.targets[0].unit;
+		Unit *targUnit = (Unit*)order.targets[0].unit;
 		bool withinRange = (targUnit->getPos().getDistanceFrom(pos) < hackRange);
 		int hackRate = int(generateView()["units"][id + 1]["hackTime"]) / 100;
 		bool canHack = (getTime() - lastHackTime > hackRate);
