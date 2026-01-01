@@ -1396,7 +1396,8 @@ units = {
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						pos = {x = 0., y = 2.8, z = -.1},
+						parent = 'FrontTurret',
+						pos = {x = 0., y = 5.7, z = 23},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
 					},
@@ -1415,7 +1416,8 @@ units = {
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						pos = {x = 0., y = 2.8, z = -.1},
+						parent = 'RearTurret',
+						pos = {x = 0., y = 5.7, z = 23},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
 					},
@@ -1495,7 +1497,8 @@ units = {
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						pos = {x = 0., y = 2.8, z = -.1},
+						parent = 'frontTurret',
+						pos = {x = 0., y = 2.9, z = 18},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
 					},
@@ -1514,7 +1517,8 @@ units = {
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						pos = {x = 0., y = 2.8, z = -.1},
+						parent = 'rearTurret',
+						pos = {x = 0., y = 2.9, z = 18},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
 					},
@@ -1605,7 +1609,8 @@ units = {
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						pos = {x = 0., y = 2.8, z = -.1},
+						parent = 'frontTurret',
+						pos = {x = 0., y = 2.8, z = 11},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
 					},
@@ -1624,7 +1629,8 @@ units = {
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						pos = {x = 0., y = 2.8, z = -.1},
+						parent = 'rearTurret',
+						pos = {x = 0., y = 2.8, z = 11},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
 					},
@@ -1697,14 +1703,15 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				damage = 10, 
-				maxRange = 50,
+				maxRange = 100,
 				nodes = {{name = 'FrontTurret', rotationSpeed = .05, vertical = false}},
 				fireFx = {
 					{
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						pos = {x = 0., y = 2.8, z = -.1},
+						parent = 'FrontTurret',
+						pos = {x = 0., y = 2.4, z = 10},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
 					},
@@ -1716,14 +1723,15 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				damage = 10, 
-				maxRange = 50,
+				maxRange = 100,
 				nodes = {{name = 'RearTurret', rotationSpeed = .05, vertical = false}},
 				fireFx = {
 					{
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						pos = {x = 0., y = 2.8, z = -.1},
+						parent = 'RearTurret',
+						pos = {x = 0., y = 2.4, z = 10},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
 					},
