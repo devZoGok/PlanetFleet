@@ -186,28 +186,31 @@ namespace battleship{
 				break;
 			}
 			case BUILD:
-				button = new BuildButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["engineerId"], (int)guiTable["slotId"]);
+				button = new BuildButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["slotId"]);
 				break;
 			case TRAIN:
-				button = new TrainButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["factoryId"], (int)guiTable["slotId"]);
+				button = new TrainButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["slotId"]);
 				break;
 			case STATISTICS:
 				button = new StatsButton(pos, size, name, (int)guiTable["trigger"], imagePath);
 				break;
 			case RESEARCH:
-				button = new ResearchButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)SOL_LUA_STATE["UnitId"]["LAB"], (int)guiTable["techId"]);
+				button = new ResearchButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["techId"]);
 				break;
 			case BUY_REFINEDS:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)SOL_LUA_STATE["UnitId"]["TRADE_CENTER"], TradeButton::Type::BUY_REFINEDS);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::BUY_REFINEDS);
 				break;
 			case SELL_REFINEDS:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)SOL_LUA_STATE["UnitId"]["TRADE_CENTER"], TradeButton::Type::SELL_REFINEDS);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::SELL_REFINEDS);
 				break;
 			case BUY_RESEARCH:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)SOL_LUA_STATE["UnitId"]["TRADE_CENTER"], TradeButton::Type::BUY_RESEARCH);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::BUY_RESEARCH);
 				break;
 			case SELL_RESEARCH:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)SOL_LUA_STATE["UnitId"]["TRADE_CENTER"], TradeButton::Type::SELL_RESEARCH);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::SELL_RESEARCH);
+				break;
+			case ACTIVE_STATE_BUTTON:
+				button = new ActiveStateButton(pos, size, guiTable["guiScreen"], name, fontBasePath + "batang.ttf", (int)guiTable["trigger"], imagePath);
 				break;
 			case ACTIVE_STATE_BACK:
 				button = new ActiveStateBackButton(pos, size, name);

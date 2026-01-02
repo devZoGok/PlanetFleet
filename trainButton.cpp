@@ -11,14 +11,14 @@ namespace battleship{
 	using namespace vb01;
 	using namespace gameBase;
 
-	TrainButton::TrainButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath, int uid, int slId) :
-		UnitButton(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, imagePath, uid),
+	TrainButton::TrainButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath, int slId) :
+		UnitButton(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, imagePath),
 		slotId(slId) {}
 
 	void TrainButton::onClick(){
-		vector<Unit*> labs = getUnits(unitId);
+		vector<Unit*> factories = getUnits();
 
-		for(Unit *lab : labs)
-			((Factory*)lab)->appendToQueue(slotId);
+		for(Unit *fac : factories)
+			((Factory*)fac)->appendToQueue(slotId);
 	}
 }

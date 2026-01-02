@@ -16,7 +16,7 @@ gui = {
 	{
 		pos = {x = Pos.x + .5 * (Size.x - techButtonSize.x), y = Pos.y + margin.top, z = .11},
 		size = techButtonSize,
-		name = "APT",
+		name = "ACS APT",
 		imagePath = baseTechPath .. 'apt.jpg',
 		guiType = GuiType.BUTTON,
 		buttonType = ButtonType.RESEARCH,

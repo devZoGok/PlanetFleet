@@ -6,7 +6,7 @@
 namespace battleship{
 	class ResearchButton : public UnitButton{
 		public:
-			ResearchButton(vb01::Vector3, vb01::Vector2, std::string, int, std::string, int, int);
+			ResearchButton(vb01::Vector3, vb01::Vector2, std::string, int, std::string, int);
 			~ResearchButton();
 			void onClick();
 			void update();
