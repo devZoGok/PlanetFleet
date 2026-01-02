@@ -66,6 +66,12 @@ namespace battleship{
 
 			components.push_back(Component(node, rotSpeed, angleConstr, vertical));
 		}
+
+		//using the last node to determine a weapon's init direction
+		Node *node = components[components.size() - 1].node;
+		Vector3 p0 = unit->getModel()->globalToLocalPosition(node->localToGlobalPosition(Vector3::VEC_ZERO));
+		Vector3 p1 = unit->getModel()->globalToLocalPosition(node->localToGlobalPosition(Vector3::VEC_K));
+		initUnitSpaceDir = (p1 - p0).norm();
 	}
 
 	void Weapon::initProjectileData(sol::table weaponTable){
@@ -131,8 +137,14 @@ namespace battleship{
 			if((Order::TYPE)ordTp == Order::TYPE::ATTACK && withinRange && withinAngle)
 				fire(unit->getOrder(0));
 		}
-		else
-			trackTarget(unit->getPos() + unit->getDirVec());
+		else{
+			Vector3 dir = (
+					initUnitSpaceDir.x * unit->getLeftVec() + 
+					initUnitSpaceDir.y * unit->getUpVec() + 
+					initUnitSpaceDir.z * unit->getDirVec()
+				).norm();
+			trackTarget(unit->getPos() + dir);
+		}
 	}
 
 	void Weapon::useFx(FxManager::Fx *fx, Vector3 targPos, bool fire){
