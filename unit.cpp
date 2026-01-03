@@ -13,12 +13,13 @@
 #include <ext.hpp>
 
 #include "unit.h"
+#include "cryoGun.h"
 #include "weapon.h"
 #include "util.h"
 #include "game.h"
 #include "map.h"
 #include "vehicle.h"
-#include "environment.h"
+#include "destructable.h"
 #include "gameObjectFactory.h"
 #include "activeGameState.h"
 #include "gameManager.h"
@@ -33,9 +34,15 @@ using namespace gameBase;
 using namespace std;
 
 namespace battleship{
-    Unit::Unit(Player *player, int id, Vector3 pos, Quaternion rot, State st) : GameObject(GameObject::Type::UNIT, id, player, pos, rot), state(st){
+	//TODO move restartTime to unitData.lua
+    Unit::Unit(Player *player, int id, Vector3 pos, Quaternion rot, State st) : 
+		GameObject(GameObject::Type::UNIT, id, player, pos, rot), 
+		state(st),
+		restartTime(2000)
+	{
 		selectable = true;
-		restartTime = 2000;
+
+		destructable = new Destructable(this);
 
 		Unit::initProperties();
 		initModel();
@@ -46,14 +53,14 @@ namespace battleship{
 		orientAt(rot);
 
 		Vector2 size = Vector2(lenHpBar, 10);
-		hpBackgroundNode = createBar(Vector2::VEC_ZERO, size, Vector4(0, 0, 0, 1));
-		hpForegroundNode = createBar(Vector2::VEC_ZERO, size, Vector4(0, 1, 0, 1));
+		hpBackgroundNode = destructable->createBar(Vector2::VEC_ZERO, size, Vector4(0, 0, 0, 1));
+		hpForegroundNode = destructable->createBar(Vector2::VEC_ZERO, size, Vector4(0, 1, 0, 1));
     }
 
     Unit::~Unit() {
 		Map::getSingleton()->unblockCells(this);
-		removeBar(hpBackgroundNode);
-		removeBar(hpForegroundNode);
+		destructable->removeBar(hpBackgroundNode);
+		destructable->removeBar(hpForegroundNode);
 		destroyWeapons();
 		destroySound();
 		destroyHitbox();
@@ -73,10 +80,6 @@ namespace battleship{
 		string name = unitTable["name"];
 		alignToSurface = unitTable["alignToSurface"].get_or(false);
         vehicle = unitTable["isVehicle"];
-        health += game->calcAbilFromTech(Ability::Type::HEALTH, currTechs, (int)GameObject::type, id);
-		maxHealth = unitTable["health"];
-
-		if(health == 0) health = maxHealth;
 
         lineOfSight = unitTable["lineOfSight"]; lineOfSight += game->calcAbilFromTech(Ability::Type::LINE_OF_SIGHT, currTechs, (int)GameObject::type, id);
         unitClass = (UnitClass)unitTable["unitClass"];
@@ -99,24 +102,10 @@ namespace battleship{
 			for(int i = 0; i < numGarrisonSlots; i++){
 				Vector2 size = 10 * Vector2::VEC_IJ;
 				Vector2 pos = Vector2(1.5 * size.x * i, 20);
-				Node *bg = createBar(pos, size, Vector4(0, 0, 0, 1));
-				Node *fg = createBar(pos, size, Vector4(0, 1, 0, 1));
+				Node *bg = destructable->createBar(pos, size, Vector4(0, 0, 0, 1));
+				Node *fg = destructable->createBar(pos, size, Vector4(0, 1, 0, 1));
 				int category = unitTable[tblName][i + 1];
 				garrisonSlots.push_back(GarrisonSlot(bg, fg, pos, category));
-			}
-		}
-
-		tblName = "armor";
-		sol::optional<sol::table> at = unitTable[tblName];
-
-		if(at != sol::nullopt){
-			string varName = "numArmorTypes"; 
-			SOL_LUA_VIEW.script(varName + " = #" + objType + "[" + to_string(id + 1) + "]." + tblName);
-			int numArmorTypes = SOL_LUA_VIEW[varName];
-
-			for(int i = 0; i < numArmorTypes; i++){
-				Armor arm = (Armor)unitTable[tblName][i + 1];
-				armorTypes.push_back(arm);
 			}
 		}
 
@@ -153,8 +142,14 @@ namespace battleship{
 
 				if(wtOpt != sol::nullopt) wt = unitTable[tblName][i + 1]["type"];
 
-				Weapon *weapon = ((Weapon::Type)wt == Weapon::Type::FREEZER ? new CryoGun(this, unitTable, i) : new Weapon(this, unitTable, i));
-				weapons.push_back(weapon);
+				switch((Weapon::Type)wt){
+					case Weapon::Type::FREEZER:
+						weapons.push_back(new CryoGun(this, unitTable, i));
+						break;
+					default:
+						weapons.push_back(new Weapon(this, unitTable, i));
+						break;
+				}
 			}
 		}
 	}
@@ -226,28 +221,6 @@ namespace battleship{
 		return false;
 	}
 
-	Node* Unit::createBar(Vector2 pos, Vector2 size, Vector4 color){
-		Root *root = Root::getSingleton();
-		Material *mat = new Material(root->getLibPath() + "gui");
-		mat->addBoolUniform("texturingEnabled", false);
-		mat->addVec4Uniform("diffuseColor", color);
-
-		Quad *quad = new Quad(Vector3(size.x, size.y, 0), false);
-		quad->setMaterial(mat);
-
-		Node *node = new Node(Vector3(pos.x, pos.y, 0));
-		node->attachMesh(quad);
-		node->setVisible(false);
-		root->getGuiNode()->attachChild(node);
-
-		return node;
-	}
-
-	void Unit::removeBar(Node *node){
-		Root::getSingleton()->getGuiNode()->dettachChild(node);
-		delete node;
-	}
-
 	void Unit::launch(Order order){
 		getWeaponsByOrder(Order::TYPE::LAUNCH)[0]->fire(order);
 		removeOrder(0);
@@ -260,10 +233,6 @@ namespace battleship{
 			rotSpeed *= -1;
 
 		return rotSpeed;
-	}
-
-
-	void Unit::initUnitStats(){
 	}
 
 	void Unit::renderOrderLine(bool mainPlayerSelecting){
@@ -280,79 +249,54 @@ namespace battleship{
         }
 	}
 
-	void Unit::targetUnitsAutomatically(){
+	//TODO clean up method code
+	void Unit::autoAttackTargets(){
+		if(!orders.empty()) return;
+
 		vector<Player*> players = Game::getSingleton()->getPlayers();
-		vector<Unit*> units;
+		vector<GameObject*> targets;
 
 		for(Player *pl : players)
 			if(!(pl == player || pl->getTeam() == player->getTeam())){
-				vector<Unit*> un = pl->getUnits();
-				units.insert(units.end(), un.begin(), un.end());
+				vector<GameObject*> targs = pl->getDestructables();
+				targets.insert(targets.end(), targs.begin(), targs.end());
 			}
 
-		if(orders.empty())
-			for(Unit *unit : units)
-				if(unit->getPos().getDistanceFrom(pos) < lineOfSight){
-					receiveOrder(Order(Order::TYPE::ATTACK, vector<Order::Target>{Order::Target(unit)}, Vector3::VEC_ZERO, -1, false), false);
-					break;
-				}
+		for(GameObject *targ : targets)
+			if(targ->getPos().getDistanceFrom(pos) < lineOfSight){
+				receiveOrder(Order(Order::TYPE::ATTACK, vector<Order::Target>{Order::Target(targ)}, Vector3::VEC_ZERO, -1, false), false);
+				break;
+			}
 	}
 
     void Unit::update() {
 		GameObject::update();
+		destructable->update();
 
 		if(condition == Condition::EM_JAMMED && getTime() - lastJamTime > restartTime)
 			condition = Condition::ABLE;
 
-		if(freezeStatus >= 100) condition = Condition::FROZEN;
+		if(destructable->getFreezeStatus() >= 100) condition = Condition::FROZEN;
+
+		if(state != State::HOLD_FIRE)
+			autoAttackTargets();
 
 		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
 		Player *mainPlayer = (activeState ? activeState->getPlayer() : nullptr);
-
-		if(state != State::HOLD_FIRE)
-			targetUnitsAutomatically();
-
 		vector<Player*> selectingPlayers = getSelectingPlayers();
 		bool mainPlayerSelecting = (find(selectingPlayers.begin(), selectingPlayers.end(), mainPlayer) != selectingPlayers.end());
 		bool mainPlayerOwner = (player == mainPlayer);
 		bool renderSelectables = (mainPlayerSelecting && mainPlayerOwner);
-
 		renderOrderLine(renderSelectables);
-        executeOrders();
 
-		displayUnitStats(hpForegroundNode, hpBackgroundNode, health, maxHealth, mainPlayerSelecting);
+        executeOrders();
+		destructable->displayStats(hpForegroundNode, hpBackgroundNode, destructable->getHealth(), destructable->getMaxHealth(), mainPlayerSelecting);
 
 		for(GarrisonSlot &slot : garrisonSlots)
-			displayUnitStats(slot.foreground, slot.background, (int)((bool)slot.vehicle), (int)true, renderSelectables, slot.offset);
-
-        if (health <= DEATH_HP){
-			sol::table tbl = generateView()[getGameObjTableName()][id + 1]["deathFx"];
-			FxManager::Fx *fx = FxManager::getSingleton()->initFx(tbl, model, false, pos);
-			Environment::explode(fx, Environment::Detonation::EXPLOSION, pos);
-			remove = true;
-		}
+			destructable->displayStats(slot.foreground, slot.background, (int)((bool)slot.vehicle), (int)true, renderSelectables, slot.offset);
 
 		for(Weapon *weapon : weapons)
 			weapon->update();
-    }
-
-    void Unit::displayUnitStats(Node *foreground, Node *background, int currVal, int maxVal, bool render, Vector2 offset) {
-		foreground->setVisible(render);
-		background->setVisible(render);
-
-		if(render){
-			Vector3 offset3d = Vector3(offset.x, offset.y, 0);
-
-			Quad *bgQuad = (Quad*)background->getMesh(0);
-			Vector3 size = bgQuad->getSize();
-			float shiftedX = screenPos.x - 0.5 * size.x;
-			background->setPosition(Vector3(shiftedX, screenPos.y, 0) + offset3d);
-
-			Quad *fgQuad = (Quad*)foreground->getMesh(0);
-			fgQuad->setSize(Vector3((float)currVal / maxVal * size.x, size.y, 0));
-			fgQuad->updateVerts(fgQuad->getMeshBase());
-			foreground->setPosition(Vector3(shiftedX, screenPos.y, .01) + offset3d);
-		}
     }
 
 	//TODO remove order argument from action methods
@@ -423,16 +367,16 @@ namespace battleship{
 	}
 
 	void Unit::attack(Order order){
-		vector<Unit*> units;
+		vector<GameObject*> targets;
 
 		for(Player *pl : Game::getSingleton()->getPlayers()){
-			vector<Unit*> un = pl->getUnits();
-			units.insert(units.end(), un.begin(), un.end());
+			vector<GameObject*> targs = pl->getDestructables();
+			targets.insert(targets.end(), targs.begin(), targs.end());
 		}
 
 		for(Order::Target &target : orders[0].targets)
 			if(target.unit){
-				if(find(units.begin(), units.end(), target.unit) != units.end())
+				if(find(targets.begin(), targets.end(), target.unit) != targets.end())
 					break;
 
 				removeOrder(0);
@@ -447,8 +391,11 @@ namespace battleship{
 
 	bool Unit::validateOrder(Order order){
 		switch (order.type) {
-		    case Order::TYPE::ATTACK:
-				return !getWeaponsByOrder(Order::TYPE::ATTACK).empty();
+		    case Order::TYPE::ATTACK:{
+				GameObject *target = order.targets[0].unit;
+				bool destructTarg = (!target || (target && target->getDestructable()));
+				return destructTarg && !getWeaponsByOrder(Order::TYPE::ATTACK).empty();
+			}
 		    case Order::TYPE::BUILD:
 				return (unitClass == UnitClass::ENGINEER || unitClass == UnitClass::FREEZER);
 		    case Order::TYPE::PATROL:

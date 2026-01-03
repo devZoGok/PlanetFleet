@@ -21,6 +21,7 @@ namespace battleship {
         virtual ~Projectile();
         virtual void update();
         virtual void debug();
+		inline ProjectileClass getProjectileClass(){return projClass;}
 	private:
 		void initProperties();
 		void detonate(Unit *u = nullptr);
@@ -31,6 +32,7 @@ namespace battleship {
 		void checkCollision();
 
 		vb01::Vector3 initPos;
+		ProjectileClass projClass; 
 		Unit *unit = nullptr;
 		FxManager::Fx *explosionFx = nullptr;
         float speed, rayLength, explosionRadius, rotAngle;

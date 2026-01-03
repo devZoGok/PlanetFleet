@@ -13,6 +13,7 @@
 #include "environment.h"
 #include "projectile.h"
 #include "defConfigs.h"
+#include "destructable.h"
 #include "resourceDeposit.h"
 #include "inGameAppState.h"
 
@@ -54,6 +55,8 @@ namespace battleship{
 		vector<int> currTechs = player->getTechnologies();
 
 		sol::table projTable = generateView()[GameObject::getGameObjTableName()][id + 1];
+		projClass = (ProjectileClass)projTable["projectileClass"];
+
         rayLength = projTable["rayLength"];
         directHitDamage = projTable["directHitDamage"]; directHitDamage += game->calcAbilFromTech(Ability::Type::DIRECT_HIT_DAMAGE, currTechs, (int)GameObject::type, id);
 
@@ -70,7 +73,7 @@ namespace battleship{
     }
 
 	void Projectile::detonate(Unit *target){
-		if(target) target->takeDamage(directHitDamage);
+		if(target) target->getDestructable()->takeDamage(directHitDamage);
 
 		sol::table tbl = generateView()[getGameObjTableName()][id + 1]["explosion"];
 		FxManager::Fx *fx = FxManager::getSingleton()->initFx(tbl["fx"], model, false, pos);

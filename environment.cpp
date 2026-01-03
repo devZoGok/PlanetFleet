@@ -3,6 +3,7 @@
 #include "player.h"
 #include "unit.h"
 #include "game.h"
+#include "destructable.h"
 
 #include <root.h>
 #include <node.h>
@@ -36,7 +37,7 @@ namespace battleship{
 				if(distance < radius){
 					switch(det){
 						case Detonation::EXPLOSION:
-							un->takeDamage(int(damage * (1.f - distance / radius)));
+							un->getDestructable()->takeDamage(int(damage * (1.f - distance / radius)));
 							break;
 						case Detonation::EMP:
 							un->setCondition(Unit::Condition::EM_JAMMED);

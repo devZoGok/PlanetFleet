@@ -16,6 +16,7 @@
 #include "player.h"
 #include "factory.h"
 #include "engineer.h"
+#include "destructable.h"
 #include "pointDefense.h"
 #include "resourceDeposit.h"
 
@@ -44,7 +45,7 @@ namespace battleship{
 		);
 
 		SOL_LUA_STATE.new_usertype<Order::Target>(
-			"Target", sol::constructors<Order::Target(), Order::Target(Unit*, Vector3)>(),
+			"Target", sol::constructors<Order::Target(), Order::Target(GameObject*, Vector3)>(),
 			"unit", &Order::Target::unit,
 			"pos", &Order::Target::pos
 		);
@@ -58,6 +59,7 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<Unit>(
 			"Unit", sol::constructors<Unit(Player*, int, Vector3, Quaternion)>(),
 			"setState", &Unit::setState,
+			"getDestructable", &Unit::getDestructable,
 			"getOrder", &Unit::getOrder,
 			"getNumOrders", &Unit::getNumOrders,
 			"getPos", &GameObject::getPos,
@@ -66,7 +68,8 @@ namespace battleship{
 			"toEngineer", &Unit::toEngineer,
 			"toPointDefense", &Unit::toPointDefense,
 			"toStructure", &Unit::toStructure,
-			"toFactory", &Unit::toFactory
+			"toFactory", &Unit::toFactory,
+			"toGameObject", &Unit::toGameObject
 		);
 
 		SOL_LUA_STATE.new_usertype<Structure>(

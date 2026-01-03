@@ -173,7 +173,8 @@ units = {
 				rateOfFire = 1000, 
 				damage = 200, 
 				maxRange = 50,
-				nodes = {{name = 'Turret', rotationSpeed = .05, maxFireAngle = .1}},
+				maxFireAngle = .1,
+				nodes = {{name = 'Turret', rotationSpeed = .05, vertical = false}},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'Turret', pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -230,9 +231,10 @@ units = {
 				rateOfFire = 2000, 
 				damage = 5000, 
 				maxRange = 70,
+				maxFireAngle = .1,
 				nodes = {
-					{name = 'turret', rotationSpeed = .05, maxFireAngle = .1},
-					{name = 'tubes', rotationSpeed = .05, maxFireAngle = .1}
+					{name = 'turret', rotationSpeed = .05, vertical = false},
+					--{name = 'tubes', rotationSpeed = .05, vertical = true}
 				},
 				projectile = {id = ProjectileId.MISSILE, parent = 'tubes', pos = {x = 0.95, y = 2.16, z = 4.11}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
@@ -896,7 +898,8 @@ units = {
 				rateOfFire = 1000, 
 				damage = 0, 
 				maxRange = 25,
-				nodes = {{name = 'turret', rotationSpeed = .05, maxFireAngle = .1}},
+				maxFireAngle = .1,
+				nodes = {{name = 'turret', rotationSpeed = .05, vertical = false}},
 				projectile = {id = ProjectileId.EMP_SHELL, parent = 'turret', pos = {x = 0.06, y = 5.82, z = 11.4}, rot = {w = .998, x = -.066, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -1024,11 +1027,12 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100, 
-				damage = 50, 
-				maxRange = 50,
+				damage = 17, 
+				maxRange = 100,
+				maxFireAngle = .4,
 				nodes = {
-					{name = 'TurretBody', rotationSpeed = .05, maxFireAngle = .1},
-					{name = 'TurretArms', rotationSpeed = .05, maxFireAngle = .1}
+					{name = 'TurretBody', rotationSpeed = .1, vertical = false},
+					{name = 'TurretArms', rotationSpeed = .1, angleConstraint = 1.1, vertical = true}
 				},
 				fireFx = {
 					{

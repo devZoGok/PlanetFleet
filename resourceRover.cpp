@@ -1,5 +1,6 @@
 #include "resourceRover.h"
 #include "resourceDeposit.h"
+#include "destructable.h"
 #include "map.h"
 #include "game.h"
 #include "player.h"
@@ -16,15 +17,15 @@ namespace battleship{
 
 	ResourceRover::ResourceRover(Player *player, int id, Vector3 pos, Quaternion rot, Unit::State state) : Vehicle(player, id, pos, rot, state) {
 		Vector2 size = Vector2(lenHpBar, 10);
-		loadBackground = Unit::createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 0, 1));
-		loadForeground = Unit::createBar(Vector2::VEC_ZERO, size,  Vector4(1, 1, 0, 1));
+		loadBackground = destructable->createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 0, 1));
+		loadForeground = destructable->createBar(Vector2::VEC_ZERO, size,  Vector4(1, 1, 0, 1));
 
 		initProperties();
 	}
 
 	ResourceRover::~ResourceRover(){
-		removeBar(loadForeground);
-		removeBar(loadBackground);
+		destructable->removeBar(loadForeground);
+		destructable->removeBar(loadBackground);
 	}
 
 	void ResourceRover::initProperties(){
@@ -166,7 +167,7 @@ namespace battleship{
 		vector<Player*> selectingPlayers = getSelectingPlayers();
 		bool mainPlayerSelecting = (activeState && find(selectingPlayers.begin(), selectingPlayers.end(), mainPlayer) != selectingPlayers.end());
 
-		Unit::displayUnitStats(loadForeground, loadBackground, calcTotalLoad(), capacity, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
+		destructable->displayStats(loadForeground, loadBackground, calcTotalLoad(), capacity, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
 	}
 
 	Unit* ResourceRover::getClosestUnit(vector<Structure*> structs){
