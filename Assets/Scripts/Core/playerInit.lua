@@ -10,7 +10,6 @@ for i = 1, #game.players do
 					{
 						type = BTNodeType.SEQUENCE, 
 						children = {
-							{type = BTNodeType.FUNCTION, func = 'buildLandFactory'},
 							{type = BTNodeType.FUNCTION, func = 'buildHarvester'},
 						}
 					},
@@ -35,6 +34,8 @@ for i = 1, #game.players do
 					},
 				}
 			},
+			--[[
+			]]--
 		}
 	}
 end

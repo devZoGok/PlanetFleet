@@ -19,6 +19,8 @@ namespace battleship{
 
 		if(rd) return;
 
+		initProperties();
+
 		for(ResourceDeposit *dep : Game::getSingleton()->getCivilianPlayer()->getResourceDeposits())
 			if(dep->getPos().getDistanceFrom(pos) < .001){
 				deposit = dep;
@@ -35,7 +37,6 @@ namespace battleship{
 	}
 
 	void Extractor::initProperties(){
-		Structure::initProperties();
 		Game *game = Game::getSingleton();
 		vector<int> currTechs = player->getTechnologies();
 

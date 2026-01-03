@@ -69,7 +69,17 @@ namespace battleship{
 			"toPointDefense", &Unit::toPointDefense,
 			"toStructure", &Unit::toStructure,
 			"toFactory", &Unit::toFactory,
-			"toGameObject", &Unit::toGameObject
+			"toGameObject", &Unit::toGameObject,
+			"getBuildableUnit", &Unit::getBuildableUnit,
+			"getBuildableUnits", &Unit::getBuildableUnits,
+			"getNumBuildableUnits", &Unit::getNumBuildableUnits
+		);
+
+		SOL_LUA_STATE.new_usertype<Engineer>(
+			"Engineer", sol::constructors<Engineer(Player*, int, Vector3, Quaternion, Unit::State)>(),
+			"getBuildableUnit", &Unit::getBuildableUnit,
+			"getBuildableUnits", &Unit::getBuildableUnits,
+			"getNumBuildableUnits", &Unit::getNumBuildableUnits
 		);
 
 		SOL_LUA_STATE.new_usertype<Structure>(
@@ -78,8 +88,17 @@ namespace battleship{
 			"getBuildStatus", &Structure::getBuildStatus
 		);
 
+		SOL_LUA_STATE.new_usertype<BuildableUnit>(
+			"BuildableUnit", sol::constructors<BuildableUnit(int, bool)>(),
+			"id", &BuildableUnit::id,
+			"buildable", &BuildableUnit::buildable
+		);
+
 		SOL_LUA_STATE.new_usertype<Factory>(
 			"Factory", sol::constructors<Factory(Player*, int, Vector3, Quaternion, int)>(),
+			"getBuildableUnit", &Unit::getBuildableUnit,
+			"getBuildableUnits", &Unit::getBuildableUnits,
+			"getNumBuildableUnits", &Unit::getNumBuildableUnits,
 			"getPos", &GameObject::getPos,
 			"appendToQueue", &Factory::appendToQueue,
 			"getBuildStatus", &Structure::getBuildStatus,
@@ -98,6 +117,7 @@ namespace battleship{
 			"selectUnits", &Player::selectUnits,
 			"deselectUnits", &Player::deselectUnits,
 			"getSpawnPointId", &Player::getSpawnPointId,
+			"getFaction", &Player::getFaction,
 			"getTeam", &Player::getTeam,
 			"getUnits", &Player::getUnits,
 			"getUnitsById", &Player::getUnitsById,
