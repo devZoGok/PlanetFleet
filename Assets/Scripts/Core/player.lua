@@ -11,9 +11,85 @@ Player.taskForceData = {
 
 Player.taskForces = {}
 
+function Player:getBuildableUnitIdFromClass(unit, unitClass)
+	buildableUnits = unit:getBuildableUnits()
+
+	for i = 1, #buildableUnits do
+		if buildableUnits[i].buildable and units[buildableUnits[i].id + 1].unitClass == unitClass then
+			return i
+		end
+	end
+
+	return -1
+end
+
+function Player:getFactionUnitIdFromClass(unitClass)
+	faction = self:getFaction()
+
+	if unitClass == UnitClass.LAND_FACTORY then
+		if faction == 0 then 
+			return UnitId.AINC_LAND_FACTORY
+		elseif faction == 1 then 
+			return UnitId.ER_LAND_FACTORY
+		elseif faction == 2 then 
+			return UnitId.ACS_LAND_FACTORY
+		end
+	elseif unitClass == UnitClass.REFINERY then
+		if faction == 0 then 
+			return UnitId.AINC_REFINERY
+		elseif faction == 1 then 
+			return UnitId.ER_REFINERY
+		elseif faction == 2 then 
+			return UnitId.ACS_REFINERY
+		end
+	elseif unitClass == UnitClass.LAB then
+		if faction == 0 then 
+			return UnitId.AINC_LAB
+		elseif faction == 1 then 
+			return UnitId.ER_LAB
+		elseif faction == 2 then 
+			return UnitId.ACS_LAB
+		end
+	elseif unitClass == UnitClass.ENGINEER then
+		if faction == 0 then 
+			return UnitId.AINC_ROBO_ENGINEER
+		elseif faction == 1 then 
+			return UnitId.ER_ROBO_ENGINEER
+		elseif faction == 2 then 
+			return UnitId.ACS_ROBO_ENGINEER
+		end
+	elseif unitClass == UnitClass.MECH then
+		if faction == 0 then 
+			return UnitId.AINC_MECH
+		elseif faction == 1 then 
+			return UnitId.ER_MECH
+		elseif faction == 2 then 
+			return UnitId.ACS_MECH
+		end
+	elseif unitClass == UnitClass.TANK then
+		if faction == 0 then 
+			return UnitId.AINC_TANK
+		elseif faction == 1 then 
+			return UnitId.ER_TANK
+		elseif faction == 2 then 
+			return UnitId.ACS_TANK
+		end
+	elseif unitClass == UnitClass.ARTILLERY then
+		if faction == 0 then 
+			return UnitId.AINC_ARTILLERY
+		elseif faction == 1 then 
+			return UnitId.ER_ARTILLERY
+		elseif faction == 2 then 
+			return UnitId.ACS_ARTILLERY
+		end
+	end
+
+	return -1
+end
+
 --TODO simplify building construction
 function Player:buildFort(arguments)
-	forts = self:getUnitsByClass(UnitClass.FORT, 1)
+	forts = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)
 
 	if #forts > 0 then
 		return forts[1]:toStructure():getBuildStatus() == 100 and BTNodeResult.SUCCESS or BTNodeResult.RUNNING
@@ -44,7 +120,7 @@ function Player:buildFort(arguments)
 	self.baseDir = map:getSpawnPoint(minDistId):subtr(sp):norm()
 	right = (self.baseDir:getAngleBetween(Vector3:new(1, 0, 0)) > 1.57)
 	angle = self.baseDir:getAngleBetween(Vector3:new(0, 0, 1)) * (right and -1 or 1)
-	fort = GameObjectFactory.createUnit(self, UnitId.FORT, sp, Quaternion:new(angle, Vector3:new(0, 1, 0)), 0)
+	fort = GameObjectFactory.createUnit(self, self:getFactionUnitIdFromClass(UnitClass.LAND_FACTORY), sp, Quaternion:new(angle, Vector3:new(0, 1, 0)), 0)
 	self:addUnit(fort)
 	self:issueOrder(OrderType.BUILD, Vector3:new(0, 0, 0), {Target:new(fort:toGameObject(), Vector3:new(0, 0, 0))}, false)
 
@@ -52,12 +128,14 @@ function Player:buildFort(arguments)
 end
 
 function Player:trainEngineers(arguments)
-	fort = self:getUnitsByClass(UnitClass.FORT, 1)[1]:toFactory()
+	fort = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]:toFactory()
 	engineers = self:getUnitsByClass(UnitClass.ENGINEER, -1)
 	engineerDiffNum = self.numStartEngis - #engineers
 	queueDiff = engineerDiffNum - #fort:getQueue()
 
-	for i = 1, queueDiff do fort:appendToQueue(0) end
+	engiBuildId = self:getBuildableUnitIdFromClass(fort, UnitClass.ENGINEER)
+
+	for i = 1, queueDiff do fort:appendToQueue(engiBuildId) end
 
 	engisStartNumBuilt = (#self:getUnitsByClass(UnitClass.ENGINEER, -1) == self.numStartEngis)
 	return (engisStartNumBuilt and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
@@ -91,15 +169,9 @@ function Player:buildStructure(engineer, buildingId, buildPos, buildAngle)
 	return (building:toStructure():getBuildStatus() == 100 and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
 end
 
--- TODO dispatch another engineer if the previous is destroyed before completion
-function Player:buildLandFactory(arguments)
-	buildPos = Map.getSingleton():getSpawnPoint(self:getSpawnPointId()):add(self.baseDir:mult(20))
-	return self:buildStructure(self:findIdleEngineer(), UnitId.LAND_FACTORY, buildPos, .6)
-end
-
 function Player:buildRefinery(arguments)
 	buildPos = Map.getSingleton():getSpawnPoint(self:getSpawnPointId()):add(self.baseDir:mult(20))
-	return self:buildStructure(self:findIdleEngineer(), UnitId.REFINERY, buildPos, -.1)
+	return self:buildStructure(self:findIdleEngineer(), self:getFactionUnitIdFromClass(UnitClass.REFINERY), buildPos, -.1)
 end
 
 -- TODO optimize deposit position check

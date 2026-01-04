@@ -17,6 +17,7 @@
 #include <root.h>
 
 #include <stateManager.h>
+#include <solUtil.h>
 
 #include <string>
 
@@ -136,6 +137,7 @@ namespace battleship{
 		}
 	}
 
+	//TODO replace the magic number for ray casting height
 	void GameObjectFrameController::shiftVerticalPlacement(){
 		if(!minDepthCalculated){
 			Map *map = Map::getSingleton();
@@ -207,7 +209,14 @@ namespace battleship{
 			if(!rotating && (placingOnSurface || placingVertically))
 				gameObjectFrames[i].placeAt(placementPos);
 
-			if(gameObjectFrames[i].getId() == 23)
+			bool extractor = false;
+
+			if(gameObjectFrames[i].getType() == GameObject::Type::UNIT){
+				sol::table tbl = generateView()["units"][gameObjectFrames[i].getId() + 1];
+				extractor = ((UnitClass)tbl["unitClass"] == UnitClass::EXTRACTOR);
+			}
+
+			if(extractor)
 				snapToObj(gameObjectFrames[i], deposits, 20);
 			else
 				checkPlacement(gameObjectFrames[i]);

@@ -22,8 +22,6 @@ namespace battleship{
 	}
 
 	void Destructable::initProperties(){
-		//GameObject::initProperties();
-
 		int id = gameObject->getId();
 		sol::state_view SOL_LUA_VIEW = generateView();
 		string objType = gameObject->getGameObjTableName();
@@ -50,7 +48,6 @@ namespace battleship{
 		}
 	}
 
-	//TODO make this class a friend to GameObject
 	void Destructable::update(){
         if (health <= DEATH_HP){
 			gameObject->setRemove(true);

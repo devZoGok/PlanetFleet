@@ -135,6 +135,8 @@ namespace battleship{
 		inline Order getOrder(int i){return orders[i];}
 		inline int getNumOrders(){return orders.size();}
 		inline std::string getGuiScreen(){return guiScreen;}
+		inline std::vector<BuildableUnit> getBuildableUnits(){return buildableUnits;}
+		inline int getNumBuildableUnits(){return buildableUnits.size();}
 		inline BuildableUnit getBuildableUnit(int i){return buildableUnits[i];}
 		inline vb01::Node* getLosLightNode(){return losLightNode;}
 		inline Condition getCondition(){return condition;}

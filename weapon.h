@@ -23,6 +23,7 @@ namespace battleship{
 
 			struct Component{
 				vb01::Node *node = nullptr;
+				vb01::Vector3 initUnitSpaceDir;
 				float rotSpeed, angleConstr;
 				bool vertical;
 
@@ -53,7 +54,7 @@ namespace battleship{
 			vb01::s64 lastFireTime = 0;
 			FxManager::Fx *fireFx = nullptr;
 			vb01::Quaternion projRot;
-			vb01::Vector3 projPos;
+			vb01::Vector3 projPos, initUnitSpaceDir; 
 			vb01::Node *projPar = nullptr;
 			static std::string LASER_FLAG;
 

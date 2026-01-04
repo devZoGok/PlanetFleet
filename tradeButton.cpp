@@ -9,7 +9,7 @@ namespace battleship{
 	using namespace vb01;
 	using namespace gameBase;
 
-	TradeButton::TradeButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath, int uid, Type t) : UnitButton(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, imagePath, uid), type(t){}
+	TradeButton::TradeButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath, Type t) : UnitButton(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, imagePath), type(t){}
 
 	void TradeButton::onClick(){
 		ActiveGameState *activeState = (ActiveGameState*)(GameManager::getSingleton()->getStateManager()->getAppStateByType((int)AppStateType::ACTIVE_STATE));
