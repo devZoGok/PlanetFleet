@@ -120,113 +120,6 @@ explosionSfx = {
 	path = PATH .. 'Sounds/SFX/Explosions/explosion00.ogg',
 	duration = 2500
 }
-	--[[
-	{
-		weapons = {
-			{
-				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
-				maxRange = 50,
-				fireFx = {
-					{
-						vfx = true,
-						duration = 50,
-						mesh = {
-							size = {x = .16, y = .16},
-							color = {x = 1, y = 0, z = 0, a = 1},
-						},
-						pos = {x = 0., y = 2.8, z = -.1},
-						rot = {w = 1, x = 0, y = 0, z = 0},
-						--scale = .5
-					},
-					{
-						vfx = false,
-						duration = 50,
-						path = PATH .. 'Sounds/Units/Cruisers/fire.ogg',
-					}
-				},
-				hitFx = {}
-			}
-		},
-		unitClass = UnitClass.CRUISER,
-		unitType = UnitType.SEA_LEVEL,
-		armor = {ArmorType.STEEL},
-		isVehicle = true,
-		health = 500,
-		buildTime = 1000,
-		cost = 500,
-		size = {x = 18.8, y = 17.5, z = 52.6},
-		hitboxOffset = {x = 0, y = 1.9, z = 0},
-		lineOfSight = 5,
-		colorNodes = {'tacticalCruiser.001'},
-		name = 'Tactical cruiser',
-		basePath = PATH .. vehiclePrefix .. 'Cruisers/',
-		meshPath = 'tacticalCruiser.xml',
-		albedoPath = 'cruiser.jpg',
-		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		speed = .1,
-		destinationOffset = .1,
-		anglePrecision = .1,
-		maxTurnAngle = .1,
-		garrisonCategory = 3,
-		deathFx = {explosionVfx, explosionSfx},
-	},
-	{
-		unitClass = UnitClass.TRANSPORT,
-		unitType = UnitType.HOVER,
-		maxUnevenness = .5,
-		alignToSurface = true,
-		isVehicle = true,
-		health = 500,
-		buildTime = 1000,
-		cost = 500,
-		size = {x = 21, y = 17.5, z = 56.6},
-		garrisonCapacity = {2, 2, 2},
-		hitboxOffset = {x = 0, y = 0, z = 0},
-		lineOfSight = 5,
-		colorNodes = {'TransportTemplateOBJ.001'},
-		albedoPath = 'transport.jpg',
-		name = 'Scout transport',
-		basePath = PATH .. vehiclePrefix .. 'Transports/',
-		meshPath = 'scoutTransport.xml',
-		selectionSfx = PATH .. 'Sounds/Units/Transports/selection.ogg',
-		speed = .1,
-		destinationOffset = .1,
-		anglePrecision = .1,
-		maxTurnAngle = .1,
-		garrisonCategory = 3,
-		deathFx = {explosionVfx, explosionSfx},
-	},
-	{
-		weapons = {{orderType = OrderType.ATTACK, rateOfFire = 2000, fireSfx = PATH .. 'Sounds/Units/Tanks/attack.ogg', damage = 100, maxRange = 25}},
-		unitClass = UnitClass.TRANSPORT,
-		unitType = UnitType.HOVER,
-		armor = {ArmorType.MECHANIC},
-		maxUnevenness = .5,
-		alignToSurface = true,
-		isVehicle = true,
-		health = 500,
-		buildTime = 1000,
-		cost = 500,
-		garrisonCapacity = {2, 2, 2},
-		size = {x = 17.5, y = 16.5, z = 63.5},
-		hitboxOffset = {x = 0, y = 0, z = 0},
-		lineOfSight = 5,
-		colorNodes = {'Cube.002'},
-		name = 'Hover transport',
-		basePath = PATH .. vehiclePrefix .. 'Transports/',
-		meshPath = 'hoverTransport.xml',
-		albedoPath = 'transport.jpg',
-		selectionSfx = PATH .. 'Sounds/Units/Transports/selection.ogg',
-		speed = .1,
-		destinationOffset = .1,
-		anglePrecision = .1,
-		maxTurnAngle = .1,
-		garrisonCategory = 3,
-		deathFx = {explosionVfx, explosionSfx},
-	},
-	]]--
 units = {
 	{
 		weapons = {
@@ -508,9 +401,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				damage = 200, 
-				maxRange = 50,
+				maxRange = 250,
 				maxFireAngle = .1,
-				nodes = {{name = 'TankGun_AM', rotationSpeed = .05, vertical = false}, {name = 'barell', rotationSpeed = .05, vertical = true}},
+				nodes = {{name = 'TankGun_AM', rotationSpeed = .05, vertical = false}, {name = 'barell', rotationSpeed = .05, angleConstraints = {min = -.2, max = .74}, vertical = true}},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'TankGun_AM', pos = {x = 0.06, y = .19, z = 9.18}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -1430,7 +1323,7 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 70,
-				nodes = {{name = 'AATuret', rotationSpeed = .05, vertical = false}, {name = 'aaBarrels', angleConstraint = 0.8, rotationSpeed = .05, vertical = true}},
+				nodes = {{name = 'AATuret', rotationSpeed = .05, vertical = false}, {name = 'aaBarrels', angleConstraints = {min = 0, max = .8}, rotationSpeed = .05, vertical = true}},
 				fireFx = {
 					{
 						vfx = true,
@@ -2751,7 +2644,7 @@ units = {
 				maxFireAngle = .4,
 				nodes = {
 					{name = 'TurretBody', rotationSpeed = .1, vertical = false},
-					{name = 'TurretArms', rotationSpeed = .1, angleConstraint = 1.1, vertical = true}
+					{name = 'TurretArms', rotationSpeed = .1, angleConstraints = {min = 0, max = 1.1}, vertical = true}
 				},
 				fireFx = {
 					{

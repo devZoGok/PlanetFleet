@@ -24,13 +24,14 @@ namespace battleship{
 			struct Component{
 				vb01::Node *node = nullptr;
 				vb01::Vector3 initUnitSpaceDir;
-				float rotSpeed, angleConstr;
+				float rotSpeed, minAngle, maxAngle;
 				bool vertical;
 
-				Component(vb01::Node *n, float rs, float ac, bool v) :
+				Component(vb01::Node *n, float rs, float min, float max, bool v) :
 					node(n), 
 					rotSpeed(rs), 
-					angleConstr(ac), 
+					minAngle(min), 
+					maxAngle(max), 
 					vertical(v) {}
 			};
 
