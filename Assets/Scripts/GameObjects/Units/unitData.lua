@@ -345,7 +345,7 @@ units = {
 				damage = 200, 
 				maxRange = 50,
 				maxFireAngle = .1,
-				nodes = {{name = 'TankASHead', rotationSpeed = .05, vertical = false}, {name = 'barell', rotationSpeed = .05, vertical = true}},
+				nodes = {{name = 'TankASHead', rotationSpeed = .05, vertical = false}, {name = 'barell', rotationSpeed = .05, angleConstraints = {min = 0, max = .349}, vertical = true}},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'barell', pos = {x = 0, y = .49, z = 8.35}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -404,7 +404,7 @@ units = {
 				maxRange = 250,
 				maxFireAngle = .1,
 				nodes = {{name = 'TankGun_AM', rotationSpeed = .05, vertical = false}, {name = 'barell', rotationSpeed = .05, angleConstraints = {min = -.2, max = .74}, vertical = true}},
-				projectile = {id = ProjectileId.HE_SHELL, parent = 'TankGun_AM', pos = {x = 0.06, y = .19, z = 9.18}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.HE_SHELL, parent = 'barell', pos = {x = 0.06, y = .19, z = 9.18}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = false,
@@ -517,11 +517,11 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 2000, 
 				damage = 5000, 
-				maxRange = 70,
+				maxRange = 700,
 				maxFireAngle = .1,
 				nodes = {
 					{name = 'Asia_Mech.001', rotationSpeed = .05, vertical = false},
-					{name = 'Asia_Mech.002', rotationSpeed = .05, vertical = true}
+					{name = 'Asia_Mech.002', rotationSpeed = .05, angleConstraints = {min = -.348, max = .785}, vertical = true}
 				},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'Asia_Mech.002', pos = {x = 0., y = 0., z = 5.91}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
@@ -580,7 +580,7 @@ units = {
 				maxFireAngle = .1,
 				nodes = {
 					{name = 'turret', rotationSpeed = .05, vertical = false},
-					{name = 'barrel', rotationSpeed = .05, vertical = true}
+					{name = 'barrel', rotationSpeed = .05, angleConstraints = {min = -.139, max = .279}, vertical = true}
 				},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'barrel', pos = {x = 0., y = 0, z = 9.14}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
@@ -1283,13 +1283,16 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'FrontTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {
+					{name = 'FrontTurret', rotationSpeed = .05, angleConstraints = {min = -2.53, max = 2.53}, vertical = false},
+					{name = 'FrontTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.174, max = .174}, vertical = true}
+				},
 				fireFx = {
 					{
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						parent = 'FrontTurret',
+						parent = 'FrontTurretBarrel',
 						pos = {x = 0., y = 5.7, z = 23},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
@@ -1303,13 +1306,16 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'RearTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {
+					{name = 'RearTurret', rotationSpeed = .05, angleConstraints = {min = -2.53, max = 2.53}, vertical = false},
+					{name = 'FrontTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.174, max = .174}, vertical = true}
+				},
 				fireFx = {
 					{
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						parent = 'RearTurret',
+						parent = 'RearTurretBarrel',
 						pos = {x = 0., y = 5.7, z = 23},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
@@ -1384,7 +1390,7 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'frontTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {{name = 'frontTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44}, vertical = false}},
 				fireFx = {
 					{
 						vfx = true,
@@ -1404,7 +1410,7 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'rearTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {{name = 'rearTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44}, vertical = false}},
 				fireFx = {
 					{
 						vfx = true,
@@ -1496,13 +1502,16 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'frontTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {
+					{name = 'frontTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44}, vertical = false},
+					{name = 'frontTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.2267, max = .2267}, vertical = true},
+				},
 				fireFx = {
 					{
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						parent = 'frontTurret',
+						parent = 'frontTurretBarrel',
 						pos = {x = 0., y = 2.8, z = 11},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
@@ -1516,13 +1525,16 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'rearTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {
+					{name = 'rearTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44}, vertical = false},
+					{name = 'rearTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.2267, max = .2267}, vertical = true},
+				},
 				fireFx = {
 					{
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						parent = 'rearTurret',
+						parent = 'rearTurretBarrel',
 						pos = {x = 0., y = 2.8, z = 11},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
@@ -1536,7 +1548,10 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'aaTurret', rotationSpeed = .05, vertical = false}, {name = 'aaTurretBarrels', rotationSpeed = .05, vertical = true}},
+				nodes = {
+					{name = 'aaTurret', rotationSpeed = .05, vertical = false}, 
+					{name = 'aaTurretBarrels', rotationSpeed = .05, angleConstraints = {min = 0, max = .523}, vertical = true}
+				},
 				fireFx = {
 					{
 						vfx = true,
@@ -1597,14 +1612,17 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 100,
-				nodes = {{name = 'FrontTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {
+					{name = 'FrontTurret', rotationSpeed = .05, angleConstraints = {min = -2.53, max = 2.53}, vertical = false},
+					{name = 'FrontTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.174, max = .174}, vertical = true}
+				},
 				fireFx = {
 					{
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						parent = 'FrontTurret',
-						pos = {x = 0., y = 2.4, z = 10},
+						parent = 'FrontTurretBarrel',
+						pos = {x = 0., y = 0, z = 10.5},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
 					},
@@ -1617,14 +1635,17 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 100,
-				nodes = {{name = 'RearTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {
+					{name = 'RearTurret', rotationSpeed = .05, angleConstraints = {min = -2.53, max = 2.53}, vertical = false},
+					{name = 'RearTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.174, max = .174}, vertical = true}
+				},
 				fireFx = {
 					{
 						vfx = true,
 						duration = 50,
 						mesh = {size = {x = .16, y = .16}, color = {x = 1, y = 0, z = 0, a = 1}},
-						parent = 'RearTurret',
-						pos = {x = 0., y = 2.4, z = 10},
+						parent = 'RearTurretBarrel',
+						pos = {x = 0., y = 0, z = 10.5},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
 					},
@@ -1663,7 +1684,10 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'frontTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {
+					{name = 'frontTurret', rotationSpeed = .05, angleConstraints = {min = -2.26, max = 2.26}, vertical = false},
+					{name = 'frontTurretBarrels', rotationSpeed = .05, angleConstraints = {min = -.1395, max = .348}, vertical = true}
+				},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'frontTurret', pos = {x = 0.52, y = .83, z = 4.16}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -1678,7 +1702,7 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						parent = 'frontTurret',
+						parent = 'frontTurretBarrels',
 						pos = {x = 0.52, y = .83, z = 4.16},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
@@ -1690,7 +1714,10 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'middleTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {
+					{name = 'middleTurret', rotationSpeed = .05, vertical = false},
+					{name = 'middleTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.0872, max = .209}, vertical = true}
+				},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'middleTurret', pos = {x = 0, y = 1.8, z = 7.45}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -1705,7 +1732,7 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						parent = 'middleTurret',
+						parent = 'middleTurretBarrel',
 						pos = {x = 0, y = 1.8, z = 7.45},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
@@ -1717,7 +1744,10 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'rearTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {
+					{name = 'rearTurret', rotationSpeed = .05, angleConstraints = {min = -2.79, max = 2.79}, vertical = false},
+					{name = 'rearTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.0872, max = .209}, vertical = true}
+				},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'rearTurret', pos = {x = 0, y = 1.8, z = 7.45}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -1770,7 +1800,10 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'frontLowerTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {
+					{name = 'frontLowerTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44} , vertical = false},
+					{name = 'frontLowerTurretBarrels', rotationSpeed = .05, angleConstraints = {min = 0, max = .785}, vertical = true},
+				},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'frontLowerTurret', pos = {x = .42, y = 1.68, z = 4.14}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -1785,7 +1818,7 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						parent = 'frontLowerTurret',
+						parent = 'frontLowerTurretBarrels',
 						pos = {x = .42, y = 1.68, z = 4.14},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
@@ -1797,7 +1830,10 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'frontUpperTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {
+					{name = 'frontUpperTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44} , vertical = false},
+					{name = 'frontUpperTurretBarrels', rotationSpeed = .05, angleConstraints = {min = 0, max = .785}, vertical = true},
+				},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'frontUpperTurret', pos = {x = .42, y = 1.68, z = 4.14}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -1812,7 +1848,7 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						parent = 'frontUpperTurret',
+						parent = 'frontUpperTurretBarrels',
 						pos = {x = .42, y = 1.68, z = 4.14},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
@@ -1824,7 +1860,10 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'rearLowerTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {
+					{name = 'rearLowerTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44} , vertical = false},
+					{name = 'rearLowerTurretBarrels', rotationSpeed = .05, angleConstraints = {min = 0, max = .785}, vertical = true},
+				},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'rearLowerTurret', pos = {x = .42, y = 1.68, z = 4.14}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -1839,7 +1878,7 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						parent = 'rearLowerTurret',
+						parent = 'rearLowerTurretBarrels',
 						pos = {x = .42, y = 1.68, z = 4.14},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5
@@ -1851,7 +1890,10 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				maxRange = 50,
-				nodes = {{name = 'rearUpperTurret', rotationSpeed = .05, vertical = false}},
+				nodes = {
+					{name = 'rearUpperTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44} , vertical = false},
+					{name = 'rearUpperTurretBarrels', rotationSpeed = .05, angleConstraints = {min = 0, max = .785}, vertical = true},
+				},
 				projectile = {id = ProjectileId.HE_SHELL, parent = 'rearUpperTurret', pos = {x = .42, y = 5.82, z = 11.4}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
@@ -1866,7 +1908,7 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						parent = 'rearUpperTurret',
+						parent = 'rearUpperTurretBarrels',
 						pos = {x = .42, y = 1.68, z = 4.14},
 						rot = {w = 1, x = 0, y = 0, z = 0},
 						--scale = .5

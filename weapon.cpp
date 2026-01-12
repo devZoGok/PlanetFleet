@@ -62,8 +62,10 @@ namespace battleship{
 				minAngle = acTbl["min"];
 				maxAngle = acTbl["max"];
 			}
-			else
-				minAngle = 0, maxAngle = (vertical ? PI / 2 : 0);
+			else{
+				minAngle = 0;
+				maxAngle = (vertical ? PI / 2 : 0);
+			}
 
 			string name = nodeTbl["name"];
 			Node *node = unit->getModel()->findDescendant(name, true);
@@ -243,8 +245,6 @@ namespace battleship{
 
 			Vector3 unitUp = unit->getUpVec();
 			Vector3 targDir = (targPos - weaponPos).norm();
-			Vector3 targDirProj = getVecToPlane(weaponPos, targDir, unitUp);
-
 			Vector3 nodeDir = component.node->getGlobalAxis(2);
 
 			Vector3 rotAxis;
@@ -257,20 +257,37 @@ namespace battleship{
 				rotAngle = (component.rotSpeed < fabs(angleDiff) ? component.rotSpeed : fabs(angleDiff)) * (angleDiff > 0 ? 1 : -1);
 
 				if(PI / 2 - (angle2 + rotAngle) > component.maxAngle)
-					rotAngle = -angle2;
+					rotAngle = PI / 2 - component.maxAngle - angle2;
 				else if(PI / 2 - (angle2 + rotAngle) < component.minAngle)
-					rotAngle = (PI / 2 - component.minAngle) - angle2;
+					rotAngle = PI / 2 - component.minAngle - angle2;
 
 				rotAngle = (fabs(rotAngle) > .001 ? rotAngle : 0);
-				if(rotAngle != 0)
-					int x = 20;
 				rotAxis = Vector3::VEC_I;
 			}
 			else{
-				bool negate = (component.node->getGlobalAxis(0).getAngleBetween(targDirProj) < PI / 2);
-				float angle = nodeDir.getAngleBetween(targDirProj);
-				rotAngle = (negate ? 1 : -1) * (component.rotSpeed < angle ? component.rotSpeed : angle);
 				rotAxis = Vector3::VEC_J;
+				Vector3 targDirProj = getVecToPlane(weaponPos, targDir, unitUp);
+				Vector3 nodeLeft = component.node->getGlobalAxis(0);
+				float angle = nodeDir.getAngleBetween(targDirProj);
+				bool negate = (nodeLeft.getAngleBetween(targDirProj) > PI / 2);
+				rotAngle = (negate ? -1 : 1) * (component.rotSpeed < angle ? component.rotSpeed : angle);
+
+				if(!(component.minAngle == 0 && component.maxAngle == 0)){
+					Vector3 refDir = (
+						initUnitSpaceDir.x * unit->getLeftVec() + 
+						initUnitSpaceDir.y * unit->getUpVec() + 
+						initUnitSpaceDir.z * unit->getDirVec()
+					).norm();
+					float angle2 = refDir.getAngleBetween(nodeDir);
+
+					bool dirOnLeft = (nodeLeft.getAngleBetween(refDir) > PI / 2);
+
+					if(!dirOnLeft && -angle2 + rotAngle < component.minAngle)
+						rotAngle = component.minAngle + angle2;
+					else if(dirOnLeft && angle2 + rotAngle > component.maxAngle)
+						rotAngle = component.maxAngle - angle2;
+				}
+
 			}
 
 			Quaternion rot = Quaternion(rotAngle, rotAxis) * component.node->getOrientation();
