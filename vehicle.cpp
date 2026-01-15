@@ -364,8 +364,47 @@ namespace battleship{
 				return;
 		}
 
-		for(int p : path)
-			addPathpoint(cells[p].pos);
+		for(int p : path) addPathpoint(cells[p].pos);
+
+		if(order.targets[0].unit && !pathTruncated){
+			GameObject *targObj = order.targets[0].unit;
+
+			for(int i = path.size() - 1; i >= 0; i--){
+				Vector3 targPos = targObj->getPos();
+				Vector3 pointDir = cells[path[i]].pos - targPos;
+				pointDir = Vector3(pointDir.x, 0, pointDir.z);
+
+				float dirAngle = targObj->getDirVec().getAngleBetween(pointDir.norm());
+				if(dirAngle > PI / 2) dirAngle = PI - dirAngle;
+
+				float pointDist = pointDir.getLength();
+
+				float length = targObj->getLength(); 
+				float lengthComp = pointDist * cos(dirAngle);
+				bool withinLength = (.5 * length >= lengthComp);
+
+				float width = targObj->getWidth();
+				float widthComp = pointDist * sin(dirAngle);
+				bool withinWidth = (.5 * width >= widthComp);
+
+				if(!(withinLength && withinWidth)){
+					float a1 = atan((.5 * width) / (.5 * length));
+					float a2 = atan((.5 * length) / (.5 * width));
+
+					float leftAngle = targObj->getLeftVec().getAngleBetween(pointDir.norm());
+					if(leftAngle > PI / 2) leftAngle = PI - leftAngle;
+
+					float dist;
+
+					if(dirAngle <= a1) dist = (.5 * length) / cos(dirAngle);
+					else if(leftAngle <= a2) dist = (.5 * width) / cos(leftAngle);
+
+					addPathpoint(targPos + pointDir.norm() * dist);
+					break;
+				}
+				else removePathpoint(pathPoints.size() - 1);
+			}
+		}
 
 		if(appendDestPos && !pathTruncated)
 			addPathpoint(destPos);
@@ -383,8 +422,7 @@ namespace battleship{
 
 		pathPoints.erase(pathPoints.begin() + i);
 
-		if(pathPoints.empty())
-			pursuingTarget = false;
+		if(pathPoints.empty()) pursuingTarget = false;
 	}
 
 	void Vehicle::removeAllPathpoints(){
