@@ -136,14 +136,26 @@ namespace battleship{
 		Vector3 refPos = (isWeaponPos ? components[0].node->localToGlobalPosition(Vector3::VEC_ZERO) : unit->getPos());
 
 		if(ordTp == (int)orderType){
-			Vector3 targPos = (targDestruct ? targDestruct->getPos() : unit->getOrder(0).targets[0].pos);
-			float targDist = refPos.getDistanceFrom(targPos);
-			bool withinRange = (minRange <= targDist && targDist <= maxRange);
-
 			Vector3 dirVec = (isWeaponPos ? components[components.size() - 1].node->getGlobalAxis(2) : unit->getDirVec());
-			bool withinAngle = (dirVec.getAngleBetween((targPos - refPos).norm()) <= maxFireAngle);
+			bool aimedAtTarget = false;
 
-			if((Order::TYPE)ordTp == Order::TYPE::ATTACK && withinRange && withinAngle)
+			if(targDestruct && targDestruct->getHitbox()){
+				vector<RayCaster::CollisionResult> res = RayCaster::cast(refPos, dirVec, targDestruct->getHitbox());
+
+				if(res.empty()) return;
+
+				float targDist = refPos.getDistanceFrom(res[0].pos);
+				aimedAtTarget = (minRange <= targDist && targDist <= maxRange);
+			}
+			else{
+				Vector3 targPos = unit->getOrder(0).targets[0].pos;
+				float targDist = refPos.getDistanceFrom(targPos);
+				bool withinRange = (minRange <= targDist && targDist <= maxRange);
+				bool withinAngle = (dirVec.getAngleBetween((targPos - refPos).norm()) <= maxFireAngle);
+				aimedAtTarget = withinRange && withinAngle;
+			}
+
+			if((Order::TYPE)ordTp == Order::TYPE::ATTACK && aimedAtTarget)
 				fire(unit->getOrder(0));
 		}
 		else{
