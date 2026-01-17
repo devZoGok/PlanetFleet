@@ -61,7 +61,7 @@ namespace battleship{
 			vb01::Node *projPar = nullptr;
 			static std::string LASER_FLAG;
 
-			void initTargetData(std::vector<int>&, sol::table, std::string, std::string);
+			void initTargetData(std::vector<int>&, sol::table, std::string, std::vector<int>);
 			void initProjectileData(sol::table);
 			void initNodes(sol::table);
 			void useFx(FxManager::Fx*, vb01::Vector3, bool);

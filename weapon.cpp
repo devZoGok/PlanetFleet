@@ -35,8 +35,8 @@ namespace battleship{
 			fireDir = Vector3((float)fireDirTbl["x"], (float)fireDirTbl["y"], (float)fireDirTbl["z"]);
 		} 
 
-		initTargetData(targetUnits, weaponTable, "targetUnits", "UnitType");
-		initTargetData(targetProjectiles, weaponTable, "targetProjeciles", "ProjectileClass");
+		initTargetData(targetUnits, weaponTable, "targetUnits", vector<int>{(int)UnitType::UNDERWATER, (int)UnitType::SEA_LEVEL, (int)UnitType::HOVER, (int)UnitType::LAND});
+		initTargetData(targetProjectiles, weaponTable, "targetProjeciles", vector<int>{(int)ProjectileClass::SHELL, (int)ProjectileClass::CRUISE_MISSILE, (int)ProjectileClass::MISSILE, (int)ProjectileClass::TORPEDO, (int)ProjectileClass::DEPTH_CHARGE});
 
 		initProjectileData(weaponTable);
 		initNodes(weaponTable);
@@ -51,17 +51,17 @@ namespace battleship{
 		}
 	}
 
-	void Weapon::initTargetData(std::vector<int> &targetVec, sol::table weaponTable, string tblKey, string defTblKey){
+	void Weapon::initTargetData(vector<int> &targetVec, sol::table weaponTable, string tblKey, vector<int> allValues){
 		sol::optional<sol::table> unitTblOpt = weaponTable[tblKey];
-		sol::table tbl;
 
-		if(unitTblOpt != sol::nullopt) tbl = weaponTable[tblKey];
-		else tbl = generateView()[defTblKey];
+		if(unitTblOpt != sol::nullopt){
+			sol::table tbl = weaponTable[tblKey];
+			int tblSize = tbl.size();
 
-		int tblSize = tbl.size();
-
-		for(int i = 0; i < tblSize; i++)
-			targetVec.push_back((int)tbl[i + 1]);
+			for(int i = 0; i < tblSize; i++)
+				targetVec.push_back((int)tbl[i + 1]);
+		}
+		else targetVec = allValues;
 	}
 
 	void Weapon::initNodes(sol::table weaponTable){
