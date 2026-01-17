@@ -1,5 +1,5 @@
-ProjectileId = {HE_SHELL = 0, EMP_SHELL = 1, CRUISE_MISSILE = 2, MISSILE = 3, TORPEDO = 4}
-ProjectileClass = {SHELL = 0, CRUISE_MISSILE = 1, MISSILE = 2, TORPEDO = 3}
+ProjectileId = {HE_SHELL = 0, EMP_SHELL = 1, CRUISE_MISSILE = 2, MISSILE = 3, TORPEDO = 4, DEPTH_CHARGE = 5}
+ProjectileClass = {SHELL = 0, CRUISE_MISSILE = 1, MISSILE = 2, TORPEDO = 3, DEPTH_CHARGE = 4}
 G = 9.8
 
 explosionVfx = {
@@ -20,7 +20,7 @@ explosionSfx = {
 	path = PATH .. 'Sounds/SFX/Explosions/explosion02.ogg',
 	duration = 2500
 }
-Detonation = {EXPLOSION = 0, EMP = 1, CRYO = 2}
+Detonation = {EXPLOSION = 0, EMP = 1, CRYO = 2, UNDERWATER = 3}
 
 projectiles = {
 	{
@@ -81,12 +81,24 @@ projectiles = {
 		projectileClass = ProjectileClass.TORPEDO,
 		size = {x = 1, y = 6, z = 1},
 		speed = .06,
-		explosion = {detonation = Detonation.EXPLOSION, damage = 20, radius = 3, fx = {explosionVfx, explosionSfx}},
+		explosion = {detonation = Detonation.UNDERWATER, damage = 20, radius = 3, fx = {explosionVfx, explosionSfx}},
 		directHitDamage = 450,
 		rayLength = 3.5,
 		name = "Torpedo",
 	    basePath = PATH .. "Models/GameObjects/Projectiles/Torpedos/",
 		meshPath = "torpedo.xml",
 		albedoPath = 'torpedo.jpg'
+	},
+	{
+		projectileClass = ProjectileClass.DEPTH_CHARGE,
+		size = {x = 5.3, y = 5.3, z = 5.8},
+		speed = .06,
+		explosion = {detonation = Detonation.UNDERWATER, damage = 20, radius = 3, fx = {explosionVfx, explosionSfx}},
+		directHitDamage = 450,
+		rayLength = 3.5,
+		name = "Depth charge",
+	    basePath = PATH .. "Models/GameObjects/Projectiles/DepthCharges/",
+		meshPath = "depthCharge.xml",
+		albedoPath = 'depthCharge.jpg'
 	}
 }
