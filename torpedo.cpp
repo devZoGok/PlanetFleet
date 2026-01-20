@@ -1,11 +1,11 @@
-#include "depthCharge.h"
+#include "torpedo.h"
 
 namespace battleship{
 	using namespace vb01;
 
-    DepthCharge::DepthCharge(Unit *un, int id, Vector3 pos, Quaternion rot) : Projectile(un, id, pos, rot){}
+    Torpedo::Torpedo(Unit *un, int id, Vector3 pos, Quaternion rot) : Projectile(un, id, pos, rot){}
 
-	void DepthCharge::update(){
+	void Torpedo::update(){
 		Projectile::update();
 
         if(!remove){

@@ -14,6 +14,7 @@
 #include "cruiseMissile.h"
 #include "iceSheet.h"
 #include "shell.h"
+#include "torpedo.h"
 #include "depthCharge.h"
 #include "defConfigs.h"
 
@@ -77,6 +78,8 @@ namespace battleship{
 				return new CruiseMissile(unit, id, targetPos, pos, rot);
 			case ProjectileClass::MISSILE:
 				return new Missile(unit, id, targetPos, pos, rot);
+			case ProjectileClass::TORPEDO:
+				return new Torpedo(unit, id, pos, rot);
 			case ProjectileClass::DEPTH_CHARGE:
 				return new DepthCharge(unit, id, pos, rot);
 			default:

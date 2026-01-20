@@ -22,6 +22,11 @@ namespace battleship{
 
 		Projectile::update();
 		destructable->update();
-		checkCollision();
+
+        if(!remove){
+			checkSurfaceCollision(false);
+			if(remove) return;
+			checkUnitCollision();
+		}
 	}
 }

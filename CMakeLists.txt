@@ -32,7 +32,7 @@ set(CONTROLLERS gameObjectFrameController.cpp cameraController.cpp)
 set(CONSOLE console.cpp abstractCommand.cpp addUnitCommand.cpp addResourceCommand.cpp addTechnologyCommand.cpp toggleDebugCommand.cpp)
 set(CORE gameManager.cpp game.cpp pathfinder.cpp environment.cpp fxManager.cpp defConfigs.cpp player.cpp trader.cpp ${CONSOLE} ${CONTROLLERS})
 
-set(PROJECTILES projectile.cpp missile.cpp cruiseMissile.cpp shell.cpp depthCharge.cpp)
+set(PROJECTILES projectile.cpp missile.cpp cruiseMissile.cpp shell.cpp depthCharge.cpp torpedo.cpp torpedo.h)
 set(VEHICLES vehicle.cpp submarine.cpp engineer.cpp resourceRover.cpp freezer.cpp)
 set(STRUCTURES structure.cpp factory.cpp pointDefense.cpp extractor.cpp researchStruct.cpp iceSheet.cpp)
 set(WEAPONS weapon.cpp)

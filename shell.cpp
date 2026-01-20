@@ -32,6 +32,11 @@ namespace battleship{
 		model->lookAt(dirVec, upVec);
 
 		Projectile::update();
-		checkCollision();
+
+        if(!remove){
+			checkSurfaceCollision(false);
+			if(remove) return;
+			checkUnitCollision();
+		}
 	}
 }
