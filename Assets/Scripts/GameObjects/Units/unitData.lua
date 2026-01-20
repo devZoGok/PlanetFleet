@@ -1627,7 +1627,8 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				minRange = 10,
-				maxRange = 100,
+				maxRange = 500,
+				maxFireAngle = .01,
 				nodes = {
 					{name = 'FrontTurret', rotationSpeed = .05, angleConstraints = {min = -2.53, max = 2.53}, vertical = false},
 					{name = 'FrontTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.174, max = .174}, vertical = true}
@@ -1651,7 +1652,8 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				minRange = 10,
-				maxRange = 100,
+				maxRange = 500,
+				maxFireAngle = .01,
 				nodes = {
 					{name = 'RearTurret', rotationSpeed = .05, angleConstraints = {min = -2.53, max = 2.53}, vertical = false},
 					{name = 'RearTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.174, max = .174}, vertical = true}
@@ -1696,6 +1698,20 @@ units = {
 	},
 	{
 		weapons = {
+			{
+				orderType = OrderType.ATTACK,
+				rateOfFire = 2000, 
+				damage = 10, 
+				maxRange = 100,
+				targetUnits = {UnitType.UNDERWATER},
+				targetProjectiles = {},
+				fireDir = {x = 0, y = -1, z = 0},
+				projectile = {id = ProjectileId.DEPTH_CHARGE, parent = 'Cruiser', pos = {x = 0, y = -2, z = 0}, rot = {w = .707, x = .707, y = 0, z = 0}},
+				fireFx = {
+					{vfx = false, duration = 50, path = PATH .. 'Sounds/Units/Submarines/fire.ogg'}
+				},
+				hitFx = {}
+			},
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
@@ -1796,7 +1812,7 @@ units = {
 		cost = 500,
 		size = {x = 9.09, y = 13.6, z = 66.6},
 		hitboxOffset = {x = 0, y = .88, z = 0},
-		lineOfSight = 5,
+		lineOfSight = 100,
 		colorNodes = {'sides'},
 		name = 'Anti sub cruiser',
 		basePath = PATH .. vehiclePrefix .. 'Cruisers/',
@@ -1812,6 +1828,20 @@ units = {
 	},
 	{
 		weapons = {
+			{
+				orderType = OrderType.ATTACK,
+				rateOfFire = 2000, 
+				damage = 10, 
+				maxRange = 100,
+				targetUnits = {UnitType.UNDERWATER},
+				targetProjectiles = {},
+				fireDir = {x = 0, y = -1, z = 0},
+				projectile = {id = ProjectileId.DEPTH_CHARGE, parent = 'Gunship', pos = {x = 0, y = -2, z = 0}, rot = {w = .707, x = .707, y = 0, z = 0}},
+				fireFx = {
+					{vfx = false, duration = 50, path = PATH .. 'Sounds/Units/Submarines/fire.ogg'}
+				},
+				hitFx = {}
+			},
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
@@ -1942,14 +1972,14 @@ units = {
 		cost = 500,
 		size = {x = 6.59, y = 8.6, z = 71.8},
 		hitboxOffset = {x = 0, y = 1.11, z = .84},
-		lineOfSight = 5,
+		lineOfSight = 100,
 		colorNodes = {'Gunship.001'},
 		name = 'Anti sub cruiser',
 		basePath = PATH .. vehiclePrefix .. 'Cruisers/',
 		meshPath = 'erAntiSubCruiser.xml',
 		albedoPath = 'cruiser.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		speed = .1,
+		speed = .3,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -2118,7 +2148,7 @@ units = {
 				orderType = OrderType.ATTACK,
 				projectile = {id = ProjectileId.TORPEDO, pos = {x = 0, y = -.27, z = 4.6}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				damage = 200, 
-				maxRange = 20, 
+				maxRange = 200, 
 				rateOfFire = 500, 
 				fireFx = {
 					{
@@ -2144,7 +2174,7 @@ units = {
 		meshPath = 'acsSubmarine.xml',
 		albedoPath = 'submarine.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		speed = .1,
+		speed = .2,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,

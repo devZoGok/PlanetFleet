@@ -80,7 +80,7 @@ projectiles = {
 	{
 		projectileClass = ProjectileClass.TORPEDO,
 		size = {x = 1, y = 6, z = 1},
-		speed = .06,
+		speed = .6,
 		explosion = {detonation = Detonation.UNDERWATER, damage = 20, radius = 3, fx = {explosionVfx, explosionSfx}},
 		directHitDamage = 450,
 		rayLength = 3.5,
