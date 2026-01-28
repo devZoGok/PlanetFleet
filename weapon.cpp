@@ -148,7 +148,7 @@ namespace battleship{
 				aimedAtTarget = (minRange <= targDist && targDist <= maxRange);
 			}
 			else{
-				Vector3 targPos = unit->getOrder(0).targets[0].pos;
+				Vector3 targPos = (targDestruct ? targDestruct->getPos() : unit->getOrder(0).targets[0].pos);
 				float targDist = refPos.getDistanceFrom(targPos);
 				bool withinRange = (minRange <= targDist && targDist <= maxRange);
 				bool withinAngle = (dirVec.getAngleBetween((targPos - refPos).norm()) <= maxFireAngle);
