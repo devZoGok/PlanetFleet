@@ -28,6 +28,11 @@ namespace battleship{
 		maxFireAngle = weaponTable["maxFireAngle"].get_or(.1);
 		orderType = (Order::TYPE)weaponTable["orderType"];
 
+		sol::optional<float> typeOpt = unitTable["weapons"][wid + 1]["type"];
+
+		if(typeOpt != sol::nullopt)
+			type = (Type)unitTable["weapons"][wid + 1]["type"];
+
 		initProjectileData(weaponTable);
 		initNodes(weaponTable);
 
@@ -155,8 +160,7 @@ namespace battleship{
 				aimedAtTarget = withinRange && withinAngle;
 			}
 
-			if((Order::TYPE)ordTp == Order::TYPE::ATTACK && aimedAtTarget)
-				fire(unit->getOrder(0));
+			if(aimedAtTarget) fire(unit->getOrder(0));
 		}
 		else{
 			Vector3 dir = (
@@ -204,7 +208,16 @@ namespace battleship{
 	}
 
 	void Weapon::updateTarget(GameObject *target){
-		target->getDestructable()->takeDamage(damage);
+		Destructable *destr = target->getDestructable();
+
+		switch(type){
+			case Type::FREEZER:
+				destr->setFreezeStatus(destr->getFreezeStatus() + 1);
+				break;
+			default:
+				destr->takeDamage(damage);
+				break;
+		}
 
 		if(target->getType() == GameObject::Type::UNIT)
 			unit->getPlayer()->updateGameStats((Unit*)target);

@@ -19,7 +19,7 @@ namespace battleship{
 
 	class Weapon{
 		public:
-			enum class Type{FREEZER = 1};
+			enum class Type{DAMAGE = 0, FREEZER = 1};
 
 			struct Component{
 				vb01::Node *node = nullptr;
@@ -58,6 +58,7 @@ namespace battleship{
 			vb01::Vector3 projPos, initUnitSpaceDir; 
 			vb01::Node *projPar = nullptr;
 			static std::string LASER_FLAG;
+			Type type = Type::DAMAGE;
 
 			void initProjectileData(sol::table);
 			void initNodes(sol::table);
