@@ -196,6 +196,7 @@ namespace battleship{
 		virtual void freeze(Order){}
 		float calculateRotation(vb01::Vector3, float, float);
 		std::vector<Weapon*> getWeaponsByOrder(Order::TYPE);
+		std::vector<Weapon*> getWeaponsByType(int);
     };
 }
 

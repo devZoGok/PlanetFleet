@@ -71,7 +71,7 @@ UnitId = {
 	ER_REFINERY = 54,
 	ICE_SHEET = 55
 }
-WeaponClass = {FREEZE = 1}
+WeaponClass = {DAMAGE = 0, FREEZE = 1}
 UnitClass = {
 	WAR_MECH = 0,
 	TANK = 1,
@@ -2287,8 +2287,12 @@ units = {
 				type = WeaponClass.FREEZE,
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100,
-				maxRange = 10,
+				maxRange = 30,
 				damage = 0,
+				nodes = {
+					{name = 'turret', rotationSpeed = .05, vertical = false},
+					{name = 'barrel', rotationSpeed = .05, angleConstraints = {min = -.523, max = .523}, vertical = true},
+				},
 				fireFx = {
 					{
 						vfx = false,
