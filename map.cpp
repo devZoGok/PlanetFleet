@@ -722,7 +722,7 @@ namespace battleship{
 		int numHorCells = int(mapSize.x / CELL_SIZE.x), horId = -1;
 
 		for(int i = 0; i < numHorCells; i++)
-			if(fabs(cells[i].pos.x - pos.x) < .5 * CELL_SIZE.x){
+			if(fabs(cells[i].pos.x - pos.x) <= .5 * CELL_SIZE.x){
 				horId = i;
 				break;
 			}
@@ -730,7 +730,7 @@ namespace battleship{
 		int numVertCells = int(mapSize.z / CELL_SIZE.z), vertId = -1;
 
 		for(int i = 0; i < numVertCells; i++)
-			if(fabs(cells[i * numHorCells].pos.z - pos.z) < .5 * CELL_SIZE.z){
+			if(fabs(cells[i * numHorCells].pos.z - pos.z) <= .5 * CELL_SIZE.z){
 				vertId = i;
 				break;
 			}

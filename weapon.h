@@ -40,6 +40,7 @@ namespace battleship{
 			virtual void update();
 			virtual void fire(Order);
 			void trackTarget(vb01::Vector3);
+			bool canAttackTarget(int, int);
 			inline int getProjectileId(){return projId;}
 			inline int getRateOfFire(){return rateOfFire;}
 			inline int getDamage(){return damage;}
@@ -52,15 +53,17 @@ namespace battleship{
 			Unit *unit = nullptr;
 			Order::TYPE orderType;
 			int id, projId = -1, damage = 0;
+			std::vector<int> targetUnits, targetProjectiles;
 			float minRange = 0, maxRange, maxFireAngle;
 			vb01::s64 lastFireTime = 0;
 			FxManager::Fx *fireFx = nullptr;
 			vb01::Quaternion projRot;
-			vb01::Vector3 projPos, initUnitSpaceDir; 
+			vb01::Vector3 projPos, initUnitSpaceDir, fireDir = vb01::Vector3::VEC_K; 
 			vb01::Node *projPar = nullptr;
 			static std::string LASER_FLAG;
 			Type type = Type::DAMAGE;
 
+			void initTargetData(std::vector<int>&, sol::table, std::string, std::vector<int>);
 			void initProjectileData(sol::table);
 			void initNodes(sol::table);
 			void useFx(FxManager::Fx*, vb01::Vector3, bool);
