@@ -719,7 +719,18 @@ namespace battleship{
 						else if(cursorState == CursorState::HACK){
 							if(orderPossible) issueOrder(Order::TYPE::HACK, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
 						}
-						else if((selectedUnits[0]->getUnitClass() == UnitClass::ENGINEER || selectedUnits[0]->getUnitClass() == UnitClass::FREEZER) && ufCtr->isPlacingOnSurface()){
+						else if(ufCtr->isPlacingOnSurface()){
+							Order::TYPE type;
+
+							switch(selectedUnits[0]->getUnitClass()){
+								case UnitClass::ENGINEER:
+								case UnitClass::FREEZER:
+									type = Order::TYPE::BUILD;
+									break;
+								default:
+									return;
+							}
+
 							targets.clear();
 
 							for(int i = 0; i < ufCtr->getNumGameObjectFrames(); i++){
@@ -728,7 +739,7 @@ namespace battleship{
 								if(gmObjFr.status == GameObjectFrame::NOT_PLACEABLE) continue;
 
 								Unit *buildStruct = GameObjectFactory::createUnit(mainPlayer, gmObjFr.getId(), gmObjFr.getPos(), gmObjFr.getRot());
-								issueOrder(Order::TYPE::BUILD, vector<Order::Target>{Order::Target(buildStruct, gmObjFr.getPos())}, shiftPressed);
+								issueOrder(type, vector<Order::Target>{Order::Target(buildStruct, gmObjFr.getPos())}, shiftPressed);
 								mainPlayer->addUnit(buildStruct);
 							}
 

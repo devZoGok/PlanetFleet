@@ -35,7 +35,7 @@ set(CORE gameManager.cpp game.cpp pathfinder.cpp environment.cpp fxManager.cpp d
 set(PROJECTILES projectile.cpp missile.cpp cruiseMissile.cpp shell.cpp)
 set(VEHICLES vehicle.cpp submarine.cpp engineer.cpp resourceRover.cpp freezer.cpp)
 set(STRUCTURES structure.cpp factory.cpp pointDefense.cpp extractor.cpp researchStruct.cpp iceSheet.cpp)
-set(WEAPONS weapon.cpp cryoGun.cpp)
+set(WEAPONS weapon.cpp)
 set(UNITS unit.cpp ${WEAPONS} ${STRUCTURES} ${VEHICLES})
 set(CONTENT map.cpp gameObject.cpp destructable.cpp gameObjectFrame.h gameObjectFactory.cpp resourceDeposit.cpp ${UNITS} ${PROJECTILES})
 

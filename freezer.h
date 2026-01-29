@@ -9,6 +9,7 @@ namespace battleship{
 			Freezer(Player*, int, vb01::Vector3, vb01::Quaternion, Unit::State);
 		private:
 			void attack(Order);
+			void build(Order);
 	};
 }
 
