@@ -9,6 +9,7 @@
 #include "player.h"
 #include "fxManager.h"
 #include "destructable.h"
+#include "structure.h"
 #include "gameObjectFactory.h"
 #include "projectile.h"
 
@@ -212,7 +213,11 @@ namespace battleship{
 
 		switch(type){
 			case Type::FREEZER:
-				destr->setFreezeStatus(destr->getFreezeStatus() + 1);
+				if(target->getType() == GameObject::Type::UNIT && ((Unit*)target)->getUnitClass() == UnitClass::ICE_SHEET)
+					((Structure*)target)->incrementBuildStatus();
+				else
+					destr->setFreezeStatus(destr->getFreezeStatus() + 1);
+
 				break;
 			default:
 				destr->takeDamage(damage);

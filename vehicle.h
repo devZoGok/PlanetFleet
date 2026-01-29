@@ -34,7 +34,6 @@ namespace battleship{
 			void addPathpoint(vb01::Vector3);
 			void removePathpoint(int = 0);
 			void removeAllPathpoints();
-			void build(Order);
 			void select();
 			void reinit();
 		protected:
@@ -48,6 +47,7 @@ namespace battleship{
 			void navigateToTarget(float);
 			void preparePathpoints(Order&, vb01::Vector3, bool = false);
 			virtual void attack(Order);
+			virtual void build(Order);
 			void garrison(Order);
 			void patrol(Order);
 			virtual void initProperties();

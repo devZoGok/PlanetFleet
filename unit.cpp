@@ -420,6 +420,16 @@ namespace battleship{
 		return weaps;
 	}
 
+	vector<Weapon*> Unit::getWeaponsByType(int type){
+		vector<Weapon*> weaps;
+
+		for(Weapon *w : weapons)
+			if(w->getType() == (Weapon::Type)type)
+				weaps.push_back(w);
+
+		return weaps;
+	}
+
     void Unit::receiveOrder(Order order, bool add) {
 		if(!validateOrder(order)) return;
 

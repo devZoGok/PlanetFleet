@@ -46,6 +46,7 @@ namespace battleship{
 			inline int getMinRange(){return minRange;}
 			inline int getMaxRange(){return maxRange;}
 			inline Unit* getUnit(){return unit;}
+			inline Type getType(){return type;}
 			inline Order::TYPE getOrderType(){return orderType;}
 		private:
 			Unit *unit = nullptr;
