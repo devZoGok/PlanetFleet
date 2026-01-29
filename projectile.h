@@ -13,7 +13,7 @@ namespace vb01{
 namespace battleship {
 	class Unit;
 
-	enum class ProjectileClass{SHELL, CRUISE_MISSILE, MISSILE, TORPEDO};
+	enum class ProjectileClass{SHELL, CRUISE_MISSILE, MISSILE, TORPEDO, DEPTH_CHARGE};
 
     class Projectile : public GameObject{
     public:

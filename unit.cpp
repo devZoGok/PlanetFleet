@@ -366,15 +366,39 @@ namespace battleship{
 			targets.insert(targets.end(), targs.begin(), targs.end());
 		}
 
+		vector<Weapon*> attackWeapons = getWeaponsByOrder(Order::TYPE::ATTACK);
+
 		for(Order::Target &target : orders[0].targets)
 			if(target.unit){
-				if(find(targets.begin(), targets.end(), target.unit) != targets.end())
-					break;
+				if(find(targets.begin(), targets.end(), target.unit) != targets.end()){
+					bool canAttack = false;
 
-				removeOrder(0);
+					for(Weapon *aw : attackWeapons){
+						int tc;
+
+						switch(target.unit->getType()){
+							case GameObject::Type::UNIT:
+								tc = (int)((Unit*)target.unit)->getType();
+								break;
+							case GameObject::Type::PROJECTILE:
+								tc = (int)((Projectile*)target.unit)->getProjectileClass();
+								break;
+						}
+
+						if(aw->canAttackTarget((int)target.unit->getType(), tc)) canAttack = true;
+					}
+
+					if(!canAttack){
+						removeOrder(0);
+						return;
+					}
+				}
+				else{
+					removeOrder(0);
+					return;
+				}
 			}
 
-		vector<Weapon*> attackWeapons = getWeaponsByOrder(Order::TYPE::ATTACK);
 		Vector3 targPos = (order.targets[0].unit ? order.targets[0].unit->getPos() : order.targets[0].pos);
 
 		for(Weapon *weapon : attackWeapons)

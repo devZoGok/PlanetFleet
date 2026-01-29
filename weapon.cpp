@@ -34,6 +34,16 @@ namespace battleship{
 		if(typeOpt != sol::nullopt)
 			type = (Type)unitTable["weapons"][wid + 1]["type"];
 
+		sol::optional<sol::table> fireDirOpt = weaponTable["fireDir"];
+
+		if(fireDirOpt != sol::nullopt){
+			sol::table fireDirTbl = weaponTable["fireDir"];
+			fireDir = Vector3((float)fireDirTbl["x"], (float)fireDirTbl["y"], (float)fireDirTbl["z"]);
+		} 
+
+		initTargetData(targetUnits, weaponTable, "targetUnits", vector<int>{(int)UnitType::UNDERWATER, (int)UnitType::SEA_LEVEL, (int)UnitType::HOVER, (int)UnitType::LAND});
+		initTargetData(targetProjectiles, weaponTable, "targetProjeciles", vector<int>{(int)ProjectileClass::SHELL, (int)ProjectileClass::CRUISE_MISSILE, (int)ProjectileClass::MISSILE, (int)ProjectileClass::TORPEDO, (int)ProjectileClass::DEPTH_CHARGE});
+
 		initProjectileData(weaponTable);
 		initNodes(weaponTable);
 
@@ -45,6 +55,19 @@ namespace battleship{
 
 			if(fireFx) fxManager->addFx(fireFx);
 		}
+	}
+
+	void Weapon::initTargetData(vector<int> &targetVec, sol::table weaponTable, string tblKey, vector<int> allValues){
+		sol::optional<sol::table> unitTblOpt = weaponTable[tblKey];
+
+		if(unitTblOpt != sol::nullopt){
+			sol::table tbl = weaponTable[tblKey];
+			int tblSize = tbl.size();
+
+			for(int i = 0; i < tblSize; i++)
+				targetVec.push_back((int)tbl[i + 1]);
+		}
+		else targetVec = allValues;
 	}
 
 	void Weapon::initNodes(sol::table weaponTable){
@@ -142,7 +165,13 @@ namespace battleship{
 		Vector3 refPos = (isWeaponPos ? components[0].node->localToGlobalPosition(Vector3::VEC_ZERO) : unit->getPos());
 
 		if(ordTp == (int)orderType){
-			Vector3 dirVec = (isWeaponPos ? components[components.size() - 1].node->getGlobalAxis(2) : unit->getDirVec());
+			Vector3 dirVec;
+
+			if(!isWeaponPos)
+				dirVec = (fireDir.x * unit->getLeftVec() + fireDir.y * unit->getUpVec() + fireDir.z * unit->getDirVec()).norm();
+			else
+				dirVec = components[components.size() - 1].node->getGlobalAxis(2);
+
 			bool aimedAtTarget = false;
 
 			if(targDestruct && targDestruct->getHitbox()){
@@ -323,5 +352,16 @@ namespace battleship{
 			Quaternion rot = Quaternion(rotAngle, rotAxis) * component.node->getOrientation();
 			component.node->setOrientation(rot);
 		}
+	}
+
+	bool Weapon::canAttackTarget(int objType, int typeOrClass){
+		switch((GameObject::Type)objType){
+			case GameObject::Type::UNIT:
+				return (find(targetUnits.begin(), targetUnits.end(), typeOrClass) != targetUnits.end());
+			case GameObject::Type::PROJECTILE:
+				return (find(targetProjectiles.begin(), targetProjectiles.end(), typeOrClass) != targetProjectiles.end());
+		}
+
+		return true;
 	}
 }
