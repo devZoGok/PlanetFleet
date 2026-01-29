@@ -54,17 +54,23 @@ namespace battleship{
 			float rotSpeed = nodeTbl["rotationSpeed"];
 			bool vertical = nodeTbl["vertical"];
 
-			sol::optional<float> angleConstrOpt = nodeTbl["angleConstraint"];
-			float angleConstr;
+			sol::optional<sol::table> angleConstrOpt = nodeTbl["angleConstraints"];
+			float minAngle, maxAngle;
 
-			if(angleConstrOpt != sol::nullopt)
-				angleConstr = nodeTbl["angleConstraint"];
-			else angleConstr = (vertical ? PI / 2 : 0);
+			if(angleConstrOpt != sol::nullopt){
+				sol::table acTbl = nodeTbl["angleConstraints"];
+				minAngle = acTbl["min"];
+				maxAngle = acTbl["max"];
+			}
+			else{
+				minAngle = 0;
+				maxAngle = (vertical ? PI / 2 : 0);
+			}
 
 			string name = nodeTbl["name"];
 			Node *node = unit->getModel()->findDescendant(name, true);
 
-			components.push_back(Component(node, rotSpeed, angleConstr, vertical));
+			components.push_back(Component(node, rotSpeed, minAngle, maxAngle, vertical));
 		}
 
 		//using the last node to determine a weapon's init direction
@@ -126,15 +132,30 @@ namespace battleship{
 		int ordTp = (numOrders > 0 ? (int)unit->getOrder(0).type : -1);
 		GameObject *targDestruct = (ordTp != -1 ? unit->getOrder(0).targets[0].unit : nullptr);
 
+		bool isWeaponPos = (!components.empty() && components[0].node);
+		Vector3 refPos = (isWeaponPos ? components[0].node->localToGlobalPosition(Vector3::VEC_ZERO) : unit->getPos());
+
 		if(ordTp == (int)orderType){
-			Vector3 targPos = (targDestruct ? targDestruct->getPos() : unit->getOrder(0).targets[0].pos);
-			float targDist = unit->getPos().getDistanceFrom(targPos);
-			bool withinRange = (minRange <= targDist && targDist <= maxRange);
+			Vector3 dirVec = (isWeaponPos ? components[components.size() - 1].node->getGlobalAxis(2) : unit->getDirVec());
+			bool aimedAtTarget = false;
 
-			Vector3 dirVec = (components.empty() ? unit->getDirVec() : components[components.size() - 1].node->getGlobalAxis(2));
-			bool withinAngle = (dirVec.getAngleBetween((targPos - unit->getPos()).norm()) <= maxFireAngle);
+			if(targDestruct && targDestruct->getHitbox()){
+				vector<RayCaster::CollisionResult> res = RayCaster::cast(refPos, dirVec, targDestruct->getHitbox());
 
-			if((Order::TYPE)ordTp == Order::TYPE::ATTACK && withinRange && withinAngle)
+				if(res.empty()) return;
+
+				float targDist = refPos.getDistanceFrom(res[0].pos);
+				aimedAtTarget = (minRange <= targDist && targDist <= maxRange);
+			}
+			else{
+				Vector3 targPos = (targDestruct ? targDestruct->getPos() : unit->getOrder(0).targets[0].pos);
+				float targDist = refPos.getDistanceFrom(targPos);
+				bool withinRange = (minRange <= targDist && targDist <= maxRange);
+				bool withinAngle = (dirVec.getAngleBetween((targPos - refPos).norm()) <= maxFireAngle);
+				aimedAtTarget = withinRange && withinAngle;
+			}
+
+			if((Order::TYPE)ordTp == Order::TYPE::ATTACK && aimedAtTarget)
 				fire(unit->getOrder(0));
 		}
 		else{
@@ -143,7 +164,7 @@ namespace battleship{
 					initUnitSpaceDir.y * unit->getUpVec() + 
 					initUnitSpaceDir.z * unit->getDirVec()
 				).norm();
-			trackTarget(unit->getPos() + dir);
+			trackTarget(refPos + dir);
 		}
 	}
 
@@ -231,32 +252,54 @@ namespace battleship{
 	//TODO improve to allow for vertical alignment 
 	void Weapon::trackTarget(Vector3 targPos){
 		for(Component &component : components){
-			Vector3 unitPos = unit->getPos();
-			Vector3 unitUp = unit->getUpVec();
-			Vector3 targDir = (targPos - unitPos).norm();
-			Vector3 targDirProj = getVecToPlane(unitPos, targDir, unitUp);
+			bool isWeaponPos = components[0].node;
+			Vector3 weaponPos = (isWeaponPos ? components[0].node->localToGlobalPosition(Vector3::VEC_ZERO) : unit->getPos());
 
+			Vector3 unitUp = unit->getUpVec();
+			Vector3 targDir = (targPos - weaponPos).norm();
 			Vector3 nodeDir = component.node->getGlobalAxis(2);
 
 			Vector3 rotAxis;
 			float rotAngle;
 
 			if(component.vertical){
-				float angle1 = targDir.getAngleBetween(targDirProj);
-				float angle2 = nodeDir.getAngleBetween(getVecToPlane(unitPos, nodeDir, unitUp));
+				float angle1 = unitUp.getAngleBetween(targDir);
+				float angle2 = unitUp.getAngleBetween(nodeDir);
 				float angleDiff = angle1 - angle2;
-				rotAngle = (component.rotSpeed < fabs(angleDiff) ? component.rotSpeed : fabs(angleDiff)) * (angleDiff > 0 ? -1 : 1);
+				rotAngle = (component.rotSpeed < fabs(angleDiff) ? component.rotSpeed : fabs(angleDiff)) * (angleDiff > 0 ? 1 : -1);
 
-				if(angle2 - rotAngle > component.angleConstr)
-					rotAngle = -(fabs(rotAngle) - (angle2 + fabs(rotAngle) - component.angleConstr));
+				if(PI / 2 - (angle2 + rotAngle) > component.maxAngle)
+					rotAngle = PI / 2 - component.maxAngle - angle2;
+				else if(PI / 2 - (angle2 + rotAngle) < component.minAngle)
+					rotAngle = PI / 2 - component.minAngle - angle2;
 
+				rotAngle = (fabs(rotAngle) > .001 ? rotAngle : 0);
 				rotAxis = Vector3::VEC_I;
 			}
 			else{
-				bool negate = (component.node->getGlobalAxis(0).getAngleBetween(targDirProj) < PI / 2);
-				float angle = nodeDir.getAngleBetween(targDirProj);
-				rotAngle = (negate ? 1 : -1) * (component.rotSpeed < angle ? component.rotSpeed : angle);
 				rotAxis = Vector3::VEC_J;
+				Vector3 targDirProj = getVecToPlane(weaponPos, targDir, unitUp);
+				Vector3 nodeLeft = component.node->getGlobalAxis(0);
+				float angle = nodeDir.getAngleBetween(targDirProj);
+				bool negate = (nodeLeft.getAngleBetween(targDirProj) > PI / 2);
+				rotAngle = (negate ? -1 : 1) * (component.rotSpeed < angle ? component.rotSpeed : angle);
+
+				if(!(component.minAngle == 0 && component.maxAngle == 0)){
+					Vector3 refDir = (
+						initUnitSpaceDir.x * unit->getLeftVec() + 
+						initUnitSpaceDir.y * unit->getUpVec() + 
+						initUnitSpaceDir.z * unit->getDirVec()
+					).norm();
+					float angle2 = refDir.getAngleBetween(nodeDir);
+
+					bool dirOnLeft = (nodeLeft.getAngleBetween(refDir) > PI / 2);
+
+					if(!dirOnLeft && -angle2 + rotAngle < component.minAngle)
+						rotAngle = component.minAngle + angle2;
+					else if(dirOnLeft && angle2 + rotAngle > component.maxAngle)
+						rotAngle = component.maxAngle - angle2;
+				}
+
 			}
 
 			Quaternion rot = Quaternion(rotAngle, rotAxis) * component.node->getOrientation();
