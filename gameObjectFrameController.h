@@ -22,8 +22,8 @@ namespace battleship{
 			void removeGameObjectFrames();
 			void rotateGameObjectFrames(float);
 			void checkPlacement(GameObjectFrame&);
+			void addGameObjectFrame(GameObjectFrame);
 			inline int getNumGameObjectFrames(){return gameObjectFrames.size();}
-			inline void addGameObjectFrame(GameObjectFrame u){gameObjectFrames.push_back(u);}
 			inline GameObjectFrame& getGameObjectFrame(int i){return gameObjectFrames[i];}
 			inline bool isPaintSelecting(){return paintSelecting;}
 			inline void setPaintSelecting(bool ps){paintSelecting = ps;}
