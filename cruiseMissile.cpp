@@ -72,7 +72,10 @@ namespace battleship{
 				break;
 		}
 
-		if(flightStage == FlightStage::DESCENT)
-			Projectile::checkCollision();
+		if(flightStage == FlightStage::DESCENT && !remove){
+			checkSurfaceCollision(false);
+			if(remove) return;
+			checkUnitCollision();
+		}
 	}
 }

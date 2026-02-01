@@ -229,6 +229,13 @@ namespace battleship{
 		if(!placingVertically) minDepthCalculated = false;
 	}
 
+	void GameObjectFrameController::addGameObjectFrame(GameObjectFrame u){
+		gameObjectFrames.push_back(u);
+		vector<RayCaster::CollisionResult> results = Map::getSingleton()->raycastTerrain(u.getPos(), -Vector3::VEC_J, true);
+
+		if(!results.empty()) placementPos = results[0].pos;
+	}
+
 	void GameObjectFrameController::removeGameObjectFrame(int i){
 		gameObjectFrames[i].destroy();
 		gameObjectFrames.erase(gameObjectFrames.begin() + i);

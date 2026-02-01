@@ -105,20 +105,25 @@ namespace battleship{
 					detonate(targetUnits[i]);
 	}
 
-	void Projectile::checkSurfaceCollision(){
+	//TODO fix map boundary checks
+	void Projectile::checkSurfaceCollision(bool useBottomCell){
 		Map *map = Map::getSingleton();
+		vector<Map::Cell> &cells = map->getCells();
 		int cellId = map->getCellId(pos, false);
+		Vector3 mapSize = map->getMapSize();
 
-		if((pos + dirVec * rayLength).y <= map->getCells()[cellId].pos.y)
-			detonate();
-	}
-
-	void Projectile::checkCollision(){
-        if(!remove){
-			checkSurfaceCollision();
-			if(remove) return;
-			checkUnitCollision();
+		if(cellId < 0 || fabs(pos.x) > .5 * mapSize.x || fabs(pos.z) > .5 * mapSize.z){
+			remove = true;
+			return;
 		}
+
+		if(useBottomCell && !cells[cellId].underWaterCellIds.empty()){
+			int numUnderwaterCells = cells[cellId].underWaterCellIds.size();
+			cellId = cells[cellId].underWaterCellIds[numUnderwaterCells - 1];
+		}
+
+		if((pos + dirVec * rayLength).y <= cells[cellId].pos.y + .5 * map->getCellSize().y)
+			detonate();
 	}
 
     void Projectile::debug(){

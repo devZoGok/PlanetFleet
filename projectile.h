@@ -28,8 +28,7 @@ namespace battleship {
     protected:
 		virtual void reinit();
 		virtual void checkUnitCollision();
-		virtual void checkSurfaceCollision();
-		void checkCollision();
+		virtual void checkSurfaceCollision(bool);
 
 		vb01::Vector3 initPos;
 		ProjectileClass projClass; 
