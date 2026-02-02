@@ -400,6 +400,8 @@ namespace battleship{
 					else if(leftAngle <= a2) dist = (.5 * width) / cos(leftAngle);
 
 					addPathpoint(targPos + pointDir.norm() * dist);
+					pathTruncated = true;
+
 					break;
 				}
 				else removePathpoint(pathPoints.size() - 1);
