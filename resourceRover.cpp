@@ -39,7 +39,7 @@ namespace battleship{
 	}
 
 	//TODO implement a check of whether a vehicle is next to a building's outline
-	void ResourceRover::loadResources(Structure *targStruct, float minDist, bool loadResource){
+	void ResourceRover::loadResources(Structure *targStruct, bool loadResource){
 		float w = targStruct->getWidth(), l = targStruct->getLength();
 		bool closeEnough = (pos.getDistanceFrom(targStruct->getPos()) <= sqrt(l * l + w * w));
 		if(!closeEnough) return;
@@ -98,7 +98,7 @@ namespace battleship{
 	}
 
 	//TODO equate rover load and extractor draw rates
-	void ResourceRover::collectRefineds(Order order, float minDist){
+	void ResourceRover::collectRefineds(Order order){
 		vector<Unit*> units = player->getUnits();
 		vector<Structure*> extractors, refineries;
 
@@ -112,7 +112,16 @@ namespace battleship{
 		nearestExtractor = (Extractor*)getClosestUnit(extractors);
 		nearestRefinery = getClosestUnit(refineries);
 
-		if(nearestExtractor && nearestExtractor->getPos().getDistanceFrom(pos) <= minDist){
+		auto closeEnough = [](GameObject *obj, Vector3 pos){
+			Vector3 neVec = pos - obj->getPos();
+			float angle = obj->getDirVec().getAngleBetween(neVec.norm());
+
+			if(angle > PI / 2) angle = PI - angle;
+
+			return cos(angle) * neVec.getLength() < .5 * obj->getLength();
+		};
+
+		if(nearestExtractor && closeEnough(nearestExtractor, pos)){
 			ResourceDeposit *deposit = nearestExtractor->getDeposit();
 
 			if(canLoad() && deposit->getAmmount() > 0){
@@ -122,36 +131,38 @@ namespace battleship{
 					lastLoadTime = getTime();
 				}
 			}
-			else if(calcTotalLoad() == capacity && nearestRefinery)
-				preparePathpoints(order, nearestRefinery->getPos(), true);
+			else if(calcTotalLoad() == capacity && nearestRefinery){
+				order.targets[0].unit = nearestRefinery;
+				preparePathpoints(order, nearestRefinery->getPos());
+			}
 		}
 		else if(!nearestExtractor){
-			if(nearestRefinery && cargo[(int)ResourceType::REFINEDS] > 0)
-				preparePathpoints(order, nearestRefinery->getPos(), true);
-			else
-				removeOrder(0);
+			if(nearestRefinery && cargo[(int)ResourceType::REFINEDS] > 0){
+				order.targets[0].unit = nearestRefinery;
+				preparePathpoints(order, nearestRefinery->getPos());
+			}
+			else removeOrder(0);
 		}
 
-		if(nearestRefinery && nearestRefinery->getPos().getDistanceFrom(pos) <= minDist){
+		if(nearestRefinery && closeEnough(nearestRefinery, pos)){
 			if(canUnload((int)ResourceType::REFINEDS)){
 				cargo[(int)ResourceType::REFINEDS] -= loadSpeed;
 				player->updateResource(ResourceType::REFINEDS, loadSpeed, true);
 				lastLoadTime = getTime();
 			}
-			else if(cargo[(int)ResourceType::REFINEDS] == 0 && nearestExtractor)
+			else if(cargo[(int)ResourceType::REFINEDS] == 0 && nearestExtractor){
+				order.targets[0].unit = nearestExtractor;
 				preparePathpoints(order, nearestExtractor->getPos());
+			}
 		}
 	}
 
 	void ResourceRover::handleResources(Order order){
-		float minDist = .5 * Map::getSingleton()->getCellSize().x;
-		
-		if(!pathPoints.empty())
-			navigate(minDist);
+		if(!pathPoints.empty()) navigate(.01);
 		else if(order.type == Order::TYPE::SUPPLY)
-			collectRefineds(order, minDist);
+			collectRefineds(order);
 		else
-			loadResources((Structure*)order.targets[0].unit, minDist, order.type == Order::TYPE::LOAD);
+			loadResources((Structure*)order.targets[0].unit, order.type == Order::TYPE::LOAD);
 	}
 
 	void ResourceRover::update(){
