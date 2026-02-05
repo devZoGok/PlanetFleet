@@ -21,8 +21,8 @@ namespace battleship{
 			inline bool canUnload(int id){return vb01::getTime() - lastLoadTime > loadRate && cargo[id] > 0;}
 		private:
 			void initProperties();
-			void collectRefineds(Order, float);
-			void loadResources(Structure*, float, bool);
+			void collectRefineds(Order);
+			void loadResources(Structure*, bool);
 			void handleResources(Order);
 			Unit* getClosestUnit(std::vector<Structure*>);
 
