@@ -7,6 +7,9 @@ HubMargin = {top = 10, left = 10, right = 10, bottom = 10}
 buttonSize = {x = 100, y = 20}
 textboxSize = {x = 200, y = 25}
 
+warIcon = 'Icons/PlayerStates/war.png'
+allianceIcon = 'Icons/PlayerStates/alliance.png'
+
 gui = {
 	{
 		guiType = GuiType.GUI_RECTANGLE,
@@ -16,9 +19,8 @@ gui = {
 	},
 	{
 		guiType = GuiType.BUTTON,
-		buttonType = ButtonType.ACTIVE_GAME_STATE,
+		buttonType = ButtonType.ACTIVE_STATE_BACK,
 		name = 'Back',
-		guiScreen = 'activeGameState.lua',
 		pos = {x = HubPos.x + HubSize.x - buttonSize.x - HubMargin.right, y = HubPos.y + HubSize.y - buttonSize.y - HubMargin.bottom, z = .11},
 		size = buttonSize,
 		trigger = 10

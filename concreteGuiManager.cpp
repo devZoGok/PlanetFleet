@@ -1,8 +1,10 @@
 #include <solUtil.h>
+#include <soundManager.h>
 
 #include <quad.h>
 
 #include "concreteGuiManager.h"
+#include "unit.h"
 #include "gameManager.h"
 #include "singlePlayerButton.h"
 #include "mapEditorButton.h"
@@ -15,6 +17,7 @@
 #include "newMapButton.h"
 #include "loadMapButton.h"
 #include "exportButton.h"
+#include "mapListbox.h"
 #include "skyboxTextureListbox.h"
 #include "landTextureListbox.h"
 #include "gameObjectListbox.h"
@@ -31,7 +34,10 @@
 #include "tradingScreenButton.h"
 #include "offerButton.h"
 #include "resourceAmmountButton.h"
+#include "orderButton.h"
+#include "stateToggleButton.h"
 #include "minimapButton.h"
+#include "activeStateBackButton.h"
 
 namespace battleship{
 	using namespace std;
@@ -155,21 +161,9 @@ namespace battleship{
 				button = new ExportButton(pos, size);
 				break;
 			case PLAY:{
-				int did = guiTable["dependencies"][1]["id"];
-				vector<Listbox*> difficultyListboxes = vector<Listbox*>{(Listbox*)guiElements[did].second};
-
-				vector<Listbox*> factionsListboxes;
-				int numPlayers = 2;
-
-				for(int i = 0; i < numPlayers; i++){
-					int did = guiTable["dependencies"][i + 2]["id"];
-					factionsListboxes.push_back((Listbox*)guiElements[did].second);
-				}
-
-				int mid = guiTable["dependencies"][4]["id"];
-				Listbox *mapListbox = (Listbox*)guiElements[mid].second;
-
-				button = new PlayButton(difficultyListboxes, factionsListboxes, mapListbox, pos, size, name, true);
+				int mid = guiTable["dependencies"][1]["id"];
+				Listbox *mapListbox = (MapListbox*)guiElements[mid].second;
+				button = new PlayButton(mapListbox, pos, size, name, true);
 				break;
 			}
 			case RESUME:
@@ -192,58 +186,34 @@ namespace battleship{
 				break;
 			}
 			case BUILD:
-			{
-				int unitId = SOL_LUA_STATE["UnitId"]["ENGINEER"];
-				int strId = SOL_LUA_STATE["units"][unitId + 1]["buildableUnits"][guiId + 1]["id"];
-				string buttonName = SOL_LUA_STATE["units"][strId + 1]["name"];
-				button = new BuildButton(pos, size, buttonName, (int)guiTable["trigger"], imagePath, unitId, guiId);
+				button = new BuildButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["slotId"]);
 				break;
-			}
-			case LAND_FACTORY_TRAIN:
-			{
-				int facId = SOL_LUA_STATE["UnitId"]["LAND_FACTORY"];
-				int unitId = SOL_LUA_STATE["units"][facId + 1]["buildableUnits"][guiId + 1]["id"];
-				string buttonName = SOL_LUA_STATE["units"][unitId + 1]["name"];
-				button = new TrainButton(pos, size, buttonName, (int)guiTable["trigger"], imagePath, facId, guiId);
+			case TRAIN:
+				button = new TrainButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["slotId"]);
 				break;
-			}
-			case NAVAL_FACTORY_TRAIN:
-			{
-				int facId = SOL_LUA_STATE["UnitId"]["NAVAL_FACTORY"];
-				int unitId = SOL_LUA_STATE["units"][facId + 1]["buildableUnits"][guiId + 1]["id"];
-				string buttonName = SOL_LUA_STATE["units"][unitId + 1]["name"];
-				button = new TrainButton(pos, size, buttonName, (int)guiTable["trigger"], imagePath, facId, guiId);
-				break;
-			}
-			case FORT_TRAIN:
-			{
-				int facId = SOL_LUA_STATE["UnitId"]["FORT"];
-				int unitId = SOL_LUA_STATE["units"][facId + 1]["buildableUnits"][guiId + 1]["id"];
-				string buttonName = SOL_LUA_STATE["units"][unitId + 1]["name"];
-				button = new TrainButton(pos, size, buttonName, (int)guiTable["trigger"], imagePath, facId, guiId);
-				break;
-			}
 			case STATISTICS:
 				button = new StatsButton(pos, size, name, (int)guiTable["trigger"], imagePath);
 				break;
 			case RESEARCH:
-				button = new ResearchButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)SOL_LUA_STATE["UnitId"]["LAB"], (int)guiTable["techId"]);
+				button = new ResearchButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["techId"]);
 				break;
 			case BUY_REFINEDS:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)SOL_LUA_STATE["UnitId"]["TRADE_CENTER"], TradeButton::Type::BUY_REFINEDS);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::BUY_REFINEDS);
 				break;
 			case SELL_REFINEDS:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)SOL_LUA_STATE["UnitId"]["TRADE_CENTER"], TradeButton::Type::SELL_REFINEDS);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::SELL_REFINEDS);
 				break;
 			case BUY_RESEARCH:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)SOL_LUA_STATE["UnitId"]["TRADE_CENTER"], TradeButton::Type::BUY_RESEARCH);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::BUY_RESEARCH);
 				break;
 			case SELL_RESEARCH:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)SOL_LUA_STATE["UnitId"]["TRADE_CENTER"], TradeButton::Type::SELL_RESEARCH);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::SELL_RESEARCH);
 				break;
-			case ACTIVE_GAME_STATE:
-				guiScreen = guiTable["guiScreen"];
-				button = new ActiveStateButton(pos, size, guiScreen, name, fontBasePath + "batang.ttf", (int)guiTable["trigger"], imagePath);
+			case ACTIVE_STATE_BUTTON:
+				button = new ActiveStateButton(pos, size, guiTable["guiScreen"], name, fontBasePath + "batang.ttf", (int)guiTable["trigger"], imagePath);
+				break;
+			case ACTIVE_STATE_BACK:
+				button = new ActiveStateBackButton(pos, size, name);
 				break;
 			case PLAYER_TRADE:
 				guiScreen = guiTable["guiScreen"];
@@ -262,6 +232,12 @@ namespace battleship{
 				break;
 			case RESOURCE_AMMOUNT:
 				button = new ResourceAmmountButton(pos, size, name, (int)guiTable["ammount"], (int)guiTable["trigger"], imagePath);
+				break;
+			case ORDER:
+				button = new OrderButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["orderType"]);
+				break;
+			case UNIT_STATE:
+				button = new StateToggleButton(pos, size, name, (int)guiTable["trigger"], imagePath);
 				break;
 			case MINIMAP:{
 				string minimapPath = GameManager::getSingleton()->getPath() + "Models/Maps/" + Map::getSingleton()->getMapName() + "/minimap.jpg";
@@ -293,12 +269,24 @@ namespace battleship{
 		int numMaxDisplay = guiTable["numMaxDisplay"];
 		ListboxType listboxType = (ListboxType)guiTable["listboxType"];
 
-		vector<string> lines;
 		int maxDisplay, numLines;
 		bool closable;
-		Listbox *listbox = nullptr;
+		vector<string> lines;
+		sol::optional<sol::table> linesOpt = guiTable["lines"];
 
+		if(linesOpt != sol::nullopt){
+			sol::table linesTbl = guiTable["lines"];
+
+			for(int i = 0; i < linesTbl.size(); i++)
+		   		lines.push_back(guiTable["lines"][i + 1]);
+		}
+
+		Listbox *listbox = nullptr;
 		string fontPath = fontBasePath + "batang.ttf";
+		sol::optional<string> nameOpt = guiTable["name"];
+		string name = "";
+
+		if(nameOpt != sol::nullopt) name = guiTable["name"];
 
 		switch(listboxType){
 			case CONTROLS:{
@@ -326,20 +314,23 @@ namespace battleship{
 
 				break;
 			}
-			case MAPS:
+			case MAPS:{
 				lines = readDir(GameManager::getSingleton()->getPath() + "Models/Maps/", true);
 				numLines = lines.size();
 				closable = true;
 				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
+				bool addPlayers = guiTable["addPlayerGui"];
 
-				listbox = new Listbox(pos, size, lines, maxDisplay, fontPath, closable);
+				listbox = new MapListbox(pos, size, lines, maxDisplay, addPlayers, fontPath, closable);
 				break;
+			}
 			case VEHICLES:
 			case STRUCTURES:
 			case RESOURCE_DEPOSITS:{
 				bool resources = (listboxType == RESOURCE_DEPOSITS);
 				sol::table gameObjTable = SOL_LUA_STATE[resources ? "resources" : "units"];
 				int numGameObjs = gameObjTable.size();
+				std::vector<int> gameObjIds;
 				
 				for(int i = 0; i < numGameObjs; i++){
 					bool canAdd = true;
@@ -350,15 +341,17 @@ namespace battleship{
 						canAdd = (v == vehicles);
 					}
 
-					if(canAdd)
+					if(canAdd){
 						lines.push_back(gameObjTable[i + 1]["name"]);
+						gameObjIds.push_back(i);
+					}
 				}
 				
 				numLines = lines.size();
 				closable = true;
 				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
 				
-				listbox = new GameObjectListbox(!resources, pos, size, lines, maxDisplay, fontPath);
+				listbox = new GameObjectListbox(!resources, pos, size, lines, gameObjIds, maxDisplay, fontPath);
 				break;
 			}
 			case SKYBOX_TEXTURES:
@@ -378,15 +371,9 @@ namespace battleship{
 				listbox = new LandTextureListbox(pos, size, lines, maxDisplay, fontPath);
 				break;
 			case CPU_DIFFICULTIES:
-				lines = vector<string>{"Easy", "Medium", "Hard"};
-				numLines = lines.size();
-				closable = true;
-				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
-
-				listbox = new Listbox(pos, size, lines, maxDisplay, fontPath);
-				break;
 			case FACTIONS:
-				lines = vector<string>{"Empire", "Mutants", "Shapeshifters"};
+			case COLORS:
+			case TEAMS:
 				numLines = lines.size();
 				closable = true;
 				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
@@ -411,6 +398,8 @@ namespace battleship{
 
 		int typeArr[2]{(int)GuiElementType::LISTBOX, (int)listboxType};
 	 	guiElements.push_back(make_pair(typeArr, (void*)listbox));
+
+		listbox->setName(name);
 
 		return listbox;
 	}
@@ -510,11 +499,11 @@ namespace battleship{
 		return guiRectangle;
 	}
 
+	//TODO distinguish between floats and vector-like tables for scale
 	Text* ConcreteGuiManager::parseText(int guiId){
 		sol::state_view SOL_LUA_STATE = generateView();
 		sol::table guiTable = SOL_LUA_STATE["gui"][guiId + 1];
 		sol::table posTable = guiTable["pos"];
-		sol::table scaleTable = guiTable["scale"];
 
 		Root *root = Root::getSingleton();
 
@@ -529,7 +518,20 @@ namespace battleship{
 		text->setMaterial(mat);
 
 		Vector3 pos = Vector3(posTable["x"], posTable["y"], posTable["z"]);
-		Vector3 scale = Vector3(scaleTable["x"], scaleTable["y"], 1);
+
+		SOL_LUA_STATE.script("tp = type(gui[" + to_string(guiId + 1) + "].scale)");
+		string st = SOL_LUA_STATE["tp"];
+		Vector3 scale;
+
+		if(st == "table"){
+			sol::table scaleTable = guiTable["scale"];
+			scale = Vector3(scaleTable["x"], scaleTable["y"], 1);
+		}
+		else if(st == "number"){
+			float sc = guiTable["scale"];
+			scale = Vector3(sc, sc, 1);
+		}
+
 		Node *node = new Node(pos, Quaternion::QUAT_W, scale, guiTable["name"]);
 		node->addText(text);
 		root->getGuiNode()->attachChild(node);
@@ -540,6 +542,34 @@ namespace battleship{
 		return text;
 	}
 
+	void ConcreteGuiManager::parseMusic(){
+		sol::state_view SOL_STATE_VIEW = generateView();
+		sol::optional<sol::table> musicTblOpt = SOL_STATE_VIEW["music"];
+
+		if(musicTblOpt == sol::nullopt) return;
+
+		sol::table musicTbl = SOL_STATE_VIEW["music"], tracksTbl = musicTbl["tracks"];
+		SoundManager *sm = SoundManager::getSingleton();
+
+		if(tracksTbl.size() == 0){
+			sm->clearPlaylist();
+			return;
+		}
+
+		bool loop = musicTbl["loop"], shuffle = musicTbl["shuffle"];
+		int delay = musicTbl["delay"].get_or(0);
+		int numTracks = tracksTbl.size();
+
+		vector<string> trackPaths;
+
+		for(int i = 0; i < numTracks; i++){
+			string track = tracksTbl[i + 1];
+			trackPaths.push_back(GameManager::getSingleton()->getPath() + "Sounds/Music/" + track);
+		}
+
+		sm->play(trackPaths, 100, delay, loop, shuffle);
+	}
+
 	void ConcreteGuiManager::readLuaScreenScript(
 			string script,
 			vector<Button*> buttonExceptions,
@@ -547,15 +577,44 @@ namespace battleship{
 			vector<Checkbox*> checkboxExceptions,
 			vector<Slider*> sliderExceptions,
 			vector<Textbox*> textboxExceptions,
-			vector<Node*> guiRecttboxExceptions,
-			vector<Text*> textExceptions
+			vector<Node*> guiRectboxExceptions,
+			vector<Text*> textExceptions,
+			string luaCode
 		){
-		removeAllGuiElements(buttonExceptions, listboxExceptions, checkboxExceptions, sliderExceptions, textboxExceptions, guiRecttboxExceptions, textExceptions);
+		removeAllGuiElements(buttonExceptions, listboxExceptions, checkboxExceptions, sliderExceptions, textboxExceptions, guiRectboxExceptions, textExceptions);
+		parseLuaScript(script, luaCode);
+	}
+
+	void ConcreteGuiManager::readLuaScreenScriptDel(
+			string script,
+			vector<Button*> buttons,
+			vector<Listbox*> listboxs,
+			vector<Checkbox*> checkboxs,
+			vector<Slider*> sliders,
+			vector<Textbox*> textboxs,
+			vector<Node*> guiRectboxs,
+			vector<Text*> texts
+		){
+		for(Button *b : buttons) removeButton(b);
+		for(Listbox *l : listboxs) removeListbox(l);
+		for(Checkbox *c : checkboxs) removeCheckbox(c);
+		for(Slider *s : sliders) removeSlider(s);
+		for(Textbox *t : textboxs) removeTextbox(t);
+		for(Node *r : guiRectboxs) removeGuiRectangle(r);
+		for(Text *t : texts) removeText(t);
+
+		parseLuaScript(script);
+	}
+
+	void ConcreteGuiManager::parseLuaScript(string script, string luaCode){
 		guiElements.clear();
 
 		string basePath = GameManager::getSingleton()->getPath() + "Scripts/Gui/";
 		sol::state_view SOL_LUA_VIEW = generateView();
+		SOL_LUA_VIEW.script("music = nil");
 		SOL_LUA_VIEW.script_file(basePath + script);
+
+		if(luaCode != "") SOL_LUA_VIEW.script(luaCode);
 
 		SOL_LUA_VIEW.script("numGui = #gui");
 		int numGuiElements = SOL_LUA_VIEW["numGui"];
@@ -587,5 +646,7 @@ namespace battleship{
 					break;
 			}
 		}
+
+		parseMusic();
 	}
 }

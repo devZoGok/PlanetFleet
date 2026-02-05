@@ -1,6 +1,7 @@
 #include "extractor.h"
 #include "player.h"
 #include "game.h"
+#include "destructable.h"
 #include "activeGameState.h"
 #include "resourceDeposit.h"
 
@@ -12,37 +13,30 @@ namespace battleship{
 	using namespace gameBase;
 
 	Extractor::Extractor(Player *player, int id, Vector3 pos, Quaternion rot, int buildStatus, ResourceDeposit *rd, Unit::State state) : Structure(player, id, pos, rot, buildStatus, state){
-		if(!rd){
-			vector<ResourceDeposit*> deposits;
-
-			for(Player *pl : Game::getSingleton()->getPlayers()){
-				vector<ResourceDeposit*> dep = pl->getResourceDeposits();
-				deposits.insert(deposits.end(), dep.begin(), dep.end());
-			}
-
-			for(ResourceDeposit *dep : deposits)
-				if(dep->getPos().getDistanceFrom(pos) < .001){
-					deposit = dep;
-					deposit->setExtractor(this);
-					break;
-				}
-		}
-
 		Vector2 size = Vector2(lenHpBar, 10);
-		ammountBackground = Unit::createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 0, 1));
-		ammountForeground = Unit::createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 1, 1));
+		ammountBackground = destructable->createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 0, 1));
+		ammountForeground = destructable->createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 1, 1));
+
+		if(rd) return;
+
+		initProperties();
+
+		for(ResourceDeposit *dep : Game::getSingleton()->getCivilianPlayer()->getResourceDeposits())
+			if(dep->getPos().getDistanceFrom(pos) < .001){
+				deposit = dep;
+				deposit->setExtractor(this);
+				break;
+			}
 	}
 
 	Extractor::~Extractor(){
-		if(deposit)
-			deposit->setExtractor(nullptr);
+		if(deposit) deposit->setExtractor(nullptr);
 
-		removeBar(ammountForeground);
-		removeBar(ammountBackground);
+		destructable->removeBar(ammountForeground);
+		destructable->removeBar(ammountBackground);
 	}
 
 	void Extractor::initProperties(){
-		Structure::initProperties();
 		Game *game = Game::getSingleton();
 		vector<int> currTechs = player->getTechnologies();
 
@@ -66,7 +60,7 @@ namespace battleship{
 			initAmmount = deposit->getInitAmmount();
 		}
 
-		Unit::displayUnitStats(ammountForeground, ammountBackground, ammount, initAmmount, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
+		destructable->displayStats(ammountForeground, ammountBackground, ammount, initAmmount, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
 	}
 
 	void Extractor::draw(){

@@ -1,6 +1,7 @@
 #include "newMapButton.h"
 #include "gameManager.h"
 #include "mapEditorAppState.h"
+#include "loadingAppState.h"
 #include "concreteGuiManager.h"
 
 #include <stateManager.h>
@@ -25,10 +26,7 @@ namespace battleship{
 					atof(wstringToString(sizeX->getText()).c_str()),
 					atof(wstringToString(sizeY->getText()).c_str())
 				);
-		StateManager *stateManager = GameManager::getSingleton()->getStateManager();
-		stateManager->attachAppState(new MapEditorAppState(wstringToString(name->getText()), size, true));
-
-		ConcreteGuiManager::getSingleton()->readLuaScreenScript("mapEditor.lua");
+		handleLoadingGui(new LoadingAppState(new MapEditorAppState(wstringToString(name->getText()), size, true), "mapEditor.lua"));
 	}
 
 	NewMapButton::NewMapButton(Vector3 pos, Vector2 size) : Button(pos, size, "New map", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf"){}

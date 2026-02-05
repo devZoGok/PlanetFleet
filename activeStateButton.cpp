@@ -18,33 +18,28 @@ namespace battleship{
 	using namespace vb01Gui;
 	using namespace gameBase;
 
-	ActiveStateButton::ActiveStateButton(Vector3 pos, Vector2 size, string gs, string name, string fontPath, int trigger, string imagePath) : Button(pos, size, name, fontPath, trigger, true, imagePath), guiScreen(gs){
+	ActiveStateButton::ActiveStateButton(Vector3 pos, Vector2 size, string gs, string name, string fontPath, int trigger, string imagePath) : 
+		Button(pos, size, name, fontPath, trigger, true, imagePath), guiScreen(gs){}
+
+	void ActiveStateButton::onClick(){
 		StateManager *stateManager = GameManager::getSingleton()->getStateManager();
 		ActiveGameState *activeState = (ActiveGameState*)stateManager->getAppStateByType((int)AppStateType::ACTIVE_STATE);
 
-		if(activeState)
-			activeState->addButton(this);
-	}
+		vector<Button*> buttons = activeState->getGuiButtons();
+		buttons.push_back(this);
 
-	void ActiveStateButton::onClick(){
-		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
+		vector<Node*> rects = activeState->getGuiRects();
+		vector<Text*> texts = activeState->getGuiTexts();
 
-		vector<Listbox*> listboxes{};
-		vector<Checkbox*> checkboxes{};
-		vector<Slider*> sliders{};
-		vector<Textbox*> textboxes{};
-		vector<Node*> guiRects{
-			guiManager->getGuiRectangle("refineds"),
-			guiManager->getGuiRectangle("wealth"),
-			guiManager->getGuiRectangle("research"),
-		};
-		vector<Text*> texts{
-			guiManager->getText("depth"),
-			guiManager->getText("refineds"),
-			guiManager->getText("wealth"),
-			guiManager->getText("research")
-		};
-
-		guiManager->readLuaScreenScript(guiScreen, buttons, listboxes, checkboxes, sliders, textboxes, guiRects, texts);
+		ConcreteGuiManager::getSingleton()->readLuaScreenScript(
+			guiScreen,
+			buttons,
+			vector<Listbox*>{},
+			vector<Checkbox*>{},
+			vector<Slider*>{},
+			vector<Textbox*>{},
+			rects,
+			texts
+		);
 	}
 }

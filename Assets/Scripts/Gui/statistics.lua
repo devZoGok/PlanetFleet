@@ -1,3 +1,8 @@
+headerHeight = 150
+statsInitHeight = 120
+statsSpace = 100
+fontName = 'batang.ttf'
+
 gui = {
 	{
 		guiType = GuiType.TEXT,
@@ -6,7 +11,7 @@ gui = {
 		pos = {x = 850, y = 100, z = 0},
 		zIndex = 0,
 		scale = 0.5,
-		font = 'batang.ttf',
+		font = fontName,
 		fontFirstChar = 0,
 		fontLastChar = 256,
 		color = {x = 1, y = 1, z = 1, w = 1}
@@ -15,10 +20,10 @@ gui = {
 		guiType = GuiType.TEXT,
 		text = 'Player',
 		name = 'pl',
-		pos = {x = 50, y = 200, z = 0},
+		pos = {x = 50, y = headerHeight, z = 0},
 		zIndex = 0,
 		scale = 0.3,
-		font = 'batang.ttf',
+		font = fontName,
 		fontFirstChar = 0,
 		fontLastChar = 256,
 		color = {x = 1, y = 1, z = 1, w = 1}
@@ -27,10 +32,10 @@ gui = {
 		guiType = GuiType.TEXT,
 		text = 'Vehicles built',
 		name = 'vb',
-		pos = {x = 150, y = 200, z = 0},
+		pos = {x = 150, y = headerHeight, z = 0},
 		zIndex = 0,
 		scale = 0.3,
-		font = 'batang.ttf',
+		font = fontName,
 		fontFirstChar = 0,
 		fontLastChar = 256,
 		color = {x = 1, y = 1, z = 1, w = 1}
@@ -39,10 +44,10 @@ gui = {
 		guiType = GuiType.TEXT,
 		text = 'Vehicles destroyed',
 		name = 'vd',
-		pos = {x = 450, y = 200, z = 0},
+		pos = {x = 450, y = headerHeight, z = 0},
 		zIndex = 0,
 		scale = 0.3,
-		font = 'batang.ttf',
+		font = fontName,
 		fontFirstChar = 0,
 		fontLastChar = 256,
 		color = {x = 1, y = 1, z = 1, w = 1}
@@ -51,10 +56,10 @@ gui = {
 		guiType = GuiType.TEXT,
 		text = 'Vehicles lost',
 		name = 'vl',
-		pos = {x = 850, y = 200, z = 0},
+		pos = {x = 850, y = headerHeight, z = 0},
 		zIndex = 0,
 		scale = 0.3,
-		font = 'batang.ttf',
+		font = fontName,
 		fontFirstChar = 0,
 		fontLastChar = 256,
 		color = {x = 1, y = 1, z = 1, w = 1}
@@ -63,10 +68,10 @@ gui = {
 		guiType = GuiType.TEXT,
 		text = 'Structures built',
 		name = 'sb',
-		pos = {x = 1050, y = 200, z = 0},
+		pos = {x = 1050, y = headerHeight, z = 0},
 		zIndex = 0,
 		scale = 0.3,
-		font = 'batang.ttf',
+		font = fontName,
 		fontFirstChar = 0,
 		fontLastChar = 256,
 		color = {x = 1, y = 1, z = 1, w = 1}
@@ -75,10 +80,10 @@ gui = {
 		guiType = GuiType.TEXT,
 		text = 'Structures destroyed',
 		name = 'sd',
-		pos = {x = 1350, y = 200, z = 0},
+		pos = {x = 1350, y = headerHeight, z = 0},
 		zIndex = 0,
 		scale = 0.3,
-		font = 'batang.ttf',
+		font = fontName,
 		fontFirstChar = 0,
 		fontLastChar = 256,
 		color = {x = 1, y = 1, z = 1, w = 1}
@@ -87,20 +92,13 @@ gui = {
 		guiType = GuiType.TEXT,
 		text = 'Structures lost',
 		name = 'sl',
-		pos = {x = 1720, y = 200, z = 0},
+		pos = {x = 1720, y = headerHeight, z = 0},
 		zIndex = 0,
 		scale = 0.3,
 		font = 'batang.ttf',
 		fontFirstChar = 0,
 		fontLastChar = 256,
 		color = {x = 1, y = 1, z = 1, w = 1}
-	},
-	{
-		guiType = GuiType.GUI_RECTANGLE,
-		pos = {x = 100, y = 200, z = 0},
-		zIndex = 1,
-		size = {x = 600, y = 600},
-		color = {x = 0, y = 0, z = 1, w = 1}
 	},
 	{
 		pos = {x = 1700, y = 1000, z = 0},

@@ -21,9 +21,9 @@ namespace battleship{
 			void removeGameObjectFrame(int);
 			void removeGameObjectFrames();
 			void rotateGameObjectFrames(float);
-			void placeGameObjectFrame(int, vb01::Vector3, float, float);
+			void checkPlacement(GameObjectFrame&);
+			void addGameObjectFrame(GameObjectFrame);
 			inline int getNumGameObjectFrames(){return gameObjectFrames.size();}
-			inline void addGameObjectFrame(GameObjectFrame u){gameObjectFrames.push_back(u);}
 			inline GameObjectFrame& getGameObjectFrame(int i){return gameObjectFrames[i];}
 			inline bool isPaintSelecting(){return paintSelecting;}
 			inline void setPaintSelecting(bool ps){paintSelecting = ps;}
@@ -41,9 +41,9 @@ namespace battleship{
 			}
 		private:
 			GameObjectFrameController(){}
-			void paintSelect(vb01::Vector3, float, float);
-			void snapToObj(GameObjectFrame&, GameObject::Type, int, float);
-			void updatePlacement();
+			void paintSelect(vb01::Vector3);
+			void snapToObj(GameObjectFrame&, std::vector<GameObject*>, float);
+			void shiftVerticalPlacement();
 
 			std::vector<GameObjectFrame> gameObjectFrames;
 			vb01::Vector3 paintSelectRowStart, placementPos;

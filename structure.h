@@ -17,9 +17,9 @@ namespace battleship{
 			inline int getBuildStatus(){return buildStatus;}
 			inline void incrementBuildStatus(){buildStatus++;}
 		private:
-			int buildStatus = 0;
 		protected:
 			vb01::Node *buildStatusBackground = nullptr, *buildStatusForeground = nullptr;
+			int buildStatus = 0;
 	};
 }
 

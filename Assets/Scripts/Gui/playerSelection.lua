@@ -1,62 +1,49 @@
-Pos = {x = 110, y = 150, z = 0} 
-Size = {x = 100, y = 20}
-space = 60
+playerListboxPos = {x = 110, y = 10, z = 0}
+Pos = {x = playerListboxPos.x, y = playerListboxPos.y, z = playerListboxPos.z} 
+Size = {x = 150, y = 20}
+gap = 10
+gapFactor = 3
+
+factions = {'None', "America inc.", "European Republic", "Asian Co-Prosperity Sphere"}
+difficulties = {"Easy", "Medium", "Hard"}
+colors = {'White', 'Black', 'Red'}
+teams = {'0', '1', '2', '3', '4'}
 
 gui = {
 	{
-		pos = Pos,
+		pos = {x = Pos.x, y = Pos.y + (gapFactor * Size.y + gap) * (lineId + 1), z = Pos.z},
 		size = Size,
 		guiType = GuiType.LISTBOX,
+		name = 'factions',
 		numMaxDisplay = 3,
+		lines = factions,
 		listboxType = ListboxType.FACTIONS
 	},
 	{
-		pos = {x = Pos.x, y = Pos.y + Size.y + space},
+		pos = {x = Pos.x + Size.x + gap, y = Pos.y + (gapFactor * Size.y + gap) * (lineId + 1), z = Pos.z},
 		size = Size,
 		guiType = GuiType.LISTBOX,
+		name = 'difficulties',
 		numMaxDisplay = 3,
-		listboxType = ListboxType.FACTIONS
+		lines = difficulties,
+		listboxType = ListboxType.CPU_DIFFICULTIES
 	},
 	{
-		pos = {x = Pos.x, y = Pos.y + 2 * (Size.y + space)},
+		pos = {x = Pos.x + 2 * (Size.x + gap), y = Pos.y + (gapFactor * Size.y + gap) * (lineId + 1), z = Pos.z},
 		size = Size,
 		guiType = GuiType.LISTBOX,
+		name = 'colors',
 		numMaxDisplay = 3,
-		listboxType = ListboxType.FACTIONS
+		lines = colors,
+		listboxType = ListboxType.COLORS
 	},
 	{
-		pos = {x = Pos.x, y = Pos.y + 3 * (Size.y + space)},
+		pos = {x = Pos.x + 3 * (Size.x + gap), y = Pos.y + (gapFactor * Size.y + gap) * (lineId + 1), z = Pos.z},
 		size = Size,
 		guiType = GuiType.LISTBOX,
+		name = 'teams',
 		numMaxDisplay = 3,
-		listboxType = ListboxType.FACTIONS
-	},
-	{
-		pos = {x = Pos.x, y = Pos.y + 4 * (Size.y + space)},
-		size = Size,
-		guiType = GuiType.LISTBOX,
-		numMaxDisplay = 3,
-		listboxType = ListboxType.FACTIONS
-	},
-	{
-		pos = {x = Pos.x, y = Pos.y + 5 * (Size.y + space)},
-		size = Size,
-		guiType = GuiType.LISTBOX,
-		numMaxDisplay = 3,
-		listboxType = ListboxType.FACTIONS
-	},
-	{
-		pos = {x = Pos.x, y = Pos.y + 6 * (Size.y + space)},
-		size = Size,
-		guiType = GuiType.LISTBOX,
-		numMaxDisplay = 3,
-		listboxType = ListboxType.FACTIONS
-	},
-	{
-		pos = {x = Pos.x, y = Pos.y + 7 * (Size.y + space)},
-		size = Size,
-		guiType = GuiType.LISTBOX,
-		numMaxDisplay = 3,
-		listboxType = ListboxType.FACTIONS
+		lines = teams,
+		listboxType = ListboxType.TEAMS
 	},
 }

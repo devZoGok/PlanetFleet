@@ -1,6 +1,12 @@
 Size = {x = 150, y = 40}
 
 numGui = 4
+music = {
+	loop = true,
+	shuffle = false,
+	delay = 2000,
+	tracks = {'intro.ogg'}
+}
 gui = {
 	{
 		pos = {x = 110, y = 40, z = 0},

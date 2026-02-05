@@ -1,3 +1,1 @@
-game = {
-	players = {}
-}
+game = {players = {}}

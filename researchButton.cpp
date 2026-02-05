@@ -19,8 +19,8 @@ namespace battleship{
 	using namespace vb01;
 	using namespace std;
 
-	ResearchButton::ResearchButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath, int uid, int tid) :
-	   	UnitButton(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, imagePath, uid), techId(tid){
+	ResearchButton::ResearchButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath, int tid) :
+	   	UnitButton(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, imagePath), techId(tid){
 			Root *root = Root::getSingleton();
 			Material *mat = new Material(root->getLibPath() + "gui");
 			mat->addVec4Uniform("diffuseColor", Vector4::VEC_IJKL);
@@ -41,7 +41,7 @@ namespace battleship{
 	void ResearchButton::onClick(){
 		if(!active) return;
 
-		vector<Unit*> labs = getUnits(unitId);
+		vector<Unit*> labs = getUnits();
 
 		for(Unit *lab : labs)
 			((ResearchStruct*)lab)->appendToQueue(techId);
@@ -72,7 +72,7 @@ namespace battleship{
 				active = true;
 				overlay->setVisible(false);
 
-				vector<Unit*> labs = getUnits(unitId);
+				vector<Unit*> labs = getUnits();
 
 				for(Unit *lab : labs){
 					vector<int> researchQueue = ((ResearchStruct*)lab)->getQueue();

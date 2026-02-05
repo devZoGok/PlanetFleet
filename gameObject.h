@@ -13,6 +13,7 @@ namespace sf{
 namespace battleship{
 	class Player;
 	class Unit;
+	class Destructable;
 
 	class GameObject{
 		public:
@@ -23,11 +24,13 @@ namespace battleship{
 			virtual void reinit();
 			virtual void update();
         	virtual void select(){}
-			void placeAt(vb01::Vector3);
+			virtual void placeAt(vb01::Vector3);
 			void orientAt(vb01::Quaternion);
 			std::string getGameObjTableName();
-			void updateGameStats(Unit*);
 			static sf::Sound* prepareSfx(sf::SoundBuffer*, std::string);
+			bool pointWithinObj(vb01::Vector3, float = 0, float = 0, bool = false, float = 0);
+			void changePlayer(Player *newPlayer);
+			inline float getMaxUnevenness(){return maxUnevenness;}
         	inline vb01::Vector2 getScreenPos(){return screenPos;}
 			inline vb01::Vector3 getCorner(int i){return corners[i];}
 			inline bool isSelectable(){return selectable;}
@@ -47,28 +50,30 @@ namespace battleship{
         	inline int getId() {return id;}
 			inline Type getType(){return type;}
 			inline vb01::Node* getHitbox(){return hitbox;}
+			inline void setRemove(bool rm){this->remove = rm;}
 			inline bool isRemove(){return remove;}
+			inline Destructable* getDestructable(){return destructable;}
 		protected:
+			virtual void useColor(vb01::Material*);
 			virtual void initProperties();
 			virtual void destroyModel();
 			virtual void initModel(bool = true);
 			virtual void initHitbox();
 			virtual void destroyHitbox();
 			virtual void destroySound();
-			virtual void initSound();
+			virtual void initSound(){}
 
 			Type type;
 			int id;
 			Player *player;
-			sf::SoundBuffer *deathSfxBuffer;
-			sf::Sound *deathSfx;
+			Destructable *destructable = nullptr;
 			vb01::Model *model = nullptr;
 			vb01::Node *hitbox = nullptr;
 			vb01::Vector3 pos = vb01::Vector3(0, 0, 0), upVec = vb01::Vector3(0, 1, 0), dirVec = vb01::Vector3(0, 0, 1), leftVec = vb01::Vector3(1, 0, 0), corners[8];
 			vb01::Vector2 screenPos;
 			vb01::Quaternion rot;
 			bool selectable = false, debugging = false, remove = false;
-			float width, height, length;
+			float width, height, length, maxUnevenness;
 	};
 }
 

@@ -12,6 +12,8 @@
 #include <stateManager.h>
 
 #include "map.h"
+#include "util.h"
+#include "vehicle.h"
 #include "game.h"
 #include "player.h"
 #include "gameObject.h"
@@ -47,22 +49,24 @@ namespace battleship{
 		string refIconFile = SOL_STATE_VIEW["refIcon"];
 		string basePath = GameManager::getSingleton()->getPath() + "Textures/Icons/Minimap/";
 
-		for(Player *pl : Game::getSingleton()->getPlayers())
-			for(ResourceDeposit *rd : pl->getResourceDeposits())
-				depositIcons.push_back(initIcon(rd->getPos(), basePath + refIconFile));
+		for(ResourceDeposit *rd : Game::getSingleton()->getCivilianPlayer()->getResourceDeposits())
+			depositIcons.push_back(initIcon(rd->getPos(), basePath + refIconFile));
 
 		string camIconFile = SOL_STATE_VIEW["eyeIcon"];
 		camIcon = initIcon(Root::getSingleton()->getCamera()->getPosition(), basePath + camIconFile);
 	}
 
 	Map::Minimap::~Minimap(){
+		Node *guiNode = Root::getSingleton()->getGuiNode();
+
 		for(Node *node : depositIcons){
-			Root::getSingleton()->getGuiNode()->dettachChild(node);
+			guiNode->dettachChild(node);
 			delete node;
 		}
 
 		depositIcons.clear();
 
+		guiNode->dettachChild(camIcon);
 		delete camIcon;
 	}
 
@@ -93,101 +97,85 @@ namespace battleship{
 
 		Node *node = new Node(minimapPos + Vector3(iconPos.x, iconPos.y, .1) - .5 * iconSize);
 		node->attachMesh(quad);
+		node->setVisible(false);
 		root->getGuiNode()->attachChild(node);
 
 		return node;
 	}
 
-	void Map::Minimap::updateImage(Button *minimapButton){
-		string imagePath = GameManager::getSingleton()->getPath() + "Models/Maps/" + Map::getSingleton()->getMapName() + "/minimap.jpg";
-		ImageAsset *asset = (ImageAsset*)AssetManager::getSingleton()->getAsset(imagePath);
-		int width = asset->width, height = asset->height, numChannels = asset->numChannels;
+	//TODO add a flag to Player::getUnits* whether to include garrisoned units
+	void Map::Minimap::updateImage(){
+		GameManager *gm = GameManager::getSingleton();
+		Map *map = Map::getSingleton();
 
-		Vector3 mapSize = Map::getSingleton()->getMapSize();
+		string imagePath = gm->getPath() + "Models/Maps/" + map->getMapName() + "/minimap.jpg";
+		ImageAsset *asset = (ImageAsset*)AssetManager::getSingleton()->getAsset(imagePath);
+		int width = asset->width, height = asset->height;
+
+		Vector3 mapSize = map->getMapSize();
 		vector<pair<Unit*, Vector2>> unitMinimapPos;
 
-		for(Player *pl : Game::getSingleton()->getPlayers())
-			for(Unit *un : pl->getUnits()){
-				Vector2 coords = Vector2(
-					int(un->getPos().x / mapSize.x * width),
-					int(un->getPos().z / mapSize.z * height)
-				);
+		ActiveGameState *activeState = (ActiveGameState*)gm->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
 
-				unitMinimapPos.push_back(make_pair(un, coords));
-			}
+		for(Player *pl : Game::getSingleton()->getPlayers(true))
+			if(pl->getTeam() == activeState->getPlayer()->getTeam()){
+				vector<Unit*> units = pl->getUnits();
 
-		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
-		Player *mainPlayer = activeState->getPlayer();
-		vector<Unit*> units = mainPlayer->getUnits();
+				for(Unit *u : units){
+					if(u->isVehicle() && ((Vehicle*)u)->getGarrisonable()) continue;
 
-		int size = width * height * numChannels, unitPxRadius = 1;
-		int pxId = 0, numIter = 0;
-
-		for(u8 *p = asset->image; p != asset->image + size; p += numChannels, pxId += numChannels, numIter++){
-			Vector2 coords = Vector2(
-				numIter % asset->width - .5 * asset->width,
-				-(numIter / asset->width - .5 * asset->height)
-			);
-			float losFactor = .6, pxCol[3]{
-				losFactor * oldImageData[pxId + 0],
-				losFactor * oldImageData[pxId + 1],
-				losFactor * oldImageData[pxId + 2]
-			};
-
-			for(pair<Unit*, Vector2> unitPair : unitMinimapPos){
-				float minimapLos = unitPair.first->getLineOfSight() / mapSize.x * width;
-
-				if(unitPair.first->getPlayer() == mainPlayer && coords.getDistanceFrom(unitPair.second) < minimapLos){
-					bool foreignUnit = false;
-					Player *pl = nullptr;
-
-					for(pair<Unit*, Vector2> up : unitMinimapPos){
-						Vector2 coordDiff = up.second - coords;
-
-						if(up.first->getPlayer() != mainPlayer && fabs(coordDiff.x) <= unitPxRadius && fabs(coordDiff.y) <= unitPxRadius){
-							foreignUnit = true;
-							pl = up.first->getPlayer();
-							break;
-						}
-					}
-
-					if(foreignUnit){
-						Vector3 plCol = pl->getColor();
-						pxCol[0] = plCol.x * 255;
-						pxCol[1] = plCol.y * 255;
-						pxCol[2] = plCol.z * 255;
-					}
-					else{
-						pxCol[0] = oldImageData[pxId + 0];
-						pxCol[1] = oldImageData[pxId + 1];
-						pxCol[2] = oldImageData[pxId + 2];
-					}
-
-					break;
+					Vector2 coords = Vector2(
+						int(u->getPos().x / mapSize.x * width),
+						int(-u->getPos().z / mapSize.z * height)
+					);
+					unitMinimapPos.push_back(make_pair(u, coords));
 				}
 			}
 
-			for(pair<Unit*, Vector2> unitPair : unitMinimapPos){
-				Vector2 coordDiff = unitPair.second - coords;
+		int pxId = 0, numChannels = asset->numChannels, size = width * height * numChannels;
+		float losFactor = .6;
 
-				if(unitPair.first->getPlayer() == mainPlayer && fabs(coordDiff.x) <= unitPxRadius && fabs(coordDiff.y) <= unitPxRadius){
-					Vector3 plCol = mainPlayer->getColor();
-					pxCol[0] = plCol.x * 255;
-					pxCol[1] = plCol.y * 255;
-					pxCol[2] = plCol.z * 255;
-					break;
-				}
-			}
-
-			*p = pxCol[0];
-			*(p + 1) = pxCol[1];
-			*(p + 2) = pxCol[2];
+		for(u8 *p = asset->image; p != asset->image + size; p += numChannels, pxId += numChannels){
+			*(p + 0) = losFactor * oldImageData[pxId + 0];
+			*(p + 1) = losFactor * oldImageData[pxId + 1];
+			*(p + 2) = losFactor * oldImageData[pxId + 2];
 		}
 
-		Node *rectNode = minimapButton->getRectNode();
+		int unitPxRadius = 1;
+
+		for(pair<Unit*, Vector2> unitPair : unitMinimapPos){
+			Unit *losUnit = unitPair.first;
+			Vector2 losUnitCoords = unitPair.second;
+			float minimapLos = losUnit->getLineOfSight() / mapSize.x * width;
+
+			for(int x = max(-.5f * width, losUnitCoords.x - minimapLos); x < min(.5f * width, losUnitCoords.x + minimapLos); x++){
+				for(int y = max(-.5f * height, losUnitCoords.y - minimapLos); y < min(.5f * height, losUnitCoords.y + minimapLos); y++){
+					int pxId = width * (y + .5 * height) + (x + .5 * width);
+					Vector2 coords = Vector2(x, y);
+
+					if(coords.getDistanceFrom(losUnitCoords) < minimapLos){
+						asset->image[numChannels * pxId + 0] = oldImageData[numChannels * pxId + 0];
+						asset->image[numChannels * pxId + 1] = oldImageData[numChannels * pxId + 1];
+						asset->image[numChannels * pxId + 2] = oldImageData[numChannels * pxId + 2];
+
+						for(pair<Unit*, Vector2> addUnitPair : unitMinimapPos)
+							if(fabs(addUnitPair.second.x - coords.x) < unitPxRadius && fabs(addUnitPair.second.y - coords.y) < unitPxRadius){
+								Vector3 unitCol = addUnitPair.first->getPlayer()->getColor();
+								asset->image[numChannels * pxId + 0] = unitCol.x * 255;
+								asset->image[numChannels * pxId + 1] = unitCol.y * 255;
+								asset->image[numChannels * pxId + 2] = unitCol.z * 255;
+
+								break;
+							}
+					}
+				}
+			}
+		}
+
+		Node *rectNode = ConcreteGuiManager::getSingleton()->getButton("minimap")->getRectNode();
 		Material *mat = rectNode->getMesh(0)->getMaterial();
 		Texture *tex = ((Material::TextureUniform*)mat->getUniform("diffuseMap"))->value;
-		tex->loadImageData(asset);
+		tex->loadImageData(asset, false);
 	}
 
 	void Map::Minimap::updateCamFrame(Button *minimapButton){
@@ -206,11 +194,13 @@ namespace battleship{
 		if(!GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE)) return;
 
 		Button *mb = ConcreteGuiManager::getSingleton()->getButton("minimap");
-		updateImage(mb);
 		updateCamFrame(mb);
 	}
 
 	void Map::Minimap::load(){
+		for(Node *node : depositIcons)
+			node->setVisible(true);
+
 		AssetManager *am = AssetManager::getSingleton();
 		string minimapPath = GameManager::getSingleton()->getPath() + "Models/Maps/" + Map::getSingleton()->getMapName() + "/minimap.jpg";
 
@@ -224,6 +214,9 @@ namespace battleship{
 	}
 
 	void Map::Minimap::unload(){
+		for(Node *node : depositIcons)
+			node->setVisible(false);
+
 		delete[] oldImageData;
 	}
 
@@ -374,41 +367,71 @@ namespace battleship{
 		}
 	}
 
+	int Map::getNumMapSpawnPoints(string name){
+		if(name != "")
+			generateView().script_file(GameManager::getSingleton()->getPath() + "Models/Maps/" + name + "/" + name + ".lua");
+
+		sol::table spawnPointsTbl = generateView()["map"]["spawnPoints"];
+		return spawnPointsTbl.size();
+	}
+
+	//TODO improve for underwater cells
+	vector<int> Map::getSurroundingCells(Vector3 p, int numRings){
+		int numHorCells = int(mapSize.x / CELL_SIZE.x);
+		int numVertCells = int(mapSize.z / CELL_SIZE.z);
+		int horId = int((.5 * mapSize.x + p.x) / CELL_SIZE.x);
+		int vertId = int((.5 * mapSize.z + p.z) / CELL_SIZE.z);
+
+		vector<int> cellIds;
+
+		for(int i = vertId - numRings; i <= vertId + numRings; i++)
+			for(int j = horId - numRings; j <= horId + numRings; j++)
+				cellIds.push_back(numHorCells * i + j);
+
+		return cellIds;
+	}
+
+	void Map::blockCells(Unit *unit){
+		vector<int> surroundingCellIds = getSurroundingCells(unit->getPos(), 0);
+
+		for(int scid : surroundingCellIds){
+			if(cells[scid].blockedBy && cells[scid].blockedBy != unit) continue;
+
+			bool within = unit->pointWithinObj(cells[scid].pos);
+			cells[scid].blockedBy = (within ? unit : nullptr);
+		}
+	}
+
+	void Map::unblockCells(Unit *unit){
+		vector<int> surroundingCellIds = getSurroundingCells(unit->getPos(), 0);
+
+		for(int scid : surroundingCellIds)
+			if(cells[scid].blockedBy == unit)
+				cells[scid].blockedBy = nullptr;
+	}
+
 	void Map::loadSpawnPoints(){
 		sol::state_view SOL_LUA_VIEW = generateView();
-		string spawnPointInd = "spawnPoints";
-		sol::table spawnPointsTbl = SOL_LUA_VIEW[mapTable][spawnPointInd];
-		int numSpawnPoints = spawnPointsTbl.size();
+		int numSpawnPoints = getNumMapSpawnPoints();
 
 		for(int i = 0; i < numSpawnPoints; i++){
-			sol::table posTable = SOL_LUA_VIEW[mapTable][spawnPointInd][i + 1];
+			sol::table posTable = SOL_LUA_VIEW[mapTable]["spawnPoints"][i + 1];
 			spawnPoints.push_back(Vector3(posTable["x"], posTable["y"], posTable["z"]));
 		}
 	}
 
-	//TODO move minimap loading elsewhere
-	void Map::loadPlayerGameObjects(){
-		AssetManager *assetManager = AssetManager::getSingleton();
-		string path = GameManager::getSingleton()->getPath();
-		assetManager->load(path + DEFAULT_TEXTURE);
-
+	void Map::loadPlayerGameObjects(Player *player, sol::table playerTbl){
 		sol::state_view SOL_LUA_VIEW = generateView();
-		string vfxPrefix = SOL_LUA_VIEW["vfxPrefix"], gameObjPrefix = SOL_LUA_VIEW["gameObjPrefix"];
-		assetManager->load(path + vfxPrefix, true);
-		assetManager->load(path + gameObjPrefix, true);
 
-		string playerInd = "players";
-		SOL_LUA_VIEW.script("numPlayers = #" + mapTable + "." + playerInd);
-		int numPlayers = SOL_LUA_VIEW["numPlayers"];
+		string resDepInd = "resourceDeposits";
+		sol::optional<sol::table> resDepTblOpt = playerTbl[resDepInd];
 
-		for(int i = 0; i < numPlayers; i++){
-			string resDepInd = "resourceDeposits";
-			SOL_LUA_VIEW.script("numResourceDeposits = #" + mapTable + "." + playerInd + "[" + to_string(i + 1) + "]." + resDepInd);
-			int numNpcObjs = SOL_LUA_VIEW["numResourceDeposits"];
-			Player *player = Game::getSingleton()->getPlayer(i);
+		if(resDepTblOpt != sol::nullopt){
+			sol::table resDepTbl = playerTbl[resDepInd];
+			int numNpcObjs = resDepTbl.size();
 
 			for(int j = 0; j < numNpcObjs; j++){
-				sol::table npcObjTable = SOL_LUA_VIEW[mapTable][playerInd][i + 1][resDepInd][j + 1];
+				sol::table npcObjTable = resDepTbl[j + 1];
 				int id = npcObjTable["id"];
 
 				sol::table posTable = npcObjTable["pos"];
@@ -416,35 +439,55 @@ namespace battleship{
 
 				sol::table rotTable = npcObjTable["rot"];
 				Quaternion rot = Quaternion(rotTable["w"], rotTable["x"], rotTable["y"], rotTable["z"]);
-				int initAmmount = SOL_LUA_VIEW[mapTable][playerInd][i + 1][resDepInd][j + 1]["initAmmount"];
+				int initAmmount = resDepTbl[j + 1]["initAmmount"];
 
 				player->addResourceDeposit(GameObjectFactory::createResourceDeposit(player, id, pos, rot, initAmmount));
 			}
+		}
 
-			//int spawnPointId = SOL_LUA_STATE[mapTable]["spawnPointInd"][i + 1][spawnPointId];
-			string unitInd = "units";
-			SOL_LUA_VIEW.script("numUnits = #" + mapTable + "." + playerInd + "[" + to_string(i + 1) + "]." + unitInd);
-			int numUnits = SOL_LUA_VIEW["numUnits"];
+		string unitInd = "units";
+		sol::optional<sol::table> unitsTblOpt = playerTbl[unitInd];
+
+		if(unitsTblOpt != sol::nullopt){
+			sol::table unitsTbl = playerTbl[unitInd];
+			int numUnits = unitsTbl.size();
 			
 			for(int j = 0; j < numUnits; j++){
-				sol::table unitTable = SOL_LUA_VIEW[mapTable][playerInd][i + 1][unitInd][j + 1];
+				sol::table unitTable = unitsTbl[j + 1];
 
-	   			string posInd = "pos";
+				string posInd = "pos";
 				Vector3 pos = Vector3(unitTable[posInd]["x"], unitTable[posInd]["y"], unitTable[posInd]["z"]);
 
 				string rotInd = "rot";
-				Quaternion rot = Quaternion(unitTable[rotInd]["w"], unitTable[rotInd]["x"], unitTable[rotInd]["x"], unitTable[rotInd]["x"]);
+				Quaternion rot = Quaternion(unitTable[rotInd]["w"], unitTable[rotInd]["x"], unitTable[rotInd]["y"], unitTable[rotInd]["z"]);
 
 				int id = unitTable["id"];
 				int buildStatus = unitTable["buildStatus"].get_or(0);
 				player->addUnit(GameObjectFactory::createUnit(player, id, pos, rot, buildStatus));
 			}
 		}
+	}
+
+	//TODO move minimap loading elsewhere
+	void Map::loadPlayersGameObjects(){
+		Game *game = Game::getSingleton();
+		vector<Player*> choosablePlayers = game->getPlayers(false);
+		sol::state_view SOL_LUA_VIEW = generateView();
+
+		for(int i = 0; i < choosablePlayers.size(); i++){
+			sol::table playerTbl = SOL_LUA_VIEW[mapTable]["choosablePlayers"][i + 1];
+			loadPlayerGameObjects(choosablePlayers[i], playerTbl);
+		}
+
+		sol::table civPlayerTbl = SOL_LUA_VIEW[mapTable]["civilianPlayer"];
+		loadPlayerGameObjects(game->getCivilianPlayer(), civPlayerTbl);
 
 		Minimap::getSingleton()->load();
 	}
 
 	void Map::preprareScene(bool empty){
+		Game::getSingleton()->setCivilianPlayer(new Player(0, 0, 0, .5 * Vector3::VEC_IJK));
+
 		Root *root = Root::getSingleton();
 		Node *rootNode = root->getRootNode();
 		string libPath = root->getLibPath();
@@ -482,8 +525,8 @@ namespace battleship{
 	//TODO implement toggleable cell rendering
 	void Map::loadCells(){
 		sol::state_view SOL_LUA_VIEW = generateView();
-		int numCells = SOL_LUA_VIEW[mapTable]["numCells"];
 		sol::table cellsTable = SOL_LUA_VIEW[mapTable]["cells"];
+		int numCells = cellsTable.size();
 
 		for(int i = 0; i < numCells; i++){
 			sol::table cellTable = cellsTable[i + 1], posTable = cellTable["pos"];
@@ -514,6 +557,7 @@ namespace battleship{
 			 */
 
 			cells.push_back(Cell(cellPos, cellType, edges, underWaterCellIds));
+
 		}
 	}
 
@@ -540,15 +584,18 @@ namespace battleship{
 
 		sol::table sizeTable = SOL_LUA_STATE[mapTable]["size"];
 		mapSize = Vector3(sizeTable["x"], sizeTable["y"], sizeTable["z"]);
-		int numWaterbodies = SOL_LUA_STATE[mapTable]["numWaterBodies"];
+		sol::table wbTbl = SOL_LUA_STATE[mapTable]["waterbodies"];
+		int numWaterbodies = wbTbl.size();
 		
 		for(int i = 0; i < numWaterbodies; i++)
 			loadTerrainObject(i);
     }
 
-	void Map::create(string mapName){
+	void Map::create(string mapName, Vector3 mapSize){
 		this->mapName = mapName;
-		addSpawnPoint(Vector3::VEC_ZERO);
+		this->mapSize = mapSize;
+
+		//addSpawnPoint(Vector3::VEC_ZERO);
 		preprareScene(true);
 	}
 
@@ -589,7 +636,7 @@ namespace battleship{
 	}
 
 	void Map::unloadPlayerObjects(){
-		for(Player *pl : Game::getSingleton()->getPlayers()){
+		for(Player *pl : Game::getSingleton()->getPlayers(true)){
 			while(pl->getNumUnits() > 0){
 				pl->removeUnit(0);
 			}
@@ -612,13 +659,13 @@ namespace battleship{
     void Map::unload(){
 		Minimap::getSingleton()->unload();
 
-		unloadSkybox();
-		unloadLights();
+		unloadPlayerObjects();
 		unloadCells();
 		unloadTerrainObjects();
-		unloadPlayerObjects();
-		spawnPoints.clear();
 		destroyScene();
+		unloadLights();
+		unloadSkybox();
+		spawnPoints.clear();
 	}
 
 	vector<RayCaster::CollisionResult> Map::raycastTerrain(Vector3 rayPos, Vector3 rayDir, bool bothTerrTypes){
@@ -670,11 +717,12 @@ namespace battleship{
 	}
 
 	//TODO replace search with binary search
+	//TODO optimize horizontal and vertical id calculcation
 	int Map::getCellId(Vector3 pos, bool checkUnderwaterCells){
 		int numHorCells = int(mapSize.x / CELL_SIZE.x), horId = -1;
 
 		for(int i = 0; i < numHorCells; i++)
-			if(fabs(cells[i].pos.x - pos.x) < .5 * CELL_SIZE.x){
+			if(fabs(cells[i].pos.x - pos.x) <= .5 * CELL_SIZE.x){
 				horId = i;
 				break;
 			}
@@ -682,7 +730,7 @@ namespace battleship{
 		int numVertCells = int(mapSize.z / CELL_SIZE.z), vertId = -1;
 
 		for(int i = 0; i < numVertCells; i++)
-			if(fabs(cells[i * numHorCells].pos.z - pos.z) < .5 * CELL_SIZE.z){
+			if(fabs(cells[i * numHorCells].pos.z - pos.z) <= .5 * CELL_SIZE.z){
 				vertId = i;
 				break;
 			}

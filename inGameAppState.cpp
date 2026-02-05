@@ -17,12 +17,15 @@
 #include "concreteGuiManager.h"
 #include "vessel.h"
 
+#include <solUtil.h>
+
 using namespace vb01;
 using namespace vb01Gui;
 using namespace std;
 
 namespace battleship{
 	using namespace configData;
+	using namespace gameBase;
 
     InGameAppState::ResumeButton::ResumeButton(Vector3 pos, Vector2 size) : Button(pos, size, "Resume", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true) {}
 
@@ -45,50 +48,34 @@ namespace battleship{
 		Console::execute(wstringToString(textbox->getText()));
 	}
 
-    InGameAppState::InGameAppState(vector<string> difficultyLevels, vector<string> factions) : AbstractAppState(
+    InGameAppState::InGameAppState(std::string mn) : AbstractAppState(
 						AppStateType::IN_GAME_STATE,
 					 	configData::calcSumBinds(AppStateType::IN_GAME_STATE, true),
 					 	configData::calcSumBinds(AppStateType::IN_GAME_STATE, false),
-					 	GameManager::getSingleton()->getPath() + scripts[(int)ScriptFiles::OPTIONS]){
-        this->playerId = 1;
-        this->difficultyLevels = difficultyLevels;
-        this->factions = factions;
-    }
-
-    InGameAppState::~InGameAppState() {
-    }
+					 	GameManager::getSingleton()->getPath() + scripts[(int)ScriptFiles::OPTIONS]
+					),
+					mapName(mn),
+					playerId(0){}
 
     void InGameAppState::onAttached() {
         AbstractAppState::onAttached();
 
-        for (int i = 0; i < factions.size(); i++) {
-            int faction, difficulty;
-
-            if (i == 0)
-                difficulty = -1;
-            else {
-                if (difficultyLevels[i - 1] == "Easy")
-                    difficulty = 0;
-                else if (difficultyLevels[i - 1] == "Medium")
-                    difficulty = 1;
-                else
-                    difficulty = 2;
-            }
-
-            faction = factions[i][0] - 48;
-        }
+		Map *map = Map::getSingleton();
+		map->load(mapName);
+		map->loadPlayersGameObjects();
 
 		Camera *cam = Root::getSingleton()->getCamera();
-		cam->setPosition(Map::getSingleton()->getSpawnPoint(playerId - 1) + Vector3(1, 1, 1) * configData::CAMERA_DISTANCE);
+		cam->setPosition(Map::getSingleton()->getSpawnPoint(playerId) + Vector3(1, 1, 1) * configData::CAMERA_DISTANCE);
 		cam->lookAt(Vector3(0, -1, -1).norm(), Vector3(0, 1, -1).norm());
-
-        mainPlayer = Game::getSingleton()->getPlayer(playerId);
 
 		GameManager *gm = GameManager::getSingleton();
 		StateManager *stateManager = gm->getStateManager();
         GuiAppState *guiState = ((GuiAppState*)stateManager->getAppStateByType((int)AppStateType::GUI_STATE));
         activeState = new ActiveGameState(guiState, playerId);
         stateManager->attachAppState(activeState);
+
+		Game::getSingleton()->updateLuaPlayers(true);
+		Map::Minimap::getSingleton()->updateImage();
     }
 
     void InGameAppState::onDettached() {
@@ -106,7 +93,7 @@ namespace battleship{
     void InGameAppState::onAction(int bind, bool isPressed) {
         switch((Bind)bind){
 			case Bind::TOGGLE_MAIN_MENU: 
-            	if(isPressed && !GameObjectFrameController::getSingleton()->isPlacingOnSurface())
+            	if(isPressed && !(GameObjectFrameController::getSingleton()->isPlacingOnSurface() || activeState->isForceCursorState()))
 					Game::getSingleton()->togglePause();
             break;
         }

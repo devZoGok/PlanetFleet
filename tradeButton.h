@@ -8,7 +8,7 @@ namespace battleship{
 		public:
 			enum class Type{BUY_REFINEDS, SELL_REFINEDS, BUY_RESEARCH, SELL_RESEARCH};
 
-			TradeButton(vb01::Vector3, vb01::Vector2, std::string, int, std::string, int, Type);
+			TradeButton(vb01::Vector3, vb01::Vector2, std::string, int, std::string, Type);
 			void onClick();
 		private:
 			Type type;

@@ -1,14 +1,20 @@
 #include <cmath>
+#include <algorithm>
 
 #include <solUtil.h>
 
 #include <util.h>
 #include <box.h>
+#include <quad.h>
 #include <model.h>
 #include <quaternion.h>
 
-#include "vehicle.h"
 #include "pathfinder.h"
+#include "destructable.h"
+#include "defConfigs.h"
+#include "structure.h"
+#include "vehicle.h"
+#include "weapon.h"
 #include "player.h"
 #include "game.h"
 #include "map.h"
@@ -20,16 +26,10 @@ using namespace std;
 namespace battleship{
 	Vehicle::Vehicle(Player *player, int id, Vector3 pos, Quaternion rot, Unit::State state) : Unit(player, id, pos, rot, state){
 		initProperties();
-
-		debugMat = new Material(Root::getSingleton()->getLibPath() + "texture");
-		debugMat->addBoolUniform("lightingEnabled", false);
-		debugMat->addBoolUniform("texturingEnabled", false);
-		debugMat->addVec4Uniform("diffuseColor", Vector4::VEC_IJKL);
 	}
 
 	Vehicle::~Vehicle(){
 		removeAllPathpoints();
-		delete debugMat;
 	}
 
 	void Vehicle::update(){
@@ -46,27 +46,25 @@ namespace battleship{
 		pursuingTarget = false;
 	}
 
+	void Vehicle::startCurrentOrder(){
+		Unit::startCurrentOrder();
+
+		if(orders[0].type == Order::TYPE::LAUNCH) return;
+
+		removeAllPathpoints();
+
+		Vector3 targPos = (orders[0].targets[0].unit ? orders[0].targets[0].unit->getPos() : orders[0].targets[0].pos);
+		preparePathpoints(orders[0], targPos);
+	}
+
 	bool Vehicle::validateGarrisonOrder(Order order){
-		Unit *targUnit = order.targets[0].unit;
+		Unit *targUnit = (Unit*)order.targets[0].unit;
 
 		for(GarrisonSlot slot : targUnit->getGarrisonSlots())
 			if(!slot.vehicle && slot.category >= garrisonCategory)
 				return true;
 
 		return false;
-	}
-
-	void Vehicle::receiveOrder(Order order, bool add){
-		if(!(order.type == Order::TYPE::EJECT || order.type == Order::TYPE::LAUNCH)){
-			Order::Target targ = order.targets[0];
-			Vector3 targPos = (targ.unit ? targ.unit->getPos() : targ.pos);
-			preparePathpoints(order, targPos);
-
-			if(!pathPoints.empty())
-				Unit::receiveOrder(order, add);
-		}
-		else
-			Unit::receiveOrder(order, add);
 	}
 
     void Vehicle::turn(float angle) {
@@ -109,75 +107,147 @@ namespace battleship{
 		initProperties();
 	}
 
-	void Vehicle::navigate(float destOffset){
-		Vector3 hypVec = (pathPoints[0] - pos);
+	void Vehicle::arrivedAtPathpoint(bool byPlane, float vertDist){
+		bool orderHasDir = (orders[0].direction != Vector3::VEC_ZERO);
+		float angleToOrderDir = dirVec.getAngleBetween(orders[0].direction);
+		bool destDirWithin = (!orderHasDir || (orderHasDir && angleToOrderDir <= anglePrecision));
+
+		if(pathPoints.size() == 1 && !destDirWithin)
+			turn(calculateRotation(orders[0].direction, angleToOrderDir, maxTurnAngle));
+
+		if(byPlane && (
+					(pathPoints.size() > 1 || (pathPoints.size() == 1 && destDirWithin)) && 
+					(type != UnitType::UNDERWATER || (type == UnitType::UNDERWATER && vertDist < 0.5 * height))
+				)
+		){
+			removePathpoint();
+		}
+		else if(!byPlane && (pathPoints.size() > 1 || (pathPoints.size() == 1 && destDirWithin)))
+			removePathpoint();
+	}
+
+	void Vehicle::moveByTerrainQuads(Vector3 hypVec, float destOffset){
+		Map *map = Map::getSingleton();
+		Quad *terrQuad = (Quad*)map->getNodeParent()->getChild(0)->getMesh(0);
+		int numVertDiv = configData::NUM_SUBDIVS, numHorDiv = configData::NUM_SUBDIVS;
+		Vector3 mapSize = map->getMapSize();
+		Vector2 sqIdsVec = terrQuad->getSubquadIds(numVertDiv, numHorDiv, pos, mapSize);
+		Vector2 sqIdsEndVec = terrQuad->getSubquadIds(numVertDiv, numHorDiv, pathPoints[0], mapSize);
+
+		int sqIds[]{sqIdsVec.x, sqIdsVec.y};
+		vector<Vector3> points = vector<Vector3>{pos};
+
+		// y = ax + b
+		float a = hypVec.z / hypVec.x;
+		float b = pos.z - a * pos.x;
+
+		while(!(sqIds[0] == (int)sqIdsEndVec.x && sqIds[1] == (int)sqIdsEndVec.y)){
+			Vector3 c1 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, true, false); //top left
+			Vector3 c2 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, true, true); //top right
+			Vector3 c3 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, false, false); //bottom left
+			Vector3 c4 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, false, true); //bottom right
+
+			float minX = c1.x, maxX = c2.x, minY = c1.z, maxY = c3.z;
+			bool bottom = (hypVec.z > 0), left = (hypVec.x < 0);
+			float intersecX = (left ? c1.x : c2.x);
+			float intersecY = (bottom ? c3.z : c1.z);
+
+			float xSolY = a * intersecX + b;
+			float ySolX = (hypVec.x != 0 ? (intersecY - b) / a : points[points.size() - 1].x);
+
+			float diff, vertDiff, x, y, z;
+
+			if(minY <= xSolY && xSolY <= maxY){
+				diff = (xSolY - c1.z) / (c3.z - c1.z);
+				vertDiff = (left ? c3.y - c1.y : c4.y - c2.y);
+
+				x = (left ? c1.x : c2.x);
+				y = (left ? c1.y : c2.y) + vertDiff * diff;
+				z = xSolY;
+
+				sqIds[0] += (left ? -1 : 1);
+			}
+			else if(hypVec.x == 0 || (minX <= ySolX && ySolX <= maxX)){
+				diff = (ySolX - c1.x) / (c2.x - c1.x);
+				vertDiff = (bottom ? c4.y - c3.y : c2.y - c1.y);
+
+				x = ySolX;
+				y = (bottom ? c3.y : c1.y) + vertDiff * diff;
+				z = (bottom ? c3.z : c1.z);
+
+				sqIds[1] += (bottom ? 1 : -1);
+			}
+
+			points.push_back(Vector3(x, y, z));
+		}
+		
+		points.push_back(pathPoints[0]);
+
+		float movementAmmount = speed, totalDist = 0, eps = .01;
+		Vector3 endPos = pos;
+
+		for(int i = 0; i < points.size() - 1; i++){
+			Vector3 diffVec = (points[i + 1] - points[i]).norm();
+			float dist = points[i].getDistanceFrom(points[i + 1]);
+			float diff = dist;
+
+			if(fabs(totalDist + dist - movementAmmount) > eps)
+				diff = movementAmmount - totalDist;
+
+			endPos += diffVec * diff;
+			totalDist += diff;
+		}
+
+		placeAt(endPos);
+
+		if(fabs(pathPoints[0].x - pos.x) <= destOffset && fabs(pathPoints[0].z - pos.z) <= destOffset)
+			arrivedAtPathpoint(false);
+	}
+
+	void Vehicle::moveByPlane(Vector3 hypVec, float destOffset){
 		float hypAngle = hypVec.norm().getAngleBetween(upVec) - PI / 2;
 		float offset = hypVec.getLength() * sin(hypAngle);
 
 		Vector3 linDest = pathPoints[0] + upVec * offset;
-		float vertDist = fabs(pos.y - pathPoints[0].y);
 		Vector3 destDir = (linDest - pos).norm();
 		float angle = (destDir != Vector3::VEC_ZERO ? dirVec.getAngleBetween(destDir) : -1);
 
-		if(angle > anglePrecision && pos.getDistanceFrom(linDest) > destOffset)
-			turn(calculateRotation(destDir, angle, maxTurnAngle));
-		else{
-			if(pos.getDistanceFrom(linDest) > destOffset){
-				float dist = pos.getDistanceFrom(linDest);
-				float movementAmmount = (speed > dist ? dist : speed);
-				advance(movementAmmount);
-			}
-
-			if(vertDist > .1){
-				float dist = pos.y - pathPoints[0].y;
-				float movementAmmount = (speed > fabs(dist) ? dist : speed);
-
-				if(dist > 0)
-					movementAmmount *= -1;
-
-				advance(movementAmmount, MoveDir::UP);
-			}
-
-			if(pos.getDistanceFrom(linDest) <= destOffset){
-				bool orderHasDir = (orders[0].direction != Vector3::VEC_ZERO);
-				float angleToOrderDir = dirVec.getAngleBetween(orders[0].direction);
-				bool destDirWithin = (!orderHasDir || (orderHasDir && angleToOrderDir <= anglePrecision));
-
-				if(pathPoints.size() == 1 && !destDirWithin)
-					turn(calculateRotation(orders[0].direction, angleToOrderDir, maxTurnAngle));
-
-				if(pathPoints.size() > 1 || (pathPoints.size() == 1 && destDirWithin)){
-					if(type == UnitType::UNDERWATER && vertDist < 0.5 * height)
-						removePathpoint();
-					else if(type != UnitType::UNDERWATER)
-						removePathpoint();
-				}
-			}
+		if(pos.getDistanceFrom(pathPoints[0]) > destOffset){
+			float dist = pos.getDistanceFrom(linDest);
+			float movementAmmount = (speed > dist ? dist : speed);
+			advance(movementAmmount);
 		}
+
+		float vertDist = fabs(pos.y - pathPoints[0].y);
+
+		if(vertDist > .1){
+			float dist = pos.y - pathPoints[0].y;
+			float movementAmmount = (speed > fabs(dist) ? dist : speed);
+
+			if(dist > 0) movementAmmount *= -1;
+
+			advance(movementAmmount, MoveDir::UP);
+		}
+
+		if(pos.getDistanceFrom(linDest) <= destOffset)
+			arrivedAtPathpoint(true, vertDist);
 	}
 
-	void Vehicle::alignToSurface(){
-		/*
-		Map *map = Map::getSingleton();
-		TerrainObject terr = map->getTerrainObject(0);
-		vector<RayCaster::CollisionResult> res = RayCaster::cast(Vector3(pos.x, terr.size.y, pos.z), Vector3(0, -1, 0), terr.node);
-		
-		if(!res.empty()){
-			placeAt(res[0].pos);
-		
-			float angle = upVec.getAngleBetween(res[0].norm);
-			Vector3 axis = upVec.cross(res[0].norm).norm();
-			Quaternion rotQuat = Quaternion(angle, axis);
-			orientAt(rotQuat * rot);
-		}
-		*/
+	void Vehicle::navigate(float destOffset){
+		Vector3 hypVec = (pathPoints[0] - pos);
+		Vector3 baseDir = getVecToPlane(pos, hypVec, upVec);
+		float angle = baseDir.getAngleBetween(dirVec);
+
+		if(angle > anglePrecision && pos.getDistanceFrom(pathPoints[0]) > destOffset)
+			turn(calculateRotation(baseDir, angle, maxTurnAngle));
+		else if(type == UnitType::LAND)
+			moveByTerrainQuads(hypVec, destOffset);
+		else
+			moveByPlane(hypVec, destOffset);
 	}
 
     void Vehicle::move(Order order) {
 		navigate(0.5 * Map::getSingleton()->getCellSize().x);
-
-		if(type == UnitType::LAND)
-			alignToSurface();
 
 		if(pathPoints.empty())
 			removeOrder(0);
@@ -190,7 +260,7 @@ namespace battleship{
 	}
 
 	void Vehicle::enterGarrisonable(){
-		Unit *targUnit = orders[0].targets[0].unit; 
+		Unit *targUnit = (Unit*)orders[0].targets[0].unit; 
 		targUnit->updateGarrison(this, true);
 
 		removeAllPathpoints();
@@ -213,7 +283,7 @@ namespace battleship{
 	}
 
 	void Vehicle::garrison(Order order){
-		Unit *targUnit = order.targets[0].unit;
+		Unit *targUnit = (Unit*)order.targets[0].unit;
 		float distToGarrisonable = pos.getDistanceFrom(targUnit->getPos()), garrisonDist = Map::getSingleton()->getCellSize().x;
 
 		if(distToGarrisonable > garrisonDist)
@@ -235,17 +305,17 @@ namespace battleship{
 		pathPoints.push_back(pointPos);
 
 		Box *b = new Box(Vector3::VEC_IJK);
-		b->setMaterial(debugMat);
+		b->setMaterial(player->getColorMaterial());
 
 		Node *n = new Node(pointPos);
 		n->attachMesh(b);
-
+		n->setVisible(Game::getSingleton()->isDebug());
 		Root::getSingleton()->getRootNode()->attachChild(n);
-
 		debugPathPoints.push_back(n);
 	}
 
 	//TODO allow ships to attack land targets and vice versa 
+	//TODO recursively search for vacant dest cell neibourghss 
 	void Vehicle::preparePathpoints(Order &order, Vector3 destPos, bool appendDestPos){
 		removeAllPathpoints();
 
@@ -261,14 +331,25 @@ namespace battleship{
 
 		int dest = map->getCellId(destPos);
 
-		if(type != UnitType::UNDERWATER && fabs(destPos.y - cells[dest].pos.y) > .1) return;
+		if(type != UnitType::UNDERWATER && type == UnitType::SEA_LEVEL && fabs(destPos.y - cells[dest].pos.y) > .1) return;
+
+		if(cells[dest].blockedBy){
+			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
+
+			for(int scid : surrCellIds)
+				if(!cells[scid].blockedBy){
+					dest = scid;
+					break;
+				}
+		}
 
 		vector<float> heuristics;
 
 		for(Map::Cell &cell : cells)
 			heuristics.push_back(145 * (cells[dest].pos.getDistanceFrom(cell.pos)));
 
-		vector<int> path = Pathfinder::getSingleton()->findPath(cells, heuristics, source, dest, (int)type);
+		vector<int> path = Pathfinder::getSingleton()->findPath(cells, heuristics, source, dest, this);
+		path.erase(path.begin());
 		bool pathTruncated = false;
 
 		for(int i = 0; i < path.size(); i++){
@@ -283,8 +364,49 @@ namespace battleship{
 				return;
 		}
 
-		for(int p : path)
-			addPathpoint(cells[p].pos);
+		for(int p : path) addPathpoint(cells[p].pos);
+
+		if(order.targets[0].unit && !pathTruncated){
+			GameObject *targObj = order.targets[0].unit;
+
+			for(int i = path.size() - 1; i >= 0; i--){
+				Vector3 targPos = targObj->getPos();
+				Vector3 pointDir = cells[path[i]].pos - targPos;
+				pointDir = Vector3(pointDir.x, 0, pointDir.z);
+
+				float dirAngle = targObj->getDirVec().getAngleBetween(pointDir.norm());
+				if(dirAngle > PI / 2) dirAngle = PI - dirAngle;
+
+				float pointDist = pointDir.getLength();
+
+				float length = targObj->getLength(); 
+				float lengthComp = pointDist * cos(dirAngle);
+				bool withinLength = (.5 * length >= lengthComp);
+
+				float width = targObj->getWidth();
+				float widthComp = pointDist * sin(dirAngle);
+				bool withinWidth = (.5 * width >= widthComp);
+
+				if(!(withinLength && withinWidth)){
+					float a1 = atan((.5 * width) / (.5 * length));
+					float a2 = atan((.5 * length) / (.5 * width));
+
+					float leftAngle = targObj->getLeftVec().getAngleBetween(pointDir.norm());
+					if(leftAngle > PI / 2) leftAngle = PI - leftAngle;
+
+					float dist;
+
+					if(dirAngle <= a1) dist = (.5 * length) / cos(dirAngle);
+					else if(leftAngle <= a2) dist = (.5 * width) / cos(leftAngle);
+
+					addPathpoint(targPos + pointDir.norm() * dist);
+					pathTruncated = true;
+
+					break;
+				}
+				else removePathpoint(pathPoints.size() - 1);
+			}
+		}
 
 		if(appendDestPos && !pathTruncated)
 			addPathpoint(destPos);
@@ -302,8 +424,7 @@ namespace battleship{
 
 		pathPoints.erase(pathPoints.begin() + i);
 
-		if(pathPoints.empty())
-			pursuingTarget = false;
+		if(pathPoints.empty()) pursuingTarget = false;
 	}
 
 	void Vehicle::removeAllPathpoints(){
@@ -316,12 +437,19 @@ namespace battleship{
 		Unit::attack(order);
 		int currNumOrders = orders.size();
 
-		if(weapons.empty() || prevNumOrders != currNumOrders) return;
+		if(prevNumOrders != currNumOrders) return;
 
 		Order::Target target = order.targets[0];
 		Vector3 targVec = (target.unit ? target.unit->getPos() : target.pos) - pos;
 		float distToTarg = targVec.getLength();
-		Weapon *weapon = weapons[0];
+
+		vector<Weapon*> attackWeapons = getWeaponsByOrder(Order::TYPE::ATTACK);
+		Weapon *weapon = attackWeapons[0];
+
+		for(Weapon *w : attackWeapons)
+			if(w->getMaxRange() > weapon->getMaxRange())
+				weapon = w;
+
 		float minDist = weapon->getMaxRange();
 
 		if(order.playerAssigned || (!order.playerAssigned && state == Unit::State::CHASE)){
@@ -334,17 +462,26 @@ namespace battleship{
 			removeOrder(0);
 			return;
 		}
-
-		float angleToTarg = targVec.norm().getAngleBetween(dirVec);
-
-		if(distToTarg <= weapon->getMaxRange()){
-			if(angleToTarg <= anglePrecision)
-				weapon->fire(order);
-			else if(angleToTarg > anglePrecision)
-				turn(calculateRotation(targVec.norm(), angleToTarg, maxTurnAngle));
-		}
 	}
 
+	void Vehicle::build(Order order){
+		if(pathPoints.empty()){
+			Structure *structure = (Structure*)order.targets[0].unit;
+			sol::table targTable = generateView()["units"][structure->getId()];
+			int costRate = (int)targTable["cost"] / 100, buildRate = (int)targTable["buildTime"] / 100;
+
+			if(structure->getBuildStatus() < 100 && player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastBuildTime > buildRate){
+				structure->incrementBuildStatus();
+				player->updateResource(ResourceType::REFINEDS, -costRate, true);
+				lastBuildTime = getTime();
+			}
+			else if(structure->getBuildStatus() >= 100){
+				removeOrder(0);
+				player->incStructuresBuilt();
+			}
+		}
+		else navigate(0.5 * Map::getSingleton()->getCellSize().x);
+	}
 
 	void Vehicle::select(){
 		if(!garrisonable)

@@ -6,7 +6,7 @@
 namespace battleship{
 	class BuildButton : public UnitButton{
 		public:
-			BuildButton(vb01::Vector3, vb01::Vector2, std::string, int, std::string, int, int);
+			BuildButton(vb01::Vector3, vb01::Vector2, std::string, int, std::string, int);
 			void onClick();
 		private:
 			int slotId;

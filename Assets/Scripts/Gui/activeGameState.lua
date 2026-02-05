@@ -3,16 +3,44 @@ Size = {x = 70, y = 70}
 sz = 210
 s = 40
 
+function generateFactionMusic(factionId)
+	asianTracks = {'ACS/asian_theme_1.ogg', 'ACS/asian_theme_2.ogg'}
+	americanTracks = {'AInc/american_theme_1.ogg', 'AInc/american_theme_2.ogg'}
+	europeanTracks = {'ER/european_theme_1.ogg', 'ER/european_theme_2.ogg'}
+
+	factionTracks = {}
+
+	if factionId == 0 then 
+		factionTracks = americanTracks
+	elseif factionId == 1 then 
+		factionTracks = europeanTracks
+	elseif factionId == 2 then 
+		factionTracks = asianTracks
+	end
+
+	return {
+		loop = true,
+		shuffle = true,
+		delay = 2000,
+		tracks = factionTracks
+	}
+end
+
 eyeIcon = 'eye.png'
 refIcon = 'refineds.png'
 minimapSize = {x = 200, y = 200}
-minimapPos = {x = res.x - minimapSize.x, y = 0, z = .9}
+minimapPos = {x = 0, y = res.y - minimapSize.y, z = .9}
 
 resTextScale = {x = .5, y = .5}
 resIconBasePath = 'Icons/Resources/'
 pointerTex = 'pointer.png'
 attackTex = 'attack.png'
 garrisonTex = 'garrison.png'
+supplyTex = 'supply.png'
+hackTex = 'hack.png'
+noGarrisonTex = 'noGarrison.png'
+noSupplyTex = 'noSupply.png'
+noHackTex = 'noHack.png'
 
 gui = {
 	{
@@ -38,7 +66,7 @@ gui = {
 		guiType = GuiType.TEXT,
 		name = 'wealth',
 		text = '',
-		pos = {x = 200 + s, y = s, z = 0},
+		pos = {x = s, y = 2 * s, z = 0},
 		scale = resTextScale,
 		font = 'batang.ttf',
 		fontFirstChar = 0,
@@ -49,7 +77,7 @@ gui = {
 		guiType = GuiType.TEXT,
 		name = 'research',
 		text = '',
-		pos = {x = 400 + s, y = s, z = 0},
+		pos = {x = s, y = 3 * s, z = 0},
 		scale = resTextScale,
 		font = 'batang.ttf',
 		fontFirstChar = 0,
@@ -66,14 +94,14 @@ gui = {
 	{
 		guiType = GuiType.GUI_RECTANGLE,
 		name = 'wealth',
-		pos = {x = 200, y = 0, z = 0},
+		pos = {x = 0, y = 1 * s, z = 0},
 		size = {x = s, y = s},
 		imagePath = resIconBasePath .. 'wealth.png',
 	},
 	{
 		guiType = GuiType.GUI_RECTANGLE,
 		name = 'research',
-		pos = {x = 400, y = 0, z = 0},
+		pos = {x = 0, y = 2 * s, z = 0},
 		size = {x = s, y = s},
 		imagePath = resIconBasePath .. 'research.png',
 	},
@@ -93,26 +121,14 @@ gui = {
 		buttonType = ButtonType.PLAYER_TRADE,
 		name = 'Trade',
 		guiScreen = 'tradingHub.lua',
-		pos = {x = res.x - Size.x, y = 200, z = 0},
-		size = Size,
+		pos = {x = minimapSize.x, y = res.y - minimapSize.y, z = 0},
+		size = {x = Size.x, y = minimapSize.y - .75 * sz},
 		trigger = 10
 	},
 	{
 		guiType = GuiType.GUI_RECTANGLE,
-		pos = {x = res.x - sz, y = res.y - sz, z = 0},
-		size = {x = sz, y = sz},
-		color = {x = .6, y = .6, z = .6, w = .4}
-	},
-	{
-		guiType = GuiType.GUI_RECTANGLE,
-		pos = {x = 0, y = res.y - sz, z = 0},
-		size = {x = sz, y = sz},
-		color = {x = .6, y = .6, z = .6, w = .4}
-	},
-	{
-		guiType = GuiType.GUI_RECTANGLE,
-		pos = {x = sz, y = res.y - .75 * sz, z = 0},
-		size = {x = res.x - 2 * sz, y = sz * .75},
+		pos = {x = minimapPos.x, y = res.y - .75 * sz, z = 0},
+		size = {x = res.x - minimapPos.x, y = sz * .75},
 		color = {x = .6, y = .6, z = .6, w = .4}
 	},
 }

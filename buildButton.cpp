@@ -16,12 +16,15 @@ namespace battleship{
 	using namespace vb01Gui;
 	using namespace gameBase;
 
-	BuildButton::BuildButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath, int uid, int slId) : 
-		UnitButton(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, imagePath, uid), slotId(slId){}
+	BuildButton::BuildButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath, int slId) : 
+		UnitButton(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, imagePath), slotId(slId){}
 
 	void BuildButton::onClick(){
 		ActiveGameState *activeState = (ActiveGameState*)(GameManager::getSingleton()->getStateManager()->getAppStateByType((int)AppStateType::ACTIVE_STATE));
 		Player *player = activeState->getPlayer();
+
+		sol::state_view SOL_LUA_VIEW = generateView();
+		int unitId = SOL_LUA_VIEW["_mainUnitId"];
 		Unit* builder = player->getUnitsById(unitId)[0];
 
 		if(builder->getBuildableUnit(slotId).buildable){

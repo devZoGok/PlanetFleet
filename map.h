@@ -8,6 +8,8 @@
 #include <vector.h>
 #include <util.h>
 
+#include <solUtil.h>
+
 namespace vb01{
 	class Model;
 	class Material;
@@ -39,6 +41,7 @@ namespace battleship{
 			Type type;
 			vb01::Vector3 pos;
 			std::vector<Edge> edges;
+			Unit *blockedBy = nullptr;
 			std::vector<int> underWaterCellIds;
 		
 			Cell(){}
@@ -50,6 +53,7 @@ namespace battleship{
 				static Minimap* getSingleton();
 				~Minimap();
 				void update();
+				void updateImage();
 				void load();
 				void unload();
 				inline vb01::u8* getOldMinimapImage(){return oldImageData;}
@@ -57,7 +61,6 @@ namespace battleship{
 				Minimap();
 				vb01::Node* initIcon(vb01::Vector3, std::string);
 				void updateCamFrame(vb01Gui::Button*);
-				void updateImage(vb01Gui::Button*);
 
 				vb01::u8 *oldImageData = nullptr;
 				vb01::Node *camFrame = nullptr;
@@ -70,12 +73,16 @@ namespace battleship{
 		static std::vector<Edge> generateAdjacentNodeEdges(int, int, int, int, int);
         void update();
         void load(std::string);
-        void create(std::string);
+        void create(std::string, vb01::Vector3);
         void unload();
 		std::vector<vb01::RayCaster::CollisionResult> raycastTerrain(vb01::Vector3, vb01::Vector3, bool);
 		int getCellId(vb01::Vector3, bool = true);
 		bool isPointWithinTerrainObject(vb01::Vector3, int);
-		void loadPlayerGameObjects();
+		void loadPlayersGameObjects();
+		int getNumMapSpawnPoints(std::string = "");
+		std::vector<int> getSurroundingCells(vb01::Vector3, int);
+		void blockCells(Unit*);
+		void unblockCells(Unit*);
 		inline std::string getMapName(){return mapName;}
 		inline vb01::Node* getNodeParent(){return terrainNode;}
 		inline vb01::Vector3 getCellSize(){return CELL_SIZE;}
@@ -106,6 +113,7 @@ namespace battleship{
 		void loadLights();
 		void loadSkybox();
 		void loadCells();
+		void loadPlayerGameObjects(Player*, sol::table);
 		void loadTerrainObject(int);
 		void unloadTerrainObjects();
 		void unloadCells();
@@ -116,5 +124,4 @@ namespace battleship{
 		template<typename T> int bsearch(std::vector<T>, T, float);
     };
 }
-
 #endif

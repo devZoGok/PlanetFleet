@@ -2,18 +2,21 @@
 
 #include <stateManager.h>
 #include <inputManager.h>
+#include <soundManager.h>
 
 #include <assetManager.h>
 #include <root.h>
 
 #include "gameManager.h"
 #include "gameObjectFactory.h"
+#include "map.h"
 #include "game.h"
 #include "guiAppState.h"
 #include "defConfigs.h"
 #include "player.h"
 #include "factory.h"
 #include "engineer.h"
+#include "destructable.h"
 #include "pointDefense.h"
 #include "resourceDeposit.h"
 
@@ -42,7 +45,7 @@ namespace battleship{
 		);
 
 		SOL_LUA_STATE.new_usertype<Order::Target>(
-			"Target", sol::constructors<Order::Target(), Order::Target(Unit*, Vector3)>(),
+			"Target", sol::constructors<Order::Target(), Order::Target(GameObject*, Vector3)>(),
 			"unit", &Order::Target::unit,
 			"pos", &Order::Target::pos
 		);
@@ -56,14 +59,27 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<Unit>(
 			"Unit", sol::constructors<Unit(Player*, int, Vector3, Quaternion)>(),
 			"setState", &Unit::setState,
+			"getDestructable", &Unit::getDestructable,
 			"getOrder", &Unit::getOrder,
 			"getNumOrders", &Unit::getNumOrders,
 			"getPos", &GameObject::getPos,
 			"getUnitClass", &Unit::getUnitClass,
+			"getLineOfSight", &Unit::getLineOfSight,
 			"toEngineer", &Unit::toEngineer,
 			"toPointDefense", &Unit::toPointDefense,
 			"toStructure", &Unit::toStructure,
-			"toFactory", &Unit::toFactory
+			"toFactory", &Unit::toFactory,
+			"toGameObject", &Unit::toGameObject,
+			"getBuildableUnit", &Unit::getBuildableUnit,
+			"getBuildableUnits", &Unit::getBuildableUnits,
+			"getNumBuildableUnits", &Unit::getNumBuildableUnits
+		);
+
+		SOL_LUA_STATE.new_usertype<Engineer>(
+			"Engineer", sol::constructors<Engineer(Player*, int, Vector3, Quaternion, Unit::State)>(),
+			"getBuildableUnit", &Unit::getBuildableUnit,
+			"getBuildableUnits", &Unit::getBuildableUnits,
+			"getNumBuildableUnits", &Unit::getNumBuildableUnits
 		);
 
 		SOL_LUA_STATE.new_usertype<Structure>(
@@ -72,8 +88,17 @@ namespace battleship{
 			"getBuildStatus", &Structure::getBuildStatus
 		);
 
+		SOL_LUA_STATE.new_usertype<BuildableUnit>(
+			"BuildableUnit", sol::constructors<BuildableUnit(int, bool)>(),
+			"id", &BuildableUnit::id,
+			"buildable", &BuildableUnit::buildable
+		);
+
 		SOL_LUA_STATE.new_usertype<Factory>(
 			"Factory", sol::constructors<Factory(Player*, int, Vector3, Quaternion, int)>(),
+			"getBuildableUnit", &Unit::getBuildableUnit,
+			"getBuildableUnits", &Unit::getBuildableUnits,
+			"getNumBuildableUnits", &Unit::getNumBuildableUnits,
 			"getPos", &GameObject::getPos,
 			"appendToQueue", &Factory::appendToQueue,
 			"getBuildStatus", &Structure::getBuildStatus,
@@ -82,7 +107,7 @@ namespace battleship{
 		);
 
 		SOL_LUA_STATE.new_usertype<Player>(
-			"Player", sol::constructors<Player(int, int, int, Vector3, bool, Vector3, string)>(),
+			"Player", sol::constructors<Player(int, int, int, Vector3, bool, int, string)>(),
 			"getSelectedUnits", &Player::getSelectedUnits,
 			"addUnit", &Player::addUnit,
 			"getUnit", &Player::getUnit,
@@ -91,7 +116,10 @@ namespace battleship{
 			"issueOrder", &Player::issueOrder,
 			"selectUnits", &Player::selectUnits,
 			"deselectUnits", &Player::deselectUnits,
-			"getSpawnPoint", &Player::getSpawnPoint,
+			"getSpawnPointId", &Player::getSpawnPointId,
+			"getFaction", &Player::getFaction,
+			"getTeam", &Player::getTeam,
+			"getUnits", &Player::getUnits,
 			"getUnitsById", &Player::getUnitsById,
 			"getUnitsByClass", &Player::getUnitsByClass
 		);
@@ -113,6 +141,7 @@ namespace battleship{
 			"y", &Vector3::y,
 			"z", &Vector3::z,
 			"norm", &Vector3::norm,
+			"getAngleBetween", &Vector3::getAngleBetween,
 			"getDistanceFrom", &Vector3::getDistanceFrom,
 			"add", [](Vector3 v1, Vector3 v2){return v1 + v2;},
 			"subtr", [](Vector3 v1, Vector3 v2){return v1 - v2;},
@@ -127,6 +156,13 @@ namespace battleship{
 			"y", &Quaternion::y,
 			"z", &Quaternion::z,
 			"multVec", [](Quaternion q, Vector3 v){return q * v;}
+		);
+
+		SOL_LUA_STATE.new_usertype<Map>(
+			"Map",
+			"getSingleton", &Map::getSingleton,
+			"getSpawnPoint", &Map::getSpawnPoint,
+			"getNumSpawnPoints", &Map::getNumSpawnPoints
 		);
 	}
 
@@ -158,6 +194,7 @@ namespace battleship{
 
     void GameManager::update() {
 		Root::getSingleton()->update();
+		SoundManager::getSingleton()->update();
         inputManager->update();
 		stateManager->update();
     }

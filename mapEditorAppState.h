@@ -61,6 +61,7 @@ namespace battleship{
 					std::vector<Map::Cell> generateMapCells();
 					void generateLandmassXml();
 					void generateMinimap(std::string, std::vector<Map::Cell>&);
+					std::string generatePlayerTableStr(Player*);
 					void generateMapScript(std::vector<Map::Cell>&);
 					void prepareTerrainObject(vb01::u32**, Map::Cell*, int[3], float, bool);
 
@@ -71,7 +72,6 @@ namespace battleship{
 					float *oldLandmassVertHeights = nullptr;
 					bool pushing = false, movingTerrainObject = false, scalingTerrainObject = false, weightsGenerated = false, newMap, cellMarkersVisible = false;
 					const float MIN_RADIUS = 1, MAX_RADIUS = 100, INCREASE_RATE = 1;
-					const int NUM_SUBDIVS = 100;
 					float circleRadius = MIN_RADIUS, guiThreshold = 200;
 					vb01::Vector3 pushPos = vb01::Vector3::VEC_ZERO;
 					std::vector<vb01::Texture*> skyTextures, landmassTextures, waterTextures;

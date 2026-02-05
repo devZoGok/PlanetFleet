@@ -13,7 +13,7 @@ namespace vb01{
 }
 
 namespace battleship{
-	enum GuiElementType {BUTTON, LISTBOX, CHECKBOX, SLIDER, TEXTBOX, GUI_RECTANGLE, TEXT};
+	enum GuiElementType {BUTTON, LISTBOX, CHECKBOX, SLIDER, TEXTBOX, GUI_RECTANGLE, TEXT, MUSIC};
 	enum ButtonType {
 		SINGLE_PLAYER,
 	   	EDITOR,
@@ -38,21 +38,22 @@ namespace battleship{
 		MAIN_MENU,
 		CONSOLE_COMMAND_OK,
 		BUILD,
-		LAND_FACTORY_TRAIN,
-		NAVAL_FACTORY_TRAIN,
-		FORT_TRAIN,
+		TRAIN,
 		STATISTICS,
 		RESEARCH,
 		BUY_REFINEDS,
 		SELL_REFINEDS,
 		BUY_RESEARCH,
 		SELL_RESEARCH,
-		ACTIVE_GAME_STATE,
+		ACTIVE_STATE_BUTTON,
+		ACTIVE_STATE_BACK,
 		PLAYER_TRADE,
 		TRADING_SCREEN,
 		TRADE_OFFER,
 		RESOURCE_AMMOUNT,
-		MINIMAP
+		UNIT_STATE,
+		ORDER,
+		MINIMAP,
 	};
 	enum ListboxType {
 		CONTROLS,
@@ -65,6 +66,8 @@ namespace battleship{
 		LAND_TEXTURES,
 		CPU_DIFFICULTIES,
 		FACTIONS,
+		COLORS,
+		TEAMS,
 		CONSOLE,
 		TRADE_OFFERS
 	};
@@ -80,8 +83,20 @@ namespace battleship{
 					std::vector<vb01Gui::Slider*> = std::vector<vb01Gui::Slider*>{},
 					std::vector<vb01Gui::Textbox*> = std::vector<vb01Gui::Textbox*>{},
 					std::vector<vb01::Node*> = std::vector<vb01::Node*>{},
+					std::vector<vb01::Text*> = std::vector<vb01::Text*>{},
+					std::string = ""
+				);
+			void readLuaScreenScriptDel(
+					std::string,
+					std::vector<vb01Gui::Button*> = std::vector<vb01Gui::Button*>{},
+					std::vector<vb01Gui::Listbox*> = std::vector<vb01Gui::Listbox*>{},
+					std::vector<vb01Gui::Checkbox*> = std::vector<vb01Gui::Checkbox*>{},
+					std::vector<vb01Gui::Slider*> = std::vector<vb01Gui::Slider*>{},
+					std::vector<vb01Gui::Textbox*> = std::vector<vb01Gui::Textbox*>{},
+					std::vector<vb01::Node*> = std::vector<vb01::Node*>{},
 					std::vector<vb01::Text*> = std::vector<vb01::Text*>{}
 				);
+			void parseLuaScript(std::string, std::string = "");
 		private:
 			ConcreteGuiManager();
 			vb01Gui::Button* parseButton(int);
@@ -92,6 +107,7 @@ namespace battleship{
 			vb01Gui::Textbox* parseTextbox(int);
 			vb01::Node* parseGuiRectangle(int);
 			vb01::Text* parseText(int);
+			void parseMusic();
 
 			std::vector<std::pair<int*, void*>> guiElements;
 			std::string texBasePath, fontBasePath;

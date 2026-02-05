@@ -1,5 +1,6 @@
 #include "engineer.h"
 #include "activeGameState.h"
+#include "destructable.h"
 #include "structure.h"
 #include "player.h"
 #include "game.h"
@@ -21,13 +22,13 @@ namespace battleship{
 		hackRange = generateView()["units"][id + 1]["hackRange"]; hackRange += game->calcAbilFromTech(Ability::Type::HACK_RANGE, currTechs, (int)GameObject::type, id);
 
 		Vector2 size = Vector2(lenHpBar, 10);
-		hackStatusBackground = Unit::createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 0, 1));
-		hackStatusForeground = Unit::createBar(Vector2::VEC_ZERO, size,  Vector4(1, 0, 1, 1));
+		hackStatusBackground = destructable->createBar(Vector2::VEC_ZERO, size,  Vector4(0, 0, 0, 1));
+		hackStatusForeground = destructable->createBar(Vector2::VEC_ZERO, size,  Vector4(1, 0, 1, 1));
 	}
 
 	Engineer::~Engineer(){
-		removeBar(hackStatusBackground);
-		removeBar(hackStatusForeground);
+		destructable->removeBar(hackStatusBackground);
+		destructable->removeBar(hackStatusForeground);
 	}
 
 	void Engineer::update(){
@@ -40,7 +41,7 @@ namespace battleship{
 		bool mainPlayerSelecting = (activeState && find(selectingPlayers.begin(), selectingPlayers.end(), mainPlayer) != selectingPlayers.end());
 
 		if(hackStatus < 100)
-			Unit::displayUnitStats(hackStatusForeground, hackStatusBackground, hackStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
+			destructable->displayStats(hackStatusForeground, hackStatusBackground, hackStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
 		else{
 			hackStatusBackground->setVisible(false);
 			hackStatusForeground->setVisible(false);
@@ -50,40 +51,12 @@ namespace battleship{
 			hackStatus = 0;
 	}
 
-	void Engineer::build(Order order){
-		if(pathPoints.empty()){
-			if(!order.targets[0].unit)
-				player->addUnit(order.targets[0].unit);
-			else {
-				Structure *structure = (Structure*)order.targets[0].unit;
-				sol::table targTable = generateView()["units"][order.targets[0].unit->getId()];
-				int costRate = (int)targTable["cost"] / 100, buildRate = (int)targTable["buildTime"] / 100;
-
-				if(structure->getBuildStatus() < 100 && player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastIncrementTime > buildRate){
-					structure->incrementBuildStatus();
-					player->updateResource(ResourceType::REFINEDS, -costRate, true);
-					lastIncrementTime = getTime();
-				}
-				else if(structure->getBuildStatus() >= 100){
-					removeOrder(0);
-					player->incStructuresBuilt();
-				}
-			}
-		}
-		else{
-			navigate(0.5 * Map::getSingleton()->getCellSize().x);
-
-			if(type == UnitType::LAND)
-				alignToSurface();
-		}
-	}
-
 	//TODO change unit colors after faction change
 	void Engineer::hack(Order order){
-		Unit *targUnit = order.targets[0].unit;
+		Unit *targUnit = (Unit*)order.targets[0].unit;
 		bool withinRange = (targUnit->getPos().getDistanceFrom(pos) < hackRange);
 		int hackRate = int(generateView()["units"][id + 1]["hackTime"]) / 100;
-		bool canHack = (getTime() - lastIncrementTime > hackRate);
+		bool canHack = (getTime() - lastHackTime > hackRate);
 
 		if(withinRange && canHack){
 			hackStatus++;
@@ -101,7 +74,7 @@ namespace battleship{
 		}
 
 		if(hackStatus >= 100){
-			Game::getSingleton()->changeUnitPlayer(order.targets[0].unit, player);
+			order.targets[0].unit->changePlayer(player);
 			removeOrder(0);
 		}
 	}

@@ -21,12 +21,12 @@ namespace battleship{
 
   		const std::string DEFAULT_TEXTURE = "Textures/defaultTexture.jpg";
   		const double camPanSpeed = .5, CAMERA_DISTANCE = 100, CAMERA_ZOOM_INCREMENT = 1, cellLength = 7, cellWidth = 7, cellDepth = 7, DIST_FROM_RAY = 15;
-		const int maxNumGroups = 10, NUM_MAX_ZOOMS = 75;
+		const int maxNumGroups = 10, NUM_MAX_ZOOMS = 75, NUM_SUBDIVS = 100;
 		const vb01::u32 IMPASS_NODE_VAL = 65535;
 
-  		const static int numAppStates = 4;
-  		const static int numStaticBinds[numAppStates]{6, 0, 5, 19};
-  		const static int numConfBinds[numAppStates]{0, 1, 27, 0};
+  		const static int numAppStates = 5;
+  		const static int numStaticBinds[numAppStates]{6, 0, 5, 19, 0};
+  		const static int numConfBinds[numAppStates]{0, 1, 27, 0, 0};
 		const static int maxStaticBinds = 19;
 		const static int maxConfBinds = 23;
 		const static int numScripts = 5;
@@ -79,7 +79,8 @@ namespace battleship{
   		        Bind::LOOK_LEFT,
   		        Bind::LOOK_RIGHT,
   		        Bind::LOOK_AROUND,
-			}
+			},
+			{}
   		};
   		const static Bind confBinds[numAppStates][maxConfBinds]{
   		    {},
@@ -111,6 +112,7 @@ namespace battleship{
   		        Bind::SELECT_STRUCTURE,
   		        Bind::DESELECT_STRUCTURE
   		    },
+			{},
 			{}
   		};
 
@@ -137,7 +139,8 @@ namespace battleship{
 				Mapping::MOUSE_AXIS_LEFT,
 				Mapping::MOUSE_AXIS_RIGHT,
 				0
-			}
+			},
+			{}
   		};
   		const static int confTriggers[numAppStates][maxConfBinds]{
   		    {},
@@ -168,6 +171,7 @@ namespace battleship{
   		        GLFW_KEY_B,
   		        GLFW_KEY_ESCAPE
   		    },
+			{},
 			{}
   		};
 
@@ -175,12 +179,14 @@ namespace battleship{
   		    {0, 1, 1, 1, 1, 1},
   		    {},
 			{0, 0, 0, 0, 1},
-			{0, 0, 0, 0, 1}
+			{0, 0, 0, 0, 1},
+			{}
   		};
   		const static bool isConfKey[numAppStates][maxConfBinds]{
 			{},
   		    {1},
 			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{},
 			{}
   		};
 
@@ -188,12 +194,14 @@ namespace battleship{
   		    {1, 1, 1, 1, 1, 1},
   		    {},
 			{0, 0, 0, 0, 1},
-			{0, 0, 0, 0, 1}
+			{0, 0, 0, 0, 1},
+			{}
   		};
   		const static bool isConfAction[numAppStates][maxConfBinds]{
 			{},
   		    {1},
 			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{},
 			{}
   		};
 

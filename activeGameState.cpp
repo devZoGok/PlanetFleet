@@ -27,6 +27,10 @@
 #include "gameObjectFrameController.h"
 #include "gameObjectFactory.h"
 #include "cameraController.h"
+#include "unitButton.h"
+#include "extractor.h"
+#include "resourceDeposit.h"
+#include "resourceRover.h"
 #include "concreteGuiManager.h"
 
 using namespace vb01;
@@ -74,12 +78,27 @@ namespace battleship{
 		string pt = SOL_LUA_VIEW["pointerTex"], 
 			   at = SOL_LUA_VIEW["attackTex"], 
 			   gt = SOL_LUA_VIEW["garrisonTex"],
+			   st = SOL_LUA_VIEW["supplyTex"],
+			   ht = SOL_LUA_VIEW["hackTex"],
+			   ngt = SOL_LUA_VIEW["noGarrisonTex"],
+			   nst = SOL_LUA_VIEW["noSupplyTex"],
+			   nht = SOL_LUA_VIEW["noHackTex"],
 			   p1[]{basePath + pt}, 
 			   p2[]{basePath + at}, 
-			   p3[]{basePath + gt};
+			   p3[]{basePath + gt}, 
+			   p4[]{basePath + st},
+			   p5[]{basePath + ht},
+			   p6[]{basePath + ngt}, 
+			   p7[]{basePath + nst},
+			   p8[]{basePath + nht};
 		pointerTex = new Texture(p1, 1, false);
 		attackTex = new Texture(p2, 1, false);
 		garrisonTex = new Texture(p3, 1, false);
+		supplyTex = new Texture(p4, 1, false);
+		hackTex = new Texture(p5, 1, false);
+		noGarrisonTex = new Texture(p6, 1, false);
+		noSupplyTex = new Texture(p7, 1, false);
+		noHackTex = new Texture(p8, 1, false);
 
 		Root *root = Root::getSingleton();
 		Material *mat = new Material(root->getLibPath() + "gui");
@@ -101,7 +120,20 @@ namespace battleship{
 
     void ActiveGameState::onAttached() {
         AbstractAppState::onAttached();
-		ConcreteGuiManager::getSingleton()->readLuaScreenScript("activeGameState.lua");
+		vector<Button*> buttons = guiButtons;
+		buttons.insert(buttons.end(), unitButtons.begin(), unitButtons.end());
+
+		ConcreteGuiManager::getSingleton()->readLuaScreenScript(
+				"activeGameState.lua",
+				buttons,
+				vector<Listbox*>{},
+				vector<Checkbox*>{},
+				vector<Slider*>{},
+				vector<Textbox*>{},
+				guiRects,
+				guiTexts,
+				"music = generateFactionMusic(" + to_string(mainPlayer->getFaction()) + ")"
+		);
 
 		if(!cursorNode) initCursor();
     }
@@ -114,13 +146,119 @@ namespace battleship{
 		Vector2 cursorPos = getCursorPos();
 		cursorNode->setPosition(Vector3(cursorPos.x, cursorPos.y, .8));
 
-		bool canSelect = canSelectHoveredOnGameObj();
-		bool ownGameObj = (gameObjHoveredOn && gameObjHoveredOn->getPlayer()->getTeam() == mainPlayer->getTeam());
+		if(mainPlayer->getNumSelectedUnits() > 0){
+			bool ownGameObj = (gameObjHoveredOn && gameObjHoveredOn->getPlayer() == mainPlayer);
+			bool alliedGameObj = (gameObjHoveredOn && !ownGameObj && gameObjHoveredOn->getPlayer()->getTeam() == mainPlayer->getTeam());
+			bool gameObjUnit = (gameObjHoveredOn && gameObjHoveredOn->getType() == GameObject::Type::UNIT);
+			bool gameObjTransport = (gameObjUnit && ((Unit*)gameObjHoveredOn)->getNumGarrisonSlots() > 0);
+			bool canGarrison = true;
 
-		if(controlPressed || (gameObjHoveredOn && !ownGameObj && gameObjHoveredOn->getType() == GameObject::Type::UNIT))
-			cursorState = CursorState::ATTACK;
-		else
-			cursorState = CursorState::NORMAL;
+			if(gameObjUnit && gameObjTransport)
+				for(int i = 0; i < mainPlayer->getNumSelectedUnits(); i++)
+					if(!((Unit*)gameObjHoveredOn)->canGarrison((Vehicle*)mainPlayer->getSelectedUnit(i))){
+						canGarrison = false;
+						break;
+					}
+
+			vector<TradeOffer*> offers = (gameObjHoveredOn && alliedGameObj ? mainPlayer->getTradeOffers(gameObjHoveredOn->getPlayer()) : vector<TradeOffer*>{});
+			bool tradeResource[NUM_RESOURCES][2], trade = false;
+
+			for(int i = 0; i < NUM_RESOURCES; i++)
+				for(int j = 0; j < 2; j++){
+					if(!offers.empty() && offers[0]->tradeResources[i][j] > 0){
+						tradeResource[i][j] = true;
+						trade = true;
+					}
+					else tradeResource[i][j] = false;
+				}
+
+			int objClass = (gameObjUnit ? int(((Unit*)gameObjHoveredOn)->getUnitClass()) : -1);
+			bool tradeCenter = ((UnitClass)objClass == UnitClass::TRADE_CENTER);
+			bool refinery = ((UnitClass)objClass == UnitClass::REFINERY);
+			bool lab = ((UnitClass)objClass == UnitClass::LAB);
+			bool ownExtractor = (ownGameObj && (UnitClass)objClass == UnitClass::EXTRACTOR);
+
+			bool roverSelected = (mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::RESOURCE_ROVER);
+			ResourceRover *rover = (roverSelected ? (ResourceRover*)mainPlayer->getSelectedUnit(0) : nullptr);
+			int unloadFlag = (int)shiftPressed;
+
+			if(!forceCursorState){
+				if(gameObjUnit && gameObjTransport){
+					orderPossible = (ownGameObj && canGarrison);
+					cursorState = CursorState::GARRISON;
+				}
+				else if(roverSelected && ownExtractor){
+					orderPossible = (((Extractor*)gameObjHoveredOn)->getDeposit()->getAmmount() > 0);
+					cursorState = CursorState::SUPPLY;
+				}
+				else if(roverSelected && (tradeCenter || refinery || lab) && (ownGameObj || (alliedGameObj && trade))){
+					bool tradeRes = false;
+					int resId;
+					
+					switch((UnitClass)objClass){
+						case UnitClass::TRADE_CENTER:
+							tradeRes = tradeResource[(int)ResourceType::WEALTH][unloadFlag];
+							resId = (int)ResourceType::WEALTH;
+							break;
+						case UnitClass::REFINERY:
+							tradeRes = tradeResource[(int)ResourceType::REFINEDS][unloadFlag];
+							resId = (int)ResourceType::REFINEDS;
+							break;
+						case UnitClass::LAB:
+							tradeRes = tradeResource[(int)ResourceType::RESEARCH][unloadFlag];
+							resId = (int)ResourceType::RESEARCH;
+							break;
+					}
+					
+					bool canLoad = (rover && rover->calcTotalLoad() < rover->getCapacity());
+					orderPossible = (unloadFlag ? rover->getLoad(resId) > 0 : canLoad);
+
+					if(alliedGameObj) orderPossible = tradeRes && orderPossible;
+
+					cursorState = (unloadFlag ? CursorState::UNLOAD : CursorState::LOAD);
+				}
+				else if(gameObjUnit && !(ownGameObj || alliedGameObj)){
+					orderPossible = true;
+					cursorState = CursorState::ATTACK;
+				}
+				else
+					cursorState = CursorState::NORMAL;
+			}
+			else{
+				if(cursorState == CursorState::GARRISON)
+					orderPossible = (ownGameObj && gameObjTransport && canGarrison);
+				else if(cursorState == CursorState::SUPPLY)
+					orderPossible = (roverSelected && ownExtractor);
+				else if(cursorState == CursorState::LOAD || cursorState == CursorState::UNLOAD){
+					int ulf = int(cursorState == CursorState::UNLOAD);
+					bool tradeRefs = tradeResource[(int)ResourceType::REFINEDS][ulf];
+					bool tradeWealth = tradeResource[(int)ResourceType::WEALTH][ulf];
+					bool tradeTech = tradeResource[(int)ResourceType::RESEARCH][ulf];
+					
+					bool canLoad = (rover->calcTotalLoad() < rover->getCapacity());
+					bool loadResource = (
+							cursorState == CursorState::LOAD ? canLoad : (
+								rover->getLoad((int)ResourceType::REFINEDS) > 0 ||
+								rover->getLoad((int)ResourceType::WEALTH) > 0 ||
+								rover->getLoad((int)ResourceType::RESEARCH) > 0
+							)
+					);
+
+					bool transferResource = (
+						(refinery && loadResource && (ownGameObj || (alliedGameObj && tradeRefs))) ||
+						(tradeCenter && loadResource && (ownGameObj || (alliedGameObj && tradeWealth))) ||
+						(lab && loadResource && (ownGameObj || (alliedGameObj && tradeTech)))
+					);
+					orderPossible = (roverSelected && transferResource);
+				}
+				else if(cursorState == CursorState::HACK)
+					orderPossible = (!ownGameObj && gameObjUnit && mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::ENGINEER);
+				else if(controlPressed)
+					cursorState = CursorState::ATTACK;
+				else
+					cursorState = CursorState::NORMAL;
+			}
+		}
 
 		cursorNode->setVisible(cursorState != CursorState::NORMAL);
 		Texture *tex = nullptr;
@@ -130,7 +268,15 @@ namespace battleship{
 				tex = attackTex;
 				break;
 			case CursorState::GARRISON:
-				tex = garrisonTex;
+				tex = (orderPossible ? garrisonTex : noGarrisonTex);
+				break;
+			case CursorState::SUPPLY:
+			case CursorState::LOAD:
+			case CursorState::UNLOAD:
+				tex = (orderPossible ? supplyTex : noSupplyTex);
+				break;
+			case CursorState::HACK:
+				tex = (orderPossible ? hackTex : noHackTex);
 				break;
 		}
 
@@ -165,10 +311,8 @@ namespace battleship{
 			if(targets.empty()) castRayToTerrain();
 
 			if(!buildableStructSelected)
-				for(int i = 0; i < selectedUnits.size(); i++){
-					fc->addGameObjectFrame(GameObjectFrame(selectedUnits[i]->getId(), GameObject::Type::UNIT));
-					fc->placeGameObjectFrame(fc->getNumGameObjectFrames() - 1, targets[0].pos, selectedUnits[i]->getWidth(), selectedUnits[i]->getLength());
-				}
+				for(int i = 0; i < selectedUnits.size(); i++)
+					fc->addGameObjectFrame(GameObjectFrame(selectedUnits[i]->getId(), GameObject::Type::UNIT, selectedUnits[i], targets[0].pos));
 
 			selectingDestOrient = true;
 			fc->setRotating(true);
@@ -180,7 +324,20 @@ namespace battleship{
 			fc->removeGameObjectFrames();
 		}
 
+		if(!tradingScreen){
+			guiTexts = guiManager->getTexts();
+			guiRects = guiManager->getGuiRectangles();
+			guiButtons = guiManager->getButtons();
+		}
+
         renderUnits();
+
+		vector<Unit*> currSelectedUnits = mainPlayer->getSelectedUnits();
+
+		if(prevSelectedUnits != currSelectedUnits){
+			addUnitGui();
+			prevSelectedUnits = currSelectedUnits;
+		}
 
 		if(fc->isRotating() || fc->isPlacingOnSurface() || fc->isPlacingVertically())
 			fc->update();
@@ -193,7 +350,7 @@ namespace battleship{
 
 	void ActiveGameState::updateGameObjHoveredOn(){
 		vector<GameObject*> gameObjs;
-		vector<Player*> players = Game::getSingleton()->getPlayers();
+		vector<Player*> players = Game::getSingleton()->getPlayers(true);
 
 		for(Player *pl : players){
 			vector<ResourceDeposit*> resDeps = pl->getResourceDeposits();
@@ -221,7 +378,6 @@ namespace battleship{
 		ufCtr->removeGameObjectFrames();
 		ufCtr->toggleFrameTransformations(false, false, false);
 
-		unitGuiScreen = "";
 		ConcreteGuiManager::getSingleton()->readLuaScreenScript("activeGameState.lua");
 	}
 
@@ -338,27 +494,21 @@ namespace battleship{
 
 		vector<Unit*> units;
 
-        for (Player *p : Game::getSingleton()->getPlayers())
+        for (Player *p : Game::getSingleton()->getPlayers(true))
             for (Unit *u : p->getUnits())
                 units.push_back(u);
 
 		vector<Unit*> selUnits = mainPlayer->getSelectedUnits();
 
         for (Unit *u : units) {
+			if(u->isVehicle() && ((Vehicle*)u)->getGarrisonable()) continue;
+
 			Node *model = u->getModel();
 
-            if (u->getPlayer() == mainPlayer){
+            if (u->getPlayer()->getTeam() == mainPlayer->getTeam()){
 				if(!u->getLosLightNode()) u->initLosLight();
 
 				model->setVisible(true);
-
-            	Vector2 pos = u->getScreenPos();
-				string guiScreen = u->getGuiScreen();
-
-				if(!selUnits.empty() && u == selUnits[0] && guiScreen != "" && guiScreen != unitGuiScreen){
-					guiManager->readLuaScreenScript(u->getGuiScreen(), buttons, listboxes, checkboxes, sliders, textboxes, guiRects, texts);
-					unitGuiScreen = guiScreen;
-				}
             }
 			else{
 				if(u->getLosLightNode()) u->destroyLosLight();
@@ -424,6 +574,7 @@ namespace battleship{
     }
 
 	//TODO fix ejectable unit selection with multiple transports selected
+	//TODO replace shiftPressed with a dedicated buy flag
     void ActiveGameState::issueOrder(Order::TYPE type, vector<Order::Target> targets, bool addOrder) {
 		depth = 1;
 		Vector3 destDir =  Vector3::VEC_ZERO;
@@ -436,6 +587,9 @@ namespace battleship{
 
 		mainPlayer->issueOrder(type, destDir, targets, addOrder);
 		this->targets.clear();
+
+		if(cursorState != CursorState::ATTACK)
+			forceCursorState = false;
     }
     
     void ActiveGameState::castRayToTerrain() {
@@ -457,13 +611,29 @@ namespace battleship{
 		for(Unit *unit : selectedUnits)
 			unit->setState(state);
 	}
+
+	void ActiveGameState::addUnitGui(){
+		vector<Unit*> currSelectedUnits = mainPlayer->getSelectedUnits();
+
+		if(currSelectedUnits.empty()) return;
+
+		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
+
+		sol::state_view SOL_LUA_VIEW = generateView();
+		SOL_LUA_VIEW.script("_mainUnitId = " + to_string(currSelectedUnits[0]->getId()));
+		guiManager->readLuaScreenScriptDel("unitGui.lua", unitButtons);
+
+		SOL_LUA_VIEW.script("numGui = #gui");
+		int numButtons = SOL_LUA_VIEW["numGui"];
+
+		for(int i = 0; i < numButtons; i++)
+			unitButtons.push_back(guiManager->getButtons()[guiManager->getButtons().size() - (i + 1)]);
+	}
     
     void ActiveGameState::onAction(int bind, bool isPressed) {
+		if(tradingScreen || !ConcreteGuiManager::getSingleton()->findClickedButtons().empty()) return;
+
 		GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
-
-		if(!ConcreteGuiManager::getSingleton()->findClickedButtons().empty())
-			return;
-
 		vector<Unit*> selectedUnits = mainPlayer->getSelectedUnits();
 
         switch((Bind)bind){
@@ -523,45 +693,59 @@ namespace battleship{
 						}
 					}
 					else if(!isSelectionBox){
-						bool canSelect = canSelectHoveredOnGameObj();
 						bool ownGameObj = (gameObjHoveredOn && gameObjHoveredOn->getPlayer()->getTeam() == mainPlayer->getTeam());
 
-						if(gameObjHoveredOn && gameObjHoveredOn->getType() == GameObject::Type::UNIT && ownGameObj && ((Unit*)gameObjHoveredOn)->getNumGarrisonSlots() > 0){
-							bool canGarrison = true;
+						if(cursorState == CursorState::GARRISON){
+							if(orderPossible) issueOrder(Order::TYPE::GARRISON, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn, gameObjHoveredOn->getPos())}, shiftPressed);
+						}
+						else if(cursorState == CursorState::SUPPLY){
+							if(orderPossible) issueOrder(Order::TYPE::SUPPLY, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
+						}
+						else if(cursorState == CursorState::LOAD){
+							if(orderPossible) issueOrder(Order::TYPE::LOAD, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
+						}
+						else if(cursorState == CursorState::UNLOAD){
+							if(orderPossible) issueOrder(Order::TYPE::UNLOAD, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
+						}
+						else if(cursorState == CursorState::ATTACK){
+							if(controlPressed && !gameObjHoveredOn){
+                    			castRayToTerrain();
+								issueOrder(Order::TYPE::ATTACK, targets, shiftPressed);
+							}
+							else{
+								if(orderPossible) issueOrder(Order::TYPE::ATTACK, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn, gameObjHoveredOn->getPos())}, shiftPressed);
+							}
+						}
+						else if(cursorState == CursorState::HACK){
+							if(orderPossible) issueOrder(Order::TYPE::HACK, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
+						}
+						else if(ufCtr->isPlacingOnSurface()){
+							Order::TYPE type;
 
-							for(int i = 0; i < mainPlayer->getNumSelectedUnits(); i++)
-								if(!((Unit*)gameObjHoveredOn)->canGarrison((Vehicle*)mainPlayer->getSelectedUnit(i))){
-									canGarrison = false;
+							switch(selectedUnits[0]->getUnitClass()){
+								case UnitClass::ENGINEER:
+								case UnitClass::FREEZER:
+									type = Order::TYPE::BUILD;
 									break;
-								}
+								default:
+									return;
+							}
 
-							if(canGarrison)
-								issueOrder(Order::TYPE::GARRISON, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn, gameObjHoveredOn->getPos())}, shiftPressed);
-						}
-						else if(gameObjHoveredOn && ownGameObj && ((Unit*)gameObjHoveredOn)->getUnitClass() == UnitClass::EXTRACTOR && !controlPressed){
-							issueOrder(Order::TYPE::SUPPLY, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
-						}
-						else if(gameObjHoveredOn && (controlPressed || (!ownGameObj && gameObjHoveredOn->getType() == GameObject::Type::UNIT)))
-							issueOrder(Order::TYPE::ATTACK, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn, gameObjHoveredOn->getPos())}, shiftPressed);
-						else if(controlPressed && !gameObjHoveredOn){
-                    		castRayToTerrain();
-							issueOrder(Order::TYPE::ATTACK, targets, shiftPressed);
-						}
-						else if(selectedUnits[0]->getUnitClass() == UnitClass::ENGINEER && ufCtr->isPlacingOnSurface()){
-                    		castRayToTerrain();
-							GameObjectFrame gmObjFr = ufCtr->getGameObjectFrame(0);
+							targets.clear();
 
-							if(gmObjFr.status == GameObjectFrame::NOT_PLACEABLE) return;
+							for(int i = 0; i < ufCtr->getNumGameObjectFrames(); i++){
+								GameObjectFrame gmObjFr = ufCtr->getGameObjectFrame(i);
 
-							Unit *buildStruct = GameObjectFactory::createUnit(mainPlayer, gmObjFr.getId(), gmObjFr.getPos(), gmObjFr.getRot());
-							mainPlayer->addUnit(buildStruct);
-							targets[0].unit = buildStruct;
+								if(gmObjFr.status == GameObjectFrame::NOT_PLACEABLE) continue;
 
-							issueOrder(Order::TYPE::BUILD, targets, shiftPressed);
+								Unit *buildStruct = GameObjectFactory::createUnit(mainPlayer, gmObjFr.getId(), gmObjFr.getPos(), gmObjFr.getRot());
+								issueOrder(type, vector<Order::Target>{Order::Target(buildStruct, gmObjFr.getPos())}, shiftPressed);
+								mainPlayer->addUnit(buildStruct);
+							}
 
 							buildableStructSelected = false;
 						}
-						else if(!canSelect){
+						else{
                     		if(targets.empty()) castRayToTerrain();
 
 							issueOrder(Order::TYPE::MOVE, targets, shiftPressed);
@@ -591,6 +775,7 @@ namespace battleship{
 				}
 
 				break;
+				/*
 			case Bind::HACK:
 				if(isPressed){
 					if(gameObjHoveredOn && gameObjHoveredOn->getType() == GameObject::Type::UNIT && gameObjHoveredOn->getPlayer()->getTeam() != mainPlayer->getTeam())
@@ -598,6 +783,7 @@ namespace battleship{
 
 					break;
 				}
+				*/
 			case Bind::SHIFT_SUB_DEPTH:
 				ufCtr->toggleFrameTransformations(false, false, isPressed);
                 break;
@@ -626,7 +812,11 @@ namespace battleship{
                 break;
 				//TODO reimplement submarine diving mechanic
 			case Bind::LEFT_CONTROL:
-                controlPressed = isPressed;
+				if(isPressed) cursorState = CursorState::ATTACK;
+
+				forceCursorState = isPressed;
+				controlPressed = isPressed;
+				orderPossible = isPressed;
                 break;
 			case Bind::LEFT_SHIFT:
 			{
@@ -644,10 +834,12 @@ namespace battleship{
 			}
                 break;
 			case Bind::SELECT_PATROL_POINTS: 
+				/*
 				if(isPressed && mainPlayer->getNumSelectedUnits() > 0){
 					targets.push_back(Order::Target(nullptr, mainPlayer->getSelectedUnit(0)->getPos()));
 			   		selectingPatrolPoints = isPressed;
 				}
+				*/
 
                 break;
 			case Bind::GROUP_0:
@@ -676,6 +868,7 @@ namespace battleship{
 
                 break;
 			case Bind::DESELECT_STRUCTURE:
+				forceCursorState = false;
 				buildableStructSelected = false;
 				ufCtr->toggleFrameTransformations(false, false, false);
 				ufCtr->removeGameObjectFrames();

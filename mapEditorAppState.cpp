@@ -59,8 +59,7 @@ namespace battleship{
 
 		if(newMap){
 			game->addPlayer(new Player(0, 0, 0, Vector3(1, 1, 1)));
-			map->setMapSize(Vector3(size.x, 0, size.y));
-			map->create(name);
+			map->create(name, Vector3(size.x, 0, size.y));
 			generatePlane(size);
 		}
 		else{
@@ -73,7 +72,7 @@ namespace battleship{
 			for(int i = 0; i < numPlayers; i++)
 				game->addPlayer(new Player(0, 0, 0, Vector3(1, 1, 1)));
 
-			map->loadPlayerGameObjects();
+			map->loadPlayersGameObjects();
 		}
 	}
 
@@ -286,7 +285,7 @@ namespace battleship{
 		XMLElement *meshEl = doc->NewElement("mesh");
 		MeshData meshData = map->getNodeParent()->getChild(0)->getMesh(0)->getMeshBase();
 		meshEl->SetAttribute("name", "mesh");
-		meshEl->SetAttribute("num_vertex_pos", meshData.numPos);
+		meshEl->SetAttribute("num_vertex_pos", 3 * meshData.numTris);
 		meshEl->SetAttribute("num_faces", meshData.numTris);
 		meshEl->SetAttribute("num_vertex_groups", 0);
 		meshEl->SetAttribute("num_shape_keys", 0);
@@ -433,14 +432,56 @@ namespace battleship{
 		stbi_write_jpg(string(mapFolder + "minimap.jpg").c_str(), width, height, numChannels, imgData, 100);
 	}
 
+	string MapEditorAppState::MapEditor::generatePlayerTableStr(Player* player){
+		string mapScript = "";
+		vector<ResourceDeposit*> resourceDeposits = player->getResourceDeposits();
+
+		if(!resourceDeposits.empty()){
+			mapScript += "\t\t\tresourceDeposits = {\n";
+
+			for(ResourceDeposit *rd : resourceDeposits){
+				Vector3 pos = rd->getPos();
+				string posStr = "x = " + to_string(pos.x) + ", y = " + to_string(pos.y) + ", z = " + to_string(pos.z);
+
+				Quaternion rot = rd->getRot();
+				string rotStr = "w = " + to_string(rot.w) + ", x = " + to_string(rot.x) + ", y = " + to_string(rot.y) + ", z = " + to_string(rot.z);
+
+				mapScript += "\t\t\t\t{id = " + to_string(rd->getId()) + ", pos = {" + posStr + "}, rot = {" + rotStr + "}},\n";
+			}
+
+			mapScript += "\t\t\t},\n";
+		}
+
+		vector<Unit*> units = player->getUnits();
+
+		if(!units.empty()){
+			mapScript += "\t\t\tunits = {\n";
+
+			for(Unit *unit : units){
+				string idStr = "id = " + to_string(unit->getId());
+
+				Vector3 unitPos = unit->getPos();
+				string posStr = "pos = {x = " + to_string(unitPos.x) + ", y = " + to_string(unitPos.y) + ", z = " + to_string(unitPos.z) + "}";
+
+				Quaternion unitRot = unit->getRot();
+				string rotStr = "rot = {w = " + to_string(unitRot.w) + ", x = " + to_string(unitRot.x) + ", y = " + to_string(unitRot.y) + ", z = " + to_string(unitRot.z) + "}";
+
+				mapScript += "\t\t\t\t{" + idStr + ", " + posStr + ", " + rotStr + "},\n";
+			}
+
+			mapScript += "\t\t\t}\n";
+		}
+
+		return mapScript;
+	}
+
 	void MapEditorAppState::MapEditor::generateMapScript(vector<Map::Cell> &cells){
 		int numWaterBodies = map->getNodeParent()->getNumChildren() - 1;
-		vector<Player*> players = Game::getSingleton()->getPlayers();
 
-		string mapScript = "map = {\nlights = {\n";
+		string mapScript = "map = {\n\tlights = {";
 
 		for(Node *light : map->getLights()){
-			mapScript += "{type = " + to_string((int)light->getLight(0)->getLightType());
+			mapScript += "\n\t\t{type = " + to_string((int)light->getLight(0)->getLightType());
 
 			if(light->getLight(0)->getLightType() == Light::Type::DIRECTIONAL){
 				Vector3 dir = light->getGlobalAxis(2);
@@ -451,78 +492,33 @@ namespace battleship{
 			mapScript += ", color = {x = " + to_string(color.x) + ", y = " + to_string(color.y) + ", z = " + to_string(color.z) + "}},";
 		}
 
+		mapScript += "\n\t},\n";
 		Vector3 mapSize = map->getMapSize();
-		mapScript += "}\nnumWaterBodies = " + to_string(numWaterBodies) + ",\n";
-		mapScript += "size = {x = " + to_string(mapSize.x) + ", y = " + to_string(mapSize.y) + ", z = " + to_string(mapSize.z) + "},\n";
-		mapScript += "impassibleNodeValue = " + to_string(IMPASS_NODE_VAL) + ",\n";
-		mapScript += "numPlayers = " + to_string(players.size()) + ",\n";
+		mapScript += "\tsize = {x = " + to_string(mapSize.x) + ", y = " + to_string(mapSize.y) + ", z = " + to_string(mapSize.z) + "},\n";
+		mapScript += "\timpassibleNodeValue = " + to_string(IMPASS_NODE_VAL) + ",\n";
 
 		int numSpawnPoints = map->getNumSpawnPoints();
-		mapScript += "numSpawnPoints = " + to_string(numSpawnPoints) + ",\n";
-		mapScript += "spawnPoints = {\n";
+		mapScript += "\tspawnPoints = {\n";
 
 		for(int i = 0; i < numSpawnPoints; i++){
 			Vector3 sp = map->getSpawnPoint(i);
-			mapScript += "{x = " + to_string(sp.x) + ", y = " + to_string(sp.y) + ", z = " + to_string(sp.z) + "},\n";
+			mapScript += "\t\t{x = " + to_string(sp.x) + ", y = " + to_string(sp.y) + ", z = " + to_string(sp.z) + "},\n";
 		}
 
-		mapScript += "},\nplayers = {\n";
+		mapScript += "\t},\n";
+		mapScript += "\tchoosablePlayers = {";
+		Game *game = Game::getSingleton();
 
-		for(int i = 0; i < players.size(); i++){
-			mapScript += "{\n";
+		for(Player *player : game->getPlayers())
+			mapScript += "\n\t\t{\n" + generatePlayerTableStr(player) + "\n\t\t},\n";
 
-			if(i > 0)
-				mapScript += "spawnPoint = 0,\n";
-			else{
-				vector<ResourceDeposit*> resourceDeposits = players[0]->getResourceDeposits();
-				mapScript += "numResourceDeposits = " + to_string(resourceDeposits.size()) + ",\n";
-				mapScript += "resourceDeposits = {\n";
-
-				for(ResourceDeposit *rd : resourceDeposits){
-					Vector3 pos = rd->getPos();
-					string posStr = "x = " + to_string(pos.x) + ", y = " + to_string(pos.y) + ", z = " + to_string(pos.z);
-
-					Quaternion rot = rd->getRot();
-					string rotStr = "w = " + to_string(rot.w) + ", x = " + to_string(rot.x) + ", y = " + to_string(rot.y) + ", z = " + to_string(rot.z);
-
-					mapScript += "{id = " + to_string(rd->getId()) + ", pos = {" + posStr + "}, rot = {" + rotStr + "}},\n";
-				}
-
-				mapScript += "},\n";
-			}
-
-			int numUnits = players[i]->getNumUnits();
-			mapScript += "numUnits = " + to_string(numUnits) + ",\n";
-
-			if(numUnits > 0){
-				mapScript += "units = {\n";
-
-				for(int j = 0; j < numUnits; j++){
-					Unit *unit = Game::getSingleton()->getPlayer(i)->getUnit(j);
-
-					string idStr = "id = " + to_string(unit->getId());
-
-					Vector3 unitPos = unit->getPos();
-					string posStr = "pos = {x = " + to_string(unitPos.x) + ", y = " + to_string(unitPos.y) + ", z = " + to_string(unitPos.z) + "}";
-
-					Quaternion unitRot = unit->getRot();
-					string rotStr = "rot = {w = " + to_string(unitRot.w) + ", x = " + to_string(unitRot.x) + ", y = " + to_string(unitRot.y) + ", z = " + to_string(unitRot.z) + "}";
-
-					mapScript += "{" + idStr + ", " + posStr + ", " + rotStr + "},\n";
-				}
-
-				mapScript += "}\n,";
-			}
-
-			mapScript += "}\n";
-		}
-
-		mapScript += "},\nnumCells = " + to_string(cells.size()) + ",\n";
-		mapScript += "cells = {\n";
+		mapScript += "\t},\n";
+		mapScript += "\tcivilianPlayer = {\n" + generatePlayerTableStr(game->getCivilianPlayer()) + "\n\t},\n";
+		mapScript += "\tcells = {\n";
 
 		for(Map::Cell cell : cells){
 			Vector3 p = cell.pos;
-			mapScript += "{type = " + to_string((int)cell.type) + ", pos = {x = " + to_string(p.x) + ", y = " + to_string(p.y) + ", z = " + to_string(p.z) + "}, numEdges = " + to_string(cell.edges.size()) + ", edges = {";
+			mapScript += "\t\t{type = " + to_string((int)cell.type) + ", pos = {x = " + to_string(p.x) + ", y = " + to_string(p.y) + ", z = " + to_string(p.z) + "}, numEdges = " + to_string(cell.edges.size()) + ", edges = {";
 
 			for(Map::Edge edge : cell.edges)
 				mapScript += "{srcCellId = " + to_string(edge.srcCellId) + ", destCellId = "  + to_string(edge.destCellId) + ", weight = "  + to_string(edge.weight) + "}, ";
@@ -539,10 +535,10 @@ namespace battleship{
 				mapScript += "}";
 			}
 
-			mapScript += "},\n";
+			mapScript += "\t\t},\n";
 		}
 
-		mapScript += "},\n";
+		mapScript += "\t},\n";
 
 		Root *root = Root::getSingleton();
 		string skyboxPath = "";
@@ -557,20 +553,20 @@ namespace battleship{
 			skyboxPath = skyboxPath.substr(slashId + 1);
 		}
 
-		mapScript += "skybox = \"" + skyboxPath + "\",\n";
-		mapScript += "terrain = {model = \"" + map->getMapName()  + ".xml\", albedo = \"" + map->getMapName() + ".jpg\"},\n";
-		mapScript += "waterbodies = {\n";
+		mapScript += "\tskybox = \"" + skyboxPath + "\",\n";
+		mapScript += "\tterrain = {model = \"" + map->getMapName()  + ".xml\", albedo = \"" + map->getMapName() + ".jpg\"},\n";
+		mapScript += "\twaterbodies = {\n";
 
 		for(int i = 0; i < numWaterBodies; i++){
 			Node *waterNode = map->getNodeParent()->getChild(i + 1);
 			Vector3 pos = waterNode->getPosition();
 			Vector3 size = ((Quad*)waterNode->getMesh(0))->getSize();
 			mapScript += 
-				"{pos = {x = " + to_string(pos.x) + ", y = " + to_string(pos.y) + ", z = " + to_string(pos.z) + "},\
+				"\t\t{pos = {x = " + to_string(pos.x) + ", y = " + to_string(pos.y) + ", z = " + to_string(pos.z) + "},\
 				size = {x = " + to_string(size.x) + ", y = " + to_string(size.y) + "}, albedo = \"water.png\"},";
 		}
 
-		mapScript += "}\n}";
+		mapScript += "\t}\n}";
 
 		string file = GameManager::getSingleton()->getPath() + "Models/Maps/" + map->getMapName() + "/" + map->getMapName() + ".lua";
 
@@ -583,7 +579,7 @@ namespace battleship{
 		string assetsPath = GameManager::getSingleton()->getPath();
 		string mapFolder = assetsPath + "Models/Maps/" + map->getMapName() + "/";
 		create_directory(mapFolder);
-		copy_file(assetsPath + DEFAULT_TEXTURE, mapFolder + map->getMapName() + ".jpg");
+		copy_file(assetsPath + DEFAULT_TEXTURE, mapFolder + map->getMapName() + ".jpg", filesystem::copy_options::overwrite_existing);
 
 		vector<Map::Cell> cells = generateMapCells();
 		generateLandmassXml();
@@ -659,26 +655,33 @@ namespace battleship{
 
 		switch((Bind)bind){
 			case Bind::LOOK_AROUND:
-				if(ufCtr->isPlacingOnSurface()){
+				if(!ufCtr->isPlacingOnSurface())
+					CameraController::getSingleton()->setLookingAround(isPressed);
+
+                break;
+			case Bind::ROTATE_OBJ_FRAME:
+				if(isPressed && ufCtr->isPlacingOnSurface())
+					ufCtr->setRotating(true);
+				else if(!isPressed && ufCtr->isRotating()){
 					Player *player = Game::getSingleton()->getPlayer(0);
 					GameObjectFrame &frame = ufCtr->getGameObjectFrame(0);
 					Model *model = frame.getModel();
 					Vector3 pos = model->getPosition();
 					Quaternion rot = model->getOrientation();
-					GameObject *obj;
 
 					if(frame.getType() == GameObject::Type::RESOURCE_DEPOSIT)
 						player->addResourceDeposit(GameObjectFactory::createResourceDeposit(player, frame.getId(), pos, rot));
 					else
 						player->addUnit(GameObjectFactory::createUnit(player, frame.getId(), pos, rot));
-				}
-				else
-					CameraController::getSingleton()->setLookingAround(isPressed);
 
-                break;
-			case Bind::ROTATE_OBJ_FRAME:
+					ufCtr->setRotating(false);
+				}
+
+				break;
+			case Bind::DESELECT_STRUCTURE:
 				ufCtr->removeGameObjectFrames();
 				ufCtr->setPlacingOnSurface(false);
+				ufCtr->setRotating(false);
 				break;
 			case Bind::INCREASE_RADIUS:
 				if(isPressed) mapEditor->updateCircleRadius(true);
@@ -752,6 +755,7 @@ namespace battleship{
 
 	void MapEditorAppState::onAnalog(int bind, float strength){
 		CameraController *camCtr = CameraController::getSingleton();
+		GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
 
 		switch((Bind)bind){
 			case Bind::LOOK_UP: 
@@ -767,6 +771,8 @@ namespace battleship{
 			case Bind::LOOK_RIGHT: 
 				if(camCtr->isLookingAround())
 					camCtr->orientCamera(Vector3(0, 1, 0), strength);
+				else if(ufCtr->isRotating())
+					ufCtr->rotateGameObjectFrames(100 * strength);
 
 				break;
 			case Bind::PUSH_VERTS_UP:

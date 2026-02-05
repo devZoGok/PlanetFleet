@@ -13,9 +13,12 @@
 #include <ext.hpp>
 
 #include "unit.h"
+#include "weapon.h"
 #include "util.h"
 #include "game.h"
+#include "map.h"
 #include "vehicle.h"
+#include "destructable.h"
 #include "gameObjectFactory.h"
 #include "activeGameState.h"
 #include "gameManager.h"
@@ -30,264 +33,15 @@ using namespace gameBase;
 using namespace std;
 
 namespace battleship{
-	string Unit::Weapon::LASER_FLAG = "laser";
-
-	Unit::Weapon::Weapon(Unit *u, sol::table unitTable, int wid) : 
-		unit(u), 
-		id(wid),
-		type((Weapon::Type)unitTable["weapons"][wid + 1]["type"]), 
-		rateOfFire(unitTable["weapons"][wid + 1]["rateOfFire"]),
-		damage(unitTable["weapons"][wid + 1]["damage"].get_or(0))
+	//TODO move restartTime to unitData.lua
+    Unit::Unit(Player *player, int id, Vector3 pos, Quaternion rot, State st) : 
+		GameObject(GameObject::Type::UNIT, id, player, pos, rot), 
+		state(st),
+		restartTime(2000)
 	{
-		sol::table weaponTable = unitTable["weapons"][wid + 1];
-		maxRange = weaponTable["maxRange"];
-		initProjectileData(weaponTable);
-
-		fireFx = initFx(weaponTable, "fireFx", true);
-		if(fireFx) FxManager::getSingleton()->addFx(fireFx);
-	}
-
-	void Unit::Weapon::initProjectileData(sol::table weaponTable){
-		string projTableKey = "projectile";
-		sol::optional<sol::table> proj = weaponTable[projTableKey];
-
-		if(proj != sol::nullopt){
-			projId = weaponTable[projTableKey]["id"];
-			sol::table projTable = generateView()["projectiles"];
-			ProjectileClass pc = (ProjectileClass)projTable[projId + 1]["projectileClass"];
-
-			if(pc == ProjectileClass::CRUISE_MISSILE){
-				minRange = 0;
-				float rotAngle = projTable[projId + 1]["rotAngle"];
-				float speed = projTable[projId + 1]["speed"];
-				float base = PI / 2, alpha = 0;
-
-				while(base - alpha > .001){
-					minRange += speed * sin(alpha);
-					alpha += (base - alpha > rotAngle ? rotAngle : base - alpha);
-				}
-
-				minRange *= 2;
-			}
-
-			sol::table posTable = weaponTable[projTableKey]["pos"];
-			projPos = Vector3(posTable["x"], posTable["y"], posTable["z"]);
-			sol::table rotTable = weaponTable[projTableKey]["rot"];
-			projRot = Quaternion(rotTable["w"], rotTable["x"], rotTable["y"], rotTable["z"]);
-		}
-	}
-
-	//TODO implement node child search by name
-	FxManager::Fx* Unit::Weapon::initFx(sol::table weaponTable, string fxKey, bool attached){
-		sol::optional<sol::table> fxOpt = weaponTable[fxKey];
-
-		if(fxOpt == sol::nullopt)
-			return nullptr;
-
-		sol::table fxTbl = weaponTable[fxKey];
-		int numComponents = fxTbl.size();
-
-		if(numComponents == 0)
-			return nullptr;
-
-		vector<FxManager::Fx::Component> fxComponents;
-
-		for(int i = 0; i < numComponents; i++){
-			sol::table compTbl = fxTbl[i + 1];
-
-			bool vfx = compTbl["vfx"];
-			s64 duration = compTbl["duration"], offset = compTbl["offset"].get_or(0);
-
-			if(vfx){
-				sol::table meshTbl = compTbl["mesh"];
-
-				string meshPath = "";
-				Material *mat = nullptr;
-				Node *flashNode = nullptr;
-
-				sol::optional<sol::table> posOpt = compTbl["pos"], rotOpt = compTbl["rot"];
-				Vector3 compPos = Vector3::VEC_ZERO;
-				Quaternion compRot = Quaternion::QUAT_W;
-				float sc = compTbl["scale"].get_or(1);
-
-				if(posOpt != sol::nullopt){
-					sol::table posTable = compTbl["pos"];
-					compPos = Vector3(posTable["x"], posTable["y"], posTable["z"]);
-				}
-
-				if(rotOpt != sol::nullopt){
-					sol::table rotTable = compTbl["rot"];
-					compRot = Quaternion(rotTable["w"], rotTable["x"], rotTable["y"], rotTable["z"]);
-				}
-
-				sol::optional<string> pathOpt = meshTbl["path"]; 
-				sol::optional<int> numPartOpt = meshTbl["numParticles"]; 
-
-				if(pathOpt != sol::nullopt){
-					mat = new Material(Root::getSingleton()->getLibPath() + "texture");
-
-					meshPath = meshTbl["path"];
-					flashNode = new Model(meshPath);
-					((Model*)flashNode)->setMaterial(mat);
-					flashNode->setPosition(compPos);
-					flashNode->setOrientation(compRot);
-					flashNode->setScale(Vector3(sc, sc, sc));
-				}
-				else if(numPartOpt != sol::nullopt){
-					mat = new Material(Root::getSingleton()->getLibPath() + "particle");
-
-					int numParticles = meshTbl["numParticles"];
-					ParticleEmitter *pe = new ParticleEmitter(numParticles);
-					pe->setMaterial(mat);
-					pe->setLowLife(meshTbl["lowLife"]);
-					pe->setHighLife(meshTbl["highLife"]);
-					pe->setSpeed(0);
-
-					sol::table sizeTbl = meshTbl["size"];
-					pe->setSize(Vector2(sizeTbl["x"], sizeTbl["y"]));
-
-					flashNode = new Node(compPos, compRot, Vector3(sc, sc, sc));
-					flashNode->attachParticleEmitter(pe);
-					flashNode->lookAt(Vector3::VEC_J, Vector3::VEC_K);
-				}
-				else{
-					mat = new Material(Root::getSingleton()->getLibPath() + "texture");
-
-					sol::table sizeTbl = meshTbl["size"];
-					Box *box = new Box(Vector3(sizeTbl["x"], sizeTbl["y"], 0));
-					box->setMaterial(mat);
-
-					flashNode = new Node(compPos, compRot, Vector3(sc, sc, sc), LASER_FLAG);
-					flashNode->attachMesh(box);
-				}
-
-				sol::optional<string> texOpt = meshTbl["texture"];
-
-				if(texOpt != sol::nullopt){
-					string p[]{meshTbl["texture"]};
-					Texture *tex = new Texture(p, 1, false);
-					mat->addBoolUniform("texturingEnabled", true);
-					mat->addTexUniform("diffuseMap[0]", tex, false);
-				}
-				else{
-					sol::table colorTable = meshTbl["color"];
-					mat->addVec4Uniform("diffuseColor", Vector4(colorTable["x"], colorTable["y"], colorTable["z"], colorTable["a"]));
-					mat->addBoolUniform("texturingEnabled", false);
-				}
-
-				flashNode->setVisible(false);
-				Node *parNode = (attached ? unit->getModel() : Root::getSingleton()->getRootNode());
-				sol::optional<string> parOpt = compTbl["parent"];
-
-				if(parOpt != sol::nullopt){
-					vector<Node*> descendants;
-					unit->getModel()->getDescendants(descendants);
-					string parName = compTbl["parent"];
-					parNode = nullptr;
-
-					for(Node *desc : descendants)
-						if(desc->getName() == parName){
-							parNode = desc;
-							break;
-						}
-				}
-
-				parNode->attachChild(flashNode);
-
-				fxComponents.push_back(FxManager::Fx::Component((void*)flashNode, vfx, duration, compPos, offset));
-			}
-			else{
-				sf::SoundBuffer *sfxBuffer = new sf::SoundBuffer();
-				sf::Sound *sfx = GameObject::prepareSfx(sfxBuffer, compTbl["path"]);
-				fxComponents.push_back(FxManager::Fx::Component((void*)sfx, vfx, duration, Vector3::VEC_ZERO, offset));
-			}
-		}
-
-		return new FxManager::Fx(fxComponents, attached);
-	}
-
-	Unit::Weapon::~Weapon(){
-		FxManager *fm = FxManager::getSingleton();
-
-		if(fireFx) fm->removeFx(fireFx);
-	}
-
-	void Unit::Weapon::update(){}
-
-	void Unit::Weapon::useFx(FxManager::Fx *fx, Vector3 targPos, bool fire){
-		if(fx && !fire)
-			FxManager::getSingleton()->addFx(fx);
-		else if(!fx)
-			return;
-
-		fx->toggleComponents(true);
-
-		Vector3 plCol = unit->getPlayer()->getColor();
-
-		for(int i = 0; i < fx->components.size(); i++){
-			FxManager::Fx::Component &comp = fx->components[i];
-
-			if(comp.vfx){
-				if(fire && ((Node*)comp.comp)->getName() == LASER_FLAG){
-					Vector3 initPos = unit->getPos(), laserDir = targPos - initPos;
-					float targDist = laserDir.getLength();
-					float angle = unit->getDirVec().getAngleBetween(laserDir);
-					Vector3 crossProd = unit->getDirVec().cross(laserDir);
-
-					Node *compNode = (Node*)comp.comp;
-					compNode->setOrientation(Quaternion(angle, crossProd) * compNode->getOrientation());
-
-					Box *box = (Box*)compNode->getMesh(0);
-					Vector3 size = box->getSize();
-					box->setSize(Vector3(size.x, size.y, targDist));
-					box->updateVerts(box->getMeshBase());
-					box->getMaterial()->setVec4Uniform("diffuseColor", Vector4(plCol.x, plCol.y, plCol.z, 1));
-
-					compNode->setPosition(comp.pos + .5 * targDist * Vector3::VEC_K);
-				}
-				else if(!fire)
-					((Node*)comp.comp)->setPosition(targPos);
-			}
-		}
-	}
-
-	void Unit::Weapon::fire(Order order){
-		if(!canFire()) return;
-
-		Unit *targetUnit = order.targets[0].unit;
-		Vector3 targPos = (targetUnit ? targetUnit->getPos() : order.targets[0].pos);
-
-		if(fireFx) useFx(fireFx, targPos, true);
-
-		if(projId == -1){
-			sol::table weaponTbl = generateView()["units"][unit->getId() + 1]["weapons"][id + 1];
-
-			if(targetUnit){
-				targetUnit->takeDamage(damage);
-				unit->updateGameStats(targetUnit);
-				useFx(initFx(weaponTbl, "unitHitFx", false), targPos, false);
-			}
-			else{
-				Map *map = Map::getSingleton();
-				Map::Cell::Type cellType = map->getCells()[map->getCellId(targPos)].type;
-				string fxKey = (cellType == Map::Cell::Type::LAND ? "landHitFx" : "waterHitFx");
-				useFx(initFx(weaponTbl, fxKey, false), targPos, false);
-			}
-		}
-		else{
-			Vector3 leftVec = unit->getLeftVec();
-			Vector3 upVec = unit->getUpVec();
-			Vector3 dirVec = unit->getDirVec();
-			Vector3 p = unit->getPos() + leftVec * projPos.x + upVec * projPos.y + dirVec * projPos.z;
-			Quaternion r = unit->getRot() * projRot;
-			unit->getPlayer()->addProjectile(GameObjectFactory::createProjectile(unit, projId, p, r));
-		}
-
-		lastFireTime = getTime();
-	}
-
-    Unit::Unit(Player *player, int id, Vector3 pos, Quaternion rot, State st) : GameObject(GameObject::Type::UNIT, id, player, pos, rot), state(st){
 		selectable = true;
+
+		destructable = new Destructable(this);
 
 		Unit::initProperties();
 		initModel();
@@ -298,13 +52,14 @@ namespace battleship{
 		orientAt(rot);
 
 		Vector2 size = Vector2(lenHpBar, 10);
-		hpBackgroundNode = createBar(Vector2::VEC_ZERO, size, Vector4(0, 0, 0, 1));
-		hpForegroundNode = createBar(Vector2::VEC_ZERO, size, Vector4(0, 1, 0, 1));
+		hpBackgroundNode = destructable->createBar(Vector2::VEC_ZERO, size, Vector4(0, 0, 0, 1));
+		hpForegroundNode = destructable->createBar(Vector2::VEC_ZERO, size, Vector4(0, 1, 0, 1));
     }
 
     Unit::~Unit() {
-		removeBar(hpBackgroundNode);
-		removeBar(hpForegroundNode);
+		Map::getSingleton()->unblockCells(this);
+		destructable->removeBar(hpBackgroundNode);
+		destructable->removeBar(hpForegroundNode);
 		destroyWeapons();
 		destroySound();
 		destroyHitbox();
@@ -322,11 +77,8 @@ namespace battleship{
 		vector<int> currTechs = player->getTechnologies();
 
 		string name = unitTable["name"];
+		alignToSurface = unitTable["alignToSurface"].get_or(false);
         vehicle = unitTable["isVehicle"];
-        health += game->calcAbilFromTech(Ability::Type::HEALTH, currTechs, (int)GameObject::type, id);
-		maxHealth = unitTable["health"];
-
-		if(health == 0) health = maxHealth;
 
         lineOfSight = unitTable["lineOfSight"]; lineOfSight += game->calcAbilFromTech(Ability::Type::LINE_OF_SIGHT, currTechs, (int)GameObject::type, id);
         unitClass = (UnitClass)unitTable["unitClass"];
@@ -349,24 +101,10 @@ namespace battleship{
 			for(int i = 0; i < numGarrisonSlots; i++){
 				Vector2 size = 10 * Vector2::VEC_IJ;
 				Vector2 pos = Vector2(1.5 * size.x * i, 20);
-				Node *bg = createBar(pos, size, Vector4(0, 0, 0, 1));
-				Node *fg = createBar(pos, size, Vector4(0, 1, 0, 1));
+				Node *bg = destructable->createBar(pos, size, Vector4(0, 0, 0, 1));
+				Node *fg = destructable->createBar(pos, size, Vector4(0, 1, 0, 1));
 				int category = unitTable[tblName][i + 1];
 				garrisonSlots.push_back(GarrisonSlot(bg, fg, pos, category));
-			}
-		}
-
-		tblName = "armor";
-		sol::optional<sol::table> at = unitTable[tblName];
-
-		if(at != sol::nullopt){
-			string varName = "numArmorTypes"; 
-			SOL_LUA_VIEW.script(varName + " = #" + objType + "[" + to_string(id + 1) + "]." + tblName);
-			int numArmorTypes = SOL_LUA_VIEW[varName];
-
-			for(int i = 0; i < numArmorTypes; i++){
-				Armor arm = (Armor)unitTable[tblName][i + 1];
-				armorTypes.push_back(arm);
 			}
 		}
 
@@ -390,15 +128,21 @@ namespace battleship{
 		sol::table unitTable = SOL_STATE_VIEW[objType][id + 1];
 
 		string tblName = "weapons";
-		sol::optional<sol::table> wt = unitTable[tblName];
+		sol::optional<sol::table> weaponsTblOpt = unitTable[tblName];
 
-		if(wt != sol::nullopt){
+		if(weaponsTblOpt != sol::nullopt){
 			string varName = "numWeapons";
 			SOL_STATE_VIEW.script(varName + " = #" + objType + "[" + to_string(id + 1) + "]." + tblName);
 			int numWeapons = SOL_STATE_VIEW[varName];
 
-			for(int i = 0; i < numWeapons; i++)
+			for(int i = 0; i < numWeapons; i++){
+				int wt = 0;
+				sol::optional<int> wtOpt = unitTable[tblName][i + 1]["type"];
+
+				if(wtOpt != sol::nullopt) wt = unitTable[tblName][i + 1]["type"];
+
 				weapons.push_back(new Weapon(this, unitTable, i));
+			}
 		}
 	}
 
@@ -418,7 +162,7 @@ namespace battleship{
 		light->setUseAngle(false);
 
 		losLightNode = new Node(Vector3::VEC_J * 5);
-		losLightNode->addLight(light);
+		//losLightNode->addLight(light);
 		model->attachChild(losLightNode);
 	}
 
@@ -469,38 +213,8 @@ namespace battleship{
 		return false;
 	}
 
-	Node* Unit::createBar(Vector2 pos, Vector2 size, Vector4 color){
-		Root *root = Root::getSingleton();
-		Material *mat = new Material(root->getLibPath() + "gui");
-		mat->addBoolUniform("texturingEnabled", false);
-		mat->addVec4Uniform("diffuseColor", color);
-
-		Quad *quad = new Quad(Vector3(size.x, size.y, 0), false);
-		quad->setMaterial(mat);
-
-		Node *node = new Node(Vector3(pos.x, pos.y, 0));
-		node->attachMesh(quad);
-		node->setVisible(false);
-		root->getGuiNode()->attachChild(node);
-
-		return node;
-	}
-
-	void Unit::removeBar(Node *node){
-		Root::getSingleton()->getGuiNode()->dettachChild(node);
-		delete node;
-	}
-
 	void Unit::launch(Order order){
-		for(Weapon *weapon : weapons){
-			Vector3 targPos = Vector3(order.targets[0].pos.x, pos.y, order.targets[0].pos.z);
-
-			if(weapon->getProjectileId() == 0 && weapon->getMinRange() < targPos.getDistanceFrom(pos)){
-				weapon->fire(order);
-				break;
-			}
-		}
-
+		getWeaponsByOrder(Order::TYPE::LAUNCH)[0]->fire(order);
 		removeOrder(0);
 	}
 
@@ -511,10 +225,6 @@ namespace battleship{
 			rotSpeed *= -1;
 
 		return rotSpeed;
-	}
-
-
-	void Unit::initUnitStats(){
 	}
 
 	void Unit::renderOrderLine(bool mainPlayerSelecting){
@@ -531,111 +241,96 @@ namespace battleship{
         }
 	}
 
-	void Unit::targetUnitsAutomatically(){
+	//TODO clean up method code
+	void Unit::autoAttackTargets(){
+		if(!orders.empty()) return;
+
 		vector<Player*> players = Game::getSingleton()->getPlayers();
-		vector<Unit*> units;
+		vector<GameObject*> targets;
 
 		for(Player *pl : players)
 			if(!(pl == player || pl->getTeam() == player->getTeam())){
-				vector<Unit*> un = pl->getUnits();
-				units.insert(units.end(), un.begin(), un.end());
+				vector<GameObject*> targs = pl->getDestructables();
+				targets.insert(targets.end(), targs.begin(), targs.end());
 			}
 
-		if(orders.empty())
-			for(Unit *unit : units)
-				if(unit->getPos().getDistanceFrom(pos) < lineOfSight){
-					receiveOrder(Order(Order::TYPE::ATTACK, vector<Order::Target>{Order::Target(unit)}, Vector3::VEC_ZERO, -1, false), false);
-					break;
-				}
+		for(GameObject *targ : targets)
+			if(targ->getPos().getDistanceFrom(pos) < lineOfSight){
+				receiveOrder(Order(Order::TYPE::ATTACK, vector<Order::Target>{Order::Target(targ)}, Vector3::VEC_ZERO, -1, false), false);
+				break;
+			}
 	}
 
     void Unit::update() {
 		GameObject::update();
+		destructable->update();
+
+		if(condition == Condition::EM_JAMMED && getTime() - lastJamTime > restartTime)
+			condition = Condition::ABLE;
+
+		if(destructable->getFreezeStatus() >= 100) condition = Condition::FROZEN;
+
+		if(state != State::HOLD_FIRE)
+			autoAttackTargets();
 
 		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
 		Player *mainPlayer = (activeState ? activeState->getPlayer() : nullptr);
-
-		if(state != State::HOLD_FIRE)
-			targetUnitsAutomatically();
-
 		vector<Player*> selectingPlayers = getSelectingPlayers();
 		bool mainPlayerSelecting = (find(selectingPlayers.begin(), selectingPlayers.end(), mainPlayer) != selectingPlayers.end());
 		bool mainPlayerOwner = (player == mainPlayer);
 		bool renderSelectables = (mainPlayerSelecting && mainPlayerOwner);
-
 		renderOrderLine(renderSelectables);
-        executeOrders();
 
-		displayUnitStats(hpForegroundNode, hpBackgroundNode, health, maxHealth, mainPlayerSelecting);
+        executeOrders();
+		destructable->displayStats(hpForegroundNode, hpBackgroundNode, destructable->getHealth(), destructable->getMaxHealth(), mainPlayerSelecting);
 
 		for(GarrisonSlot &slot : garrisonSlots)
-			displayUnitStats(slot.foreground, slot.background, (int)((bool)slot.vehicle), (int)true, renderSelectables, slot.offset);
-
-        if (health <= DEATH_HP){
-			Game::getSingleton()->explode(pos, 0, 0, deathSfx);
-			remove = true;
-		}
+			destructable->displayStats(slot.foreground, slot.background, (int)((bool)slot.vehicle), (int)true, renderSelectables, slot.offset);
 
 		for(Weapon *weapon : weapons)
 			weapon->update();
     }
 
-    void Unit::displayUnitStats(Node *foreground, Node *background, int currVal, int maxVal, bool render, Vector2 offset) {
-		foreground->setVisible(render);
-		background->setVisible(render);
-
-		if(render){
-			Vector3 offset3d = Vector3(offset.x, offset.y, 0);
-
-			Quad *bgQuad = (Quad*)background->getMesh(0);
-			Vector3 size = bgQuad->getSize();
-			float shiftedX = screenPos.x - 0.5 * size.x;
-			background->setPosition(Vector3(shiftedX, screenPos.y, 0) + offset3d);
-
-			Quad *fgQuad = (Quad*)foreground->getMesh(0);
-			fgQuad->setSize(Vector3((float)currVal / maxVal * size.x, size.y, 0));
-			fgQuad->updateVerts(fgQuad->getMeshBase());
-			foreground->setPosition(Vector3(shiftedX, screenPos.y, .01) + offset3d);
-		}
-    }
-
 	//TODO remove order argument from action methods
     void Unit::executeOrders() {
-        if (orders.size() > 0) {
-            Order order = orders[0];
+		if(orders.empty() || condition != Condition::ABLE) return;
 
-            switch (order.type) {
-                case Order::TYPE::ATTACK:
-                    attack(order);
-                    break;
-                case Order::TYPE::BUILD:
-                    build(order);
-                    break;
-                case Order::TYPE::MOVE:
-                    move(order);
-                    break;
-				case Order::TYPE::GARRISON:
-					garrison(order);
-					break;
-				case Order::TYPE::EJECT:
-					eject(order);
-					break;
-                case Order::TYPE::PATROL:
-                    patrol(order);
-                    break;
-                case Order::TYPE::LAUNCH:
-                    launch(order);
-                    break;
-                case Order::TYPE::SUPPLY:
-                    supply(order);
-                    break;
-                case Order::TYPE::HACK:
-                    hack(order);
-                    break;
-                default:
-                    break;
-            }
-        }
+		if(!currOrderStarted) startCurrentOrder();
+
+		switch (orders[0].type) {
+		    case Order::TYPE::ATTACK:
+		        attack(orders[0]);
+		        break;
+		    case Order::TYPE::BUILD:
+		        build(orders[0]);
+		        break;
+		    case Order::TYPE::MOVE:
+		        move(orders[0]);
+		        break;
+			case Order::TYPE::GARRISON:
+				garrison(orders[0]);
+				break;
+			case Order::TYPE::EJECT:
+				eject(orders[0]);
+				break;
+		    case Order::TYPE::PATROL:
+		        patrol(orders[0]);
+		        break;
+		    case Order::TYPE::LAUNCH:
+		        launch(orders[0]);
+		        break;
+		        break;
+		    case Order::TYPE::LOAD:
+		    case Order::TYPE::SUPPLY:
+		    case Order::TYPE::UNLOAD:
+		        handleResources(orders[0]);
+		        break;
+		    case Order::TYPE::HACK:
+		        hack(orders[0]);
+		        break;
+		    default:
+		        break;
+		}
     }
 
 	void Unit::eject(Order order){
@@ -664,28 +359,61 @@ namespace battleship{
 	}
 
 	void Unit::attack(Order order){
-		vector<Unit*> units;
+		vector<GameObject*> targets;
 
 		for(Player *pl : Game::getSingleton()->getPlayers()){
-			vector<Unit*> un = pl->getUnits();
-			units.insert(units.end(), un.begin(), un.end());
+			vector<GameObject*> targs = pl->getDestructables();
+			targets.insert(targets.end(), targs.begin(), targs.end());
 		}
+
+		vector<Weapon*> attackWeapons = getWeaponsByOrder(Order::TYPE::ATTACK);
 
 		for(Order::Target &target : orders[0].targets)
 			if(target.unit){
-				if(find(units.begin(), units.end(), target.unit) != units.end())
-					break;
+				if(find(targets.begin(), targets.end(), target.unit) != targets.end()){
+					bool canAttack = false;
 
-				removeOrder(0);
+					for(Weapon *aw : attackWeapons){
+						int tc;
+
+						switch(target.unit->getType()){
+							case GameObject::Type::UNIT:
+								tc = (int)((Unit*)target.unit)->getType();
+								break;
+							case GameObject::Type::PROJECTILE:
+								tc = (int)((Projectile*)target.unit)->getProjectileClass();
+								break;
+						}
+
+						if(aw->canAttackTarget((int)target.unit->getType(), tc)) canAttack = true;
+					}
+
+					if(!canAttack){
+						removeOrder(0);
+						return;
+					}
+				}
+				else{
+					removeOrder(0);
+					return;
+				}
 			}
+
+		Vector3 targPos = (order.targets[0].unit ? order.targets[0].unit->getPos() : order.targets[0].pos);
+
+		for(Weapon *weapon : attackWeapons)
+			weapon->trackTarget(targPos);
 	}
 
 	bool Unit::validateOrder(Order order){
 		switch (order.type) {
-		    case Order::TYPE::ATTACK:
-				return !weapons.empty();
+		    case Order::TYPE::ATTACK:{
+				GameObject *target = order.targets[0].unit;
+				bool destructTarg = (!target || (target && target->getDestructable()));
+				return destructTarg && !getWeaponsByOrder(Order::TYPE::ATTACK).empty();
+			}
 		    case Order::TYPE::BUILD:
-				return unitClass == UnitClass::ENGINEER;
+				return (unitClass == UnitClass::ENGINEER || unitClass == UnitClass::FREEZER);
 		    case Order::TYPE::PATROL:
 		    case Order::TYPE::MOVE:
 				return vehicle;
@@ -694,26 +422,36 @@ namespace battleship{
 			case Order::TYPE::EJECT:
 				return !garrisonSlots.empty();
 		    case Order::TYPE::LAUNCH:
-				{
-					for(Weapon *weapon : weapons)
-						if(weapon->getType() == Weapon::Type::CRUISE_MISSILE)
-							return true;
-
-					return false;
-				}
+				return validateLaunchOrder();
 		    case Order::TYPE::SUPPLY:
+		    case Order::TYPE::LOAD:
+		    case Order::TYPE::UNLOAD:
 				return unitClass == UnitClass::RESOURCE_ROVER;
 		    case Order::TYPE::HACK:
-				{
-					for(Weapon *weapon : weapons)
-						if(weapon->getType() == Weapon::Type::CRUISE_MISSILE)
-							return true;
-
-					return false;
-				}
+				return !getWeaponsByOrder(Order::TYPE::HACK).empty();
 			default:
 				return false;
 		}
+	}
+
+	vector<Weapon*> Unit::getWeaponsByOrder(Order::TYPE type){
+		vector<Weapon*> weaps;
+
+		for(Weapon *w : weapons)
+			if(w->getOrderType() == type)
+				weaps.push_back(w);
+
+		return weaps;
+	}
+
+	vector<Weapon*> Unit::getWeaponsByType(int type){
+		vector<Weapon*> weaps;
+
+		for(Weapon *w : weapons)
+			if(w->getType() == (Weapon::Type)type)
+				weaps.push_back(w);
+
+		return weaps;
 	}
 
     void Unit::receiveOrder(Order order, bool add) {
@@ -747,6 +485,37 @@ namespace battleship{
 		}
 	}
 
+	//TODO select only the closest cells based on unit size
+	void Unit::placeAt(Vector3 p){
+		Map *map = Map::getSingleton();
+
+		if(alignToSurface){
+			vector<RayCaster::CollisionResult> res = RayCaster::cast(Vector3(p.x, 100, p.z), -Vector3::VEC_J, map->getNodeParent()->getChildren(), 0, 20);
+			
+			if(res.empty() || res[0].mesh->getNode() != map->getNodeParent()->getChild(0))
+				model->lookAt(Vector3(dirVec.x, 0, dirVec.z).norm(), Vector3::VEC_J);
+			else if(res[0].mesh->getNode() == map->getNodeParent()->getChild(0)){
+				float angle = upVec.getAngleBetween(res[0].norm);
+
+				//if(angle > 0)
+					model->lookAt(leftVec.cross(res[0].norm), res[0].norm);
+			}
+		}
+
+		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
+
+		//check twice in case the unit is warped over a long distance
+		if(activeState) map->blockCells(this);
+		GameObject::placeAt(p);
+
+		if(activeState){
+			map->blockCells(this);
+
+			if(activeState->getPlayer())
+				Map::Minimap::getSingleton()->updateImage();
+		}
+	}
+
 	vector<Player*> Unit::getSelectingPlayers(){
 		vector<Player*> players = Game::getSingleton()->getPlayers(), selectingPlayers;
 
@@ -768,6 +537,7 @@ namespace battleship{
 			LineRenderer::getSingleton()->removeLine(orders[id].lineId);
 
         orders.erase(orders.begin() + id);
+		currOrderStarted = false;
     }
 
     void Unit::select() {
