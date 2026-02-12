@@ -1,28 +1,62 @@
-for i = 1, #game.players do
-	game.players[i].behaviour = {
+for i = 1, #game.cpuPlayers do
+	game.cpuPlayers[i]:init()
+
+	game.cpuPlayers[i].behaviour = {
 		type = BTNodeType.SEQUENCE,
 		children = {
-			{type = BTNodeType.FUNCTION, func = 'buildFort'},
+			{type = BTNodeType.FUNCTION, func = 'buildLandFactory'},
 			{type = BTNodeType.FUNCTION, func = 'trainEngineers'},
 			{
 				type = BTNodeType.PARALLEL,
 				children = {
-					{
-						type = BTNodeType.SEQUENCE, 
-						children = {
-							{type = BTNodeType.FUNCTION, func = 'buildHarvester'},
-						}
-					},
 					{type = BTNodeType.FUNCTION, func = 'buildRefinery'},
 					{
 						type = BTNodeType.SEQUENCE, 
 						children = {
 							{type = BTNodeType.FUNCTION, func = 'buildExtractor'},
-							{type = BTNodeType.FUNCTION, func = 'startHarvesting'},
+							{type = BTNodeType.FUNCTION, func = 'buildHarvester'},
 						}
 					}
 				}
 			},
+			{
+				type = BTNodeType.SEQUENCE, 
+				children = {
+					{type = BTNodeType.FUNCTION, func = 'buildLandDefForce'},
+					{type = BTNodeType.FUNCTION, func = 'buildPointDefenseRing'}
+				}
+			},
+					--[[
+					]]--
+			--[[
+			{
+				type = BTNodeType.SELECTOR, 
+				children = {
+					{type = BTNodeType.FUNCTION, func = 'hasLandRouteToAllSpawnPoints'},
+					{
+						type = BTNodeType.SEQUENCE, 
+						children = {
+							{type = BTNodeType.FUNCTION, func = 'buildNavalFactory'},
+							{type = BTNodeType.FUNCTION, func = 'buildNavalForce'}
+						}
+					},
+				}
+			},
+			{
+				type = BTNodeType.SELECTOR, 
+				children = {
+					{type = BTNodeType.FUNCTION, func = 'hasLandRouteToSpawnPoint'},
+					{
+						type = BTNodeType.SEQUENCE, 
+						children = {
+							{type = BTNodeType.FUNCTION, func = 'boardTransports'},
+							{type = BTNodeType.FUNCTION, func = 'moveTransports'}
+							{type = BTNodeType.FUNCTION, func = 'unloadTransports'}
+						}
+					},
+				}
+			},
+			{type = BTNodeType.FUNCTION, func = 'occupySpawnpoint'},
 			{
 				type = BTNodeType.PARALLEL, 
 				children = {
@@ -30,11 +64,10 @@ for i = 1, #game.players do
 					{
 						type = BTNodeType.PARALLEL, 
 						numMinSuccesses = 2,
-						children = game.players[i]:generateTaskforceActions()
+						children = game.cpuPlayers[i]:generateTaskforceActions()
 					},
 				}
 			},
-			--[[
 			]]--
 		}
 	}

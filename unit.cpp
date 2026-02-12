@@ -413,7 +413,7 @@ namespace battleship{
 				return destructTarg && !getWeaponsByOrder(Order::TYPE::ATTACK).empty();
 			}
 		    case Order::TYPE::BUILD:
-				return (unitClass == UnitClass::ENGINEER || unitClass == UnitClass::FREEZER);
+				return (unitClass == UnitClass::ROBO_ENGINEER || unitClass == UnitClass::CYBORG_ENGINEER || unitClass == UnitClass::FREEZER);
 		    case Order::TYPE::PATROL:
 		    case Order::TYPE::MOVE:
 				return vehicle;
@@ -465,6 +465,9 @@ namespace battleship{
 		}
 
 		orders.push_back(order);
+
+		if(order.type == Order::TYPE::BUILD && order.targets[0].unit)
+			player->addUnit((Unit*)order.targets[0].unit);
     }
 
     void Unit::halt() {

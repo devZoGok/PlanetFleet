@@ -43,14 +43,14 @@ namespace battleship{
 	}
 
 	void Game::update(){
-		updateLuaPlayers(false);
+		//updateLuaPlayers(false);
 		sol::state_view SOL_LUA_VIEW = generateView();
 
-		for(int i = 0; i < players.size(); i++)
-			if(players[i]->isCpuPlayer()){
-				string plStr = "game.players[" + to_string(i + 1) + "]";
-				SOL_LUA_VIEW.script("executeBtNode(" + plStr + ", " + plStr + ".behaviour)");
-			}
+		for(int i = 0; i < getCpuPlayers().size(); i++) {
+			string plStr = "game.cpuPlayers[" + to_string(i + 1) + "]";
+			SOL_LUA_VIEW.script("executeBtNode(" + plStr + ", " + plStr + ".behaviour)");
+			//SOL_LUA_VIEW.script("tbl = " + plStr + ":getUnitsByClass(UnitClass.CYBORG_ENGINEER, -1)");
+		}
 
 		int numPlayersWithUnits = 0;
 
@@ -76,18 +76,19 @@ namespace battleship{
 		FxManager::getSingleton()->update();
 	}
 
-	void Game::updateLuaPlayers(bool resetBehaviour){
+	void Game::initLuaPlayers(bool resetBehaviour){
 		sol::state_view SOL_LUA_VIEW = generateView();
+		vector<Player*> cpuPlayers = getCpuPlayers();
 
-		for(int i = 0; i < players.size(); i++)
-			SOL_LUA_VIEW["game"]["players"][i + 1] = players[i];
+		for(int i = 0; i < cpuPlayers.size(); i++)
+			SOL_LUA_VIEW["game"]["cpuPlayers"][i + 1] = cpuPlayers[i];
 
 		if(resetBehaviour)
 			SOL_LUA_VIEW.script_file(GameManager::getSingleton()->getPath() + "Scripts/Core/playerInit.lua");
 	}
 
 	void Game::removeAllElements(){
-		generateView().script("game.players = {}");
+		generateView().script("game.cpuPlayers = {}");
 
 		while(!players.empty()){
 			delete players[0];
@@ -113,7 +114,7 @@ namespace battleship{
 			for(string f : configData::scripts)
 				SOL_LUA_VIEW.script_file(gm->getPath() + f);
 
-			updateLuaPlayers(true);
+			initLuaPlayers();
 			guiManager->readLuaScreenScript("inGame.lua", activeState->getGuiButtons());
 
 			string gop = SOL_LUA_VIEW["gameObjPrefix"], vfxp = SOL_LUA_VIEW["vfxPrefix"];
@@ -230,6 +231,16 @@ namespace battleship{
 		vector<Player*> playersVec = players;
 
 		if(civPl) playersVec.push_back(civilianPlayer);
+
+		return playersVec;
+	}
+
+	vector<Player*> Game::getCpuPlayers(){
+		vector<Player*> playersVec;
+
+		for(Player *pl : players)
+			if(pl->isCpuPlayer())
+				playersVec.push_back(pl);
 
 		return playersVec;
 	}

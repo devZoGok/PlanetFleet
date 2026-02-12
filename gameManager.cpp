@@ -14,6 +14,7 @@
 #include "guiAppState.h"
 #include "defConfigs.h"
 #include "player.h"
+#include "extractor.h"
 #include "factory.h"
 #include "engineer.h"
 #include "destructable.h"
@@ -85,6 +86,7 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<Structure>(
 			"Structure", sol::constructors<Structure(Player*, int, Vector3, Quaternion, int)>(),
 			"getPos", &GameObject::getPos,
+			"isComplete", &Structure::isComplete,
 			"getBuildStatus", &Structure::getBuildStatus
 		);
 
@@ -124,8 +126,13 @@ namespace battleship{
 			"getUnitsByClass", &Player::getUnitsByClass
 		);
 
+		SOL_LUA_STATE.new_usertype<Extractor>(
+			"Extractor", sol::constructors<Extractor(Player*, int, Vector3, Quaternion, int, ResourceDeposit*, Unit::State)>()
+		);
+
 		SOL_LUA_STATE.new_usertype<ResourceDeposit>(
 			"ResourceDeposit", sol::constructors<ResourceDeposit(Player*, int, Vector3, Quaternion, int)>(),
+			"getExtractor", &ResourceDeposit::getExtractor,
 			"getPos", &GameObject::getPos
 		);
 
@@ -161,6 +168,7 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<Map>(
 			"Map",
 			"getSingleton", &Map::getSingleton,
+			"getMapSize", &Map::getMapSize,
 			"getSpawnPoint", &Map::getSpawnPoint,
 			"getNumSpawnPoints", &Map::getNumSpawnPoints
 		);

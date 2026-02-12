@@ -2,105 +2,43 @@ Player.numStartEngis = 3
 Player.baseDir = nil 
 Player.numDefWarMechs = 1
 Player.behaviour = {}
+Player.pointDefenseTrans = {}
+
+Player.unitClassMappings = {
+	{UnitId.ACS_MECH, UnitId.AINC_MECH, UnitId.ER_MECH}, --WAR_MECH = 0,
+	{UnitId.ACS_TANK, UnitId.AINC_TANK, UnitId.ER_TANK}, --TANK = 1,
+	{UnitId.ACS_ARTILLERY, UnitId.AINC_ARTILLERY, UnitId.ER_ARTILLERY}, --ARTILLERY = 2,
+	{UnitId.ACS_ROBO_ENGINEER, UnitId.AINC_ROBO_ENGINEER, UnitId.ER_ROBO_ENGINEER}, --ENGINEER = 3,
+	{UnitId.ACS_CYBORG_ENGINEER, UnitId.AINC_CYBORG_ENGINEER, UnitId.ER_CYBORG_ENGINEER}, --ENGINEER = 3,
+	{UnitId.ACS_MECH, UnitId.AINC_MECH, UnitId.ER_MECH}, --TRANSPORT = 4,
+	{UnitId.ACS_CARGO_SHIP, UnitId.AINC_CARGO_SHIP, UnitId.ER_CARGO_SHIP}, --RESOURCE_ROVER = 5,
+	{UnitId.ACS_CRUISER, UnitId.AINC_CRUISER, UnitId.ER_CRUISER}, --CRUISER = 6,
+	{UnitId.ACS_ANTI_SUB_CRUISER, UnitId.AINC_ANTI_SUB_CRUISER, UnitId.ER_ANTI_SUB_CRUISER}, --CRUISER = 6,
+	{nil, nil, nil}, --CARRIER = 8,
+	{UnitId.ACS_SUBMARINE, UnitId.AINC_SUBMARINE, UnitId.ER_SUBMARINE}, --SUBMARINE = 9,
+	{UnitId.ACS_MISSILE_SUBMARINE, UnitId.AINC_MISSILE_SUBMARINE, UnitId.ER_MISSILE_SUBMARINE}, --SUBMARINE = 9,
+	{UnitId.ACS_ICEBREAKER, UnitId.AINC_ICEBREAKER, UnitId.ER_ICEBREAKER}, --ICEBREAKER = 10,
+	{nil, UnitId.FREEZER, nil}, --FREEZER = 11,
+	{nil, UnitId.EMP_BOAT, nil}, --EMP_BOAT = 12,
+	{UnitId.ACS_LAND_FACTORY, UnitId.AINC_LAND_FACTORY, UnitId.ER_LAND_FACTORY}, --LAND_FACTORY = 13,
+	{UnitId.ACS_NAVAL_FACTORY, UnitId.AINC_NAVAL_FACTORY, UnitId.ER_NAVAL_FACTORY}, --NAVAL_FACTORY = 14,
+	{UnitId.ACS_TRADE_CENTER, UnitId.AINC_TRADE_CENTER, UnitId.ER_TRADE_CENTER}, --TRADE_CENTER = 15,
+	{UnitId.ACS_LAB, UnitId.AINC_LAB, UnitId.ER_LAB}, --LAB = 16,
+	{UnitId.POINT_DEFENSE, UnitId.POINT_DEFENSE, UnitId.POINT_DEFENSE}, --POINT_DEFENSE = 17,
+	{UnitId.EXTRACTOR, UnitId.EXTRACTOR, UnitId.EXTRACTOR}, --EXTRACTOR = 18,
+	{UnitId.ACS_REFINERY, UnitId.AINC_REFINERY, UnitId.ER_REFINERY}, --REFINERY = 19,
+	--{UnitId.ACS_MECH, UnitId.AINC_MECH, UnitId.ER_MECH}, --ICE_SHEET = 20,
+}
 
 Player.taskForceData = {
-	{class = UnitClass.WAR_MECH, buildId = 0, numUnits = 2},
-	{class = UnitClass.TANK, buildId = 1, numUnits = 1},
-	{class = UnitClass.ARTILLERY, buildId = 2, numUnits = 1}
+	{class = UnitClass.MECH, numUnits = 2},
+	{class = UnitClass.TANK, numUnits = 1},
+	{class = UnitClass.ARTILLERY, numUnits = 1}
 }
 
 Player.taskForces = {}
 
-function Player:getBuildableUnitIdFromClass(unit, unitClass)
-	buildableUnits = unit:getBuildableUnits()
-
-	for i = 1, #buildableUnits do
-		if buildableUnits[i].buildable and units[buildableUnits[i].id + 1].unitClass == unitClass then
-			return i
-		end
-	end
-
-	return -1
-end
-
-function Player:getFactionUnitIdFromClass(unitClass)
-	faction = self:getFaction()
-
-	if unitClass == UnitClass.LAND_FACTORY then
-		if faction == 0 then 
-			return UnitId.AINC_LAND_FACTORY
-		elseif faction == 1 then 
-			return UnitId.ER_LAND_FACTORY
-		elseif faction == 2 then 
-			return UnitId.ACS_LAND_FACTORY
-		end
-	elseif unitClass == UnitClass.REFINERY then
-		if faction == 0 then 
-			return UnitId.AINC_REFINERY
-		elseif faction == 1 then 
-			return UnitId.ER_REFINERY
-		elseif faction == 2 then 
-			return UnitId.ACS_REFINERY
-		end
-	elseif unitClass == UnitClass.LAB then
-		if faction == 0 then 
-			return UnitId.AINC_LAB
-		elseif faction == 1 then 
-			return UnitId.ER_LAB
-		elseif faction == 2 then 
-			return UnitId.ACS_LAB
-		end
-	elseif unitClass == UnitClass.ENGINEER then
-		if faction == 0 then 
-			return UnitId.AINC_ROBO_ENGINEER
-		elseif faction == 1 then 
-			return UnitId.ER_ROBO_ENGINEER
-		elseif faction == 2 then 
-			return UnitId.ACS_ROBO_ENGINEER
-		end
-	elseif unitClass == UnitClass.MECH then
-		if faction == 0 then 
-			return UnitId.AINC_MECH
-		elseif faction == 1 then 
-			return UnitId.ER_MECH
-		elseif faction == 2 then 
-			return UnitId.ACS_MECH
-		end
-	elseif unitClass == UnitClass.TANK then
-		if faction == 0 then 
-			return UnitId.AINC_TANK
-		elseif faction == 1 then 
-			return UnitId.ER_TANK
-		elseif faction == 2 then 
-			return UnitId.ACS_TANK
-		end
-	elseif unitClass == UnitClass.ARTILLERY then
-		if faction == 0 then 
-			return UnitId.AINC_ARTILLERY
-		elseif faction == 1 then 
-			return UnitId.ER_ARTILLERY
-		elseif faction == 2 then 
-			return UnitId.ACS_ARTILLERY
-		end
-	end
-
-	return -1
-end
-
---TODO simplify building construction
-function Player:buildFort(arguments)
-	forts = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)
-
-	if #forts > 0 then
-		return forts[1]:toStructure():getBuildStatus() == 100 and BTNodeResult.SUCCESS or BTNodeResult.RUNNING
-	end
-
-	engis = self:getUnitsByClass(UnitClass.ENGINEER, 1)
-	if #engis == 0 then return BTNodeResult.FAILURE end
-
-	self:deselectUnits()
-	self:selectUnits({engis[1]})
-
+function Player:initBaseDir()
 	map = Map.getSingleton()
 	sp = map:getSpawnPoint(self:getSpawnPointId())
 	minDistId = nil 
@@ -118,31 +56,48 @@ function Player:buildFort(arguments)
 	end
 
 	self.baseDir = map:getSpawnPoint(minDistId):subtr(sp):norm()
-	right = (self.baseDir:getAngleBetween(Vector3:new(1, 0, 0)) > 1.57)
-	angle = self.baseDir:getAngleBetween(Vector3:new(0, 0, 1)) * (right and -1 or 1)
-	fort = GameObjectFactory.createUnit(self, self:getFactionUnitIdFromClass(UnitClass.LAND_FACTORY), sp, Quaternion:new(angle, Vector3:new(0, 1, 0)), 0)
-	self:addUnit(fort)
-	self:issueOrder(OrderType.BUILD, Vector3:new(0, 0, 0), {Target:new(fort:toGameObject(), Vector3:new(0, 0, 0))}, false)
-
-	return BTNodeResult.RUNNING
 end
 
-function Player:trainEngineers(arguments)
-	fort = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]:toFactory()
-	engineers = self:getUnitsByClass(UnitClass.ENGINEER, -1)
-	engineerDiffNum = self.numStartEngis - #engineers
-	queueDiff = engineerDiffNum - #fort:getQueue()
+function Player:initPdSpots()
+	numPd = 6
+	radius = 40
+	map = Map.getSingleton()
+	mapSize = map:getMapSize()
 
-	engiBuildId = self:getBuildableUnitIdFromClass(fort, UnitClass.ENGINEER)
+	for i = 1, numPd do
+		angle = (i - 1) * 2 * math.pi / numPd
+		rotDir = Quaternion:new(angle, Vector3:new(0, 1, 0)):multVec(self.baseDir)
+		pdPos = map:getSpawnPoint(self:getSpawnPointId()):add(rotDir:norm():mult(radius))
 
-	for i = 1, queueDiff do fort:appendToQueue(engiBuildId) end
+		if math.abs(pdPos.x) < .5 * mapSize.x and math.abs(pdPos.z) < .5 * mapSize.z then
+			self.pointDefenseTrans[#self.pointDefenseTrans + 1] = {pos = pdPos, angle = angle}
+		end
+	end
 
-	engisStartNumBuilt = (#self:getUnitsByClass(UnitClass.ENGINEER, -1) == self.numStartEngis)
-	return (engisStartNumBuilt and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
+	print('num pd pos: ' .. #self.pointDefenseTrans)
+end
+
+function Player:init()
+	self:initBaseDir()
+	self:initPdSpots()
+end
+
+function Player:buildStructure(engineer, buildingId, buildPos, buildAngle)
+	if not engineer then return BTNodeResult.FAILURE end
+
+	self:deselectUnits()
+	self:selectUnits({engineer})
+	
+	building = GameObjectFactory.createUnit(self, buildingId, buildPos, Quaternion:new(buildAngle, Vector3:new(0, 1, 0)), 0)
+	self:issueOrder(OrderType.BUILD, Vector3:new(0, 0, 0), {Target:new(building:toGameObject(), Vector3:new(0, 0, 0))}, false)
+end
+
+function Player:findSuitableSpot()
+	return Vector3:new(0, 0, 0)
 end
 
 function Player:findIdleEngineer()
-	engineers = self:getUnitsByClass(UnitClass.ENGINEER, -1)
+	engineers = self:getUnitsByClass(UnitClass.CYBORG_ENGINEER, -1)
 
 	for i = 1, #engineers do
 		if engineers[i]:getNumOrders() == 0 then return engineers[i] end
@@ -151,55 +106,127 @@ function Player:findIdleEngineer()
 	return nil
 end
 
-function Player:buildStructure(engineer, buildingId, buildPos, buildAngle)
-	if not engineer then return BTNodeResult.FAILURE end
+function Player:getBuildableUnitSlotId(buildingUnit, buildableUnitId)
+	for i = 1, #buildingUnit:getBuildableUnits() do
+		bu = buildingUnit:getBuildableUnit(i - 1)
 
-	unitClass = units[buildingId + 1].unitClass
-
-	if #self:getUnitsByClass(unitClass, 1) == 0 then
-		self:deselectUnits()
-		self:selectUnits({engineer})
-		
-		building = GameObjectFactory.createUnit(self, buildingId, buildPos, Quaternion:new(1, 0, 0, 0), 0)
-		self:addUnit(building)
-		self:issueOrder(OrderType.BUILD, Vector3:new(0, 0, 0), {Target:new(building:toGameObject(), Vector3:new(0, 0, 0))}, false)
+		if bu.buildable and bu.id == buildableUnitId then
+			print('returning ' .. i - 1)
+			return i - 1
+		end
 	end
 
-	building = self:getUnitsByClass(unitClass, 1)[1]
-	return (building:toStructure():getBuildStatus() == 100 and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
+	print('returning nil')
+	return nil
+end
+
+--TODO simplify building construction
+function Player:buildLandFactory(arguments)
+	factory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]
+
+	if factory then
+		return factory:toStructure():isComplete() and BTNodeResult.SUCCESS or BTNodeResult.RUNNING
+	end
+
+	engis = self:getUnitsByClass(UnitClass.CYBORG_ENGINEER, 1)
+	if #engis == 0 then return BTNodeResult.FAILURE end
+
+	self:deselectUnits()
+	self:selectUnits({engis[1]})
+
+	right = (self.baseDir:getAngleBetween(Vector3:new(1, 0, 0)) > .5 * math.pi)
+	angle = self.baseDir:getAngleBetween(Vector3:new(0, 0, 1)) * (right and -1 or 1)
+	rot = Quaternion:new(angle, Vector3:new(0, 1, 0))
+
+	factId = self.unitClassMappings[UnitClass.LAND_FACTORY + 1][self:getFaction() + 1]
+	sp = Map.getSingleton():getSpawnPoint(self:getSpawnPointId())
+	self:buildStructure(self:findIdleEngineer(), factId, sp, angle)
+
+	return BTNodeResult.RUNNING
+end
+
+function Player:trainEngineers(arguments)
+	factory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]:toFactory()
+	engineers = self:getUnitsByClass(UnitClass.CYBORG_ENGINEER, -1)
+	engineerDiffNum = self.numStartEngis - #engineers
+	queueDiff = engineerDiffNum - #factory:getQueue()
+
+	engiBuildId = self.unitClassMappings[UnitClass.CYBORG_ENGINEER + 1][self:getFaction() + 1]
+
+	for i = 1, queueDiff do
+		factory:appendToQueue(self:getBuildableUnitSlotId(factory, engiBuildId))
+	end
+
+	engisStartNumBuilt = (#self:getUnitsByClass(UnitClass.CYBORG_ENGINEER, -1) == self.numStartEngis)
+	return (engisStartNumBuilt and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
 end
 
 function Player:buildRefinery(arguments)
+	refinery = self:getUnitsByClass(UnitClass.REFINERY, 1)[1]
+
+	if refinery then
+		print('cpu player: ')
+		print(self)
+		print('ref1: ')
+		print(refinery)
+		print('ref2: ')
+		print(refinery:toStructure())
+		return (refinery:toStructure():isComplete() and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
+	end
+
 	buildPos = Map.getSingleton():getSpawnPoint(self:getSpawnPointId()):add(self.baseDir:mult(20))
-	return self:buildStructure(self:findIdleEngineer(), self:getFactionUnitIdFromClass(UnitClass.REFINERY), buildPos, -.1)
+	factId = self.unitClassMappings[UnitClass.REFINERY + 1][self:getFaction() + 1]
+	self:buildStructure(self:findIdleEngineer(), factId, buildPos, -.0)
+
+	return BTNodeResult.RUNNING
 end
 
 -- TODO optimize deposit position check
 function Player:buildExtractor(arguments)
-	deposits = {}
+	extractor = self:getUnitsByClass(UnitClass.EXTRACTOR, -1)[1]
+
+	if extractor then
+		return (extractor:toStructure():isComplete() and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
+	end
+
+	visibleDeposits = {}
 	players = Game.getSingleton():getPlayers(true)
 
 	for i = 1, #players do
-		deps = players[i]:getResourceDeposits()
-		table.move(deps, 1, #deps, #deposits + 1, deposits)
+		deposits = players[i]:getResourceDeposits()
+
+		for j = 1, #deposits do
+			for k = 1, #self:getUnits() do
+				unit = self:getUnit(k - 1)
+
+				if unit:getPos():getDistanceFrom(deposits[j]:getPos()) <= unit:getLineOfSight() and not deposits[j]:getExtractor() then
+					visibleDeposits[#visibleDeposits + 1] = deposits[i]
+					goto continue
+				end
+			end
+
+			::continue::
+		end
 	end
 
-	if #deposits == 0 then return BTNodeResult.FAILURE end
+	if #visibleDeposits == 0 then return BTNodeResult.FAILURE end
 
-	depPos = deposits[1]:getPos()
+	depPos = visibleDeposits[1]:getPos()
 	spawnPoint = Map.getSingleton():getSpawnPoint(self:getSpawnPointId())
 
-	for i = 1, #deposits do
-		if deposits[i]:getPos():getDistanceFrom(spawnPoint) < depPos:getDistanceFrom(spawnPoint) then
+	for i = 1, #visibleDeposits do
+		if visibleDeposits[i]:getPos():getDistanceFrom(spawnPoint) < depPos:getDistanceFrom(spawnPoint) then
 			depPos = deposits[i]:getPos()
 		end
 	end
 
-	return self:buildStructure(self:findIdleEngineer(), UnitId.EXTRACTOR, depPos, 0)
+	self:buildStructure(self:findIdleEngineer(), UnitId.EXTRACTOR, depPos, 0)
+
+	return BTNodeResult.RUNNING
 end
 
 function Player:buildHarvester(arguments)
-	if self:getUnitsByClass(UnitClass.RESOURCE_ROVER, 1)[1] then
+	if #self:getUnitsByClass(UnitClass.RESOURCE_ROVER, 1) > 0 then
 		return BTNodeResult.SUCCESS
 	end
 
@@ -207,8 +234,11 @@ function Player:buildHarvester(arguments)
 	if not factory then return BTNodeResult.FAILURE end
 
 	factory = factory:toFactory()
+	roverSlotId = self.unitClassMappings[UnitClass.RESOURCE_ROVER + 1][self:getFaction() + 1]
 
-	if #factory:getQueue() == 0 then factory:appendToQueue(3) end
+	if #factory:getQueue() == 0 then
+		factory:appendToQueue(self:getBuildableUnitSlotId(factory, roverSlotId))
+	end
 
 	return BTNodeResult.RUNNING
 end
@@ -232,7 +262,7 @@ function Player:startHarvesting()
 	return BTNodeResult.SUCCESS
 end
 
-function Player:buildTaskForces(arguments)
+function Player:buildLandDefForce(arguments)
 	landFactory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]
 
 	if not landFactory then return BTNodeResult.FAILURE end
@@ -252,18 +282,36 @@ function Player:buildTaskForces(arguments)
 			end
 		end
 
-		if enoughUnits then return BTNodeResult.SUCCESS end
+		print('about to...')
+		if enoughUnits then
+			print('here it comes...')
+			return BTNodeResult.SUCCESS
+		end
+	else
+		return BTNodeResult.RUNNING
 	end
-
-	if #landFactory:getQueue() > 0 then return BTNodeResult.RUNNING end
 
 	for i = 1, numAttackableSpawnPoints do
 		for j = 1, #self.taskForceData do
 			for k = 1, self.taskForceData[j].numUnits do
-				landFactory:appendToQueue(self.taskForceData[j].buildId)
+				print('queueing...')
+				unitId = self.unitClassMappings[self.taskForceData[j].class + 1][self:getFaction() + 1]
+				slotId = self:getBuildableUnitSlotId(landFactory, unitId)
+				landFactory:appendToQueue(slotId)
 			end
 		end
 	end
+
+	return BTNodeResult.RUNNING
+end
+
+function Player:buildPointDefenseRing(arguments)
+	pointDefs = self:getUnitsByClass(UnitClass.POINT_DEFENSE, -1)
+	if #pointDefs == #self.pointDefenseTrans then return BTNodeResult.SUCCESS end
+
+	pdId = self.unitClassMappings[UnitClass.POINT_DEFENSE + 1][self:getFaction() + 1]
+	pdTrans = self.pointDefenseTrans[#pointDefs + 1]
+	self:buildStructure(self:findIdleEngineer(), pdId, pdTrans.pos, pdTrans.angle)
 
 	return BTNodeResult.RUNNING
 end
@@ -358,6 +406,7 @@ function Player:attackSpawnPoint(arguments)
 	return BTNodeResult.RUNNING
 end
 
+--[[
 function Player:generateTaskforceActions()
 	numSpawnPoints = Map.getSingleton():getNumSpawnPoints()
 	actionsTable = {}
@@ -382,3 +431,4 @@ function Player:generateTaskforceActions()
 
 	return actionsTable
 end
+]]--

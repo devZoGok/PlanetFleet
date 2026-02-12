@@ -67,15 +67,18 @@ namespace battleship{
     enum class Corner {FRONT_LEFT, FRONT_RIGHT, REAR_LEFT, REAR_RIGHT};
     enum class UnitType {UNDERWATER, SEA_LEVEL, HOVER, LAND, AIR, NONE = -1};
     enum class UnitClass {
-		WAR_MECH,
+		MECH,
 	   	TANK,
 	   	ARTILLERY,
-	   	ENGINEER,
+	   	ROBO_ENGINEER,
+	   	CYBORG_ENGINEER,
 	   	TRANSPORT,
 	   	RESOURCE_ROVER,
 	   	CRUISER,
+	   	ANTI_SUB_CRUISER,
 	   	CARRIER,
 	   	SUBMARINE,
+	   	MISSILE_SUBMARINE,
 		ICEBREAKER,
 		FREEZER,
 		EMP_BOAT,
@@ -86,7 +89,6 @@ namespace battleship{
 	   	POINT_DEFENSE,
 	   	EXTRACTOR,
 	   	REFINERY,
-		FORT,
 		ICE_SHEET
 	};
     

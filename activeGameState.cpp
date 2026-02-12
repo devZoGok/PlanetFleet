@@ -252,7 +252,7 @@ namespace battleship{
 					orderPossible = (roverSelected && transferResource);
 				}
 				else if(cursorState == CursorState::HACK)
-					orderPossible = (!ownGameObj && gameObjUnit && mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::ENGINEER);
+					orderPossible = (!ownGameObj && gameObjUnit && mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::CYBORG_ENGINEER);
 				else if(controlPressed)
 					cursorState = CursorState::ATTACK;
 				else
@@ -285,7 +285,6 @@ namespace battleship{
 
     void ActiveGameState::update() {
 		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
-		guiManager->getText("depth")->setText(L"Depth: " + to_wstring(depth));
 		guiManager->getText("refineds")->setText(to_wstring(mainPlayer->getResource(ResourceType::REFINEDS)));
 		guiManager->getText("wealth")->setText(to_wstring(mainPlayer->getResource(ResourceType::WEALTH)));
 		guiManager->getText("research")->setText(to_wstring(mainPlayer->getResource(ResourceType::RESEARCH)));
@@ -723,7 +722,8 @@ namespace battleship{
 							Order::TYPE type;
 
 							switch(selectedUnits[0]->getUnitClass()){
-								case UnitClass::ENGINEER:
+								case UnitClass::ROBO_ENGINEER:
+								case UnitClass::CYBORG_ENGINEER:
 								case UnitClass::FREEZER:
 									type = Order::TYPE::BUILD;
 									break;
@@ -740,7 +740,6 @@ namespace battleship{
 
 								Unit *buildStruct = GameObjectFactory::createUnit(mainPlayer, gmObjFr.getId(), gmObjFr.getPos(), gmObjFr.getRot());
 								issueOrder(type, vector<Order::Target>{Order::Target(buildStruct, gmObjFr.getPos())}, shiftPressed);
-								mainPlayer->addUnit(buildStruct);
 							}
 
 							buildableStructSelected = false;

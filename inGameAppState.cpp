@@ -74,7 +74,7 @@ namespace battleship{
         activeState = new ActiveGameState(guiState, playerId);
         stateManager->attachAppState(activeState);
 
-		Game::getSingleton()->updateLuaPlayers(true);
+		Game::getSingleton()->initLuaPlayers(true);
 		Map::Minimap::getSingleton()->updateImage();
     }
 
