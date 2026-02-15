@@ -75,12 +75,24 @@ namespace battleship{
 
 	//TODO fix which unit frames light green or red
 	void GameObjectFrameController::checkPlacement(GameObjectFrame &s){
+		s.status = GameObjectFrame::PLACEABLE;
+
 		Map *map = Map::getSingleton();
+		Vector3 mapSize = map->getMapSize();
+		int dirMult[][2]{{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+
+		for(int i = 0; i < 4; i++){
+			Vector3 cornerPos = (s.getPos() + s.getDirVec() * .5 * dirMult[i][0] * s.getLength() + s.getLeftVec() * .5 * dirMult[i][1] * s.getWidth());
+
+			if(!(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <=.5  * mapSize.z)){
+				s.status = GameObjectFrame::NOT_PLACEABLE;
+				return;
+			}
+		}
+
 		MeshData meshData = map->getNodeParent()->getChild(0)->getMesh(0)->getMeshBase();
 		MeshData::Vertex *verts = meshData.vertices;
 		int numVerts = 3 * meshData.numTris;
-
-		s.status = GameObjectFrame::PLACEABLE;
 
 		if(s.getMaxUnevenness() > 0)
 			for(int i = 0; i < numVerts; i++){
@@ -90,7 +102,7 @@ namespace battleship{
 
 				if(diffX < 0.5 * s.getWidth() && diffZ < 0.5 * s.getLength() && diffY > s.getMaxUnevenness()){
 					s.status = GameObjectFrame::NOT_PLACEABLE;
-					break;
+					return;
 				}
 			}
 
@@ -132,7 +144,7 @@ namespace battleship{
 
 			if(intersects){
 				s.status = GameObjectFrame::NOT_PLACEABLE;
-				break;
+				return;
 			}
 		}
 	}
