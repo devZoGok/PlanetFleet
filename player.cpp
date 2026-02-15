@@ -116,7 +116,7 @@ namespace battleship{
 					break;
 				}
 
-				if(!u->isVehicle() && ((Structure*)u)->getBuildStatus() < 100){
+				if(!u->isVehicle() && ((Structure*)u)->isComplete()){
 					structBuilt = false;
 					break;
 				}

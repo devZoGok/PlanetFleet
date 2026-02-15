@@ -6,6 +6,7 @@
 #include "inGameAppState.h"
 #include "concreteGuiManager.h"
 #include "fxManager.h"
+#include "factory.h"
 #include "defConfigs.h"
 
 #include <algorithm>
@@ -43,13 +44,11 @@ namespace battleship{
 	}
 
 	void Game::update(){
-		//updateLuaPlayers(false);
 		sol::state_view SOL_LUA_VIEW = generateView();
 
 		for(int i = 0; i < getCpuPlayers().size(); i++) {
 			string plStr = "game.cpuPlayers[" + to_string(i + 1) + "]";
 			SOL_LUA_VIEW.script("executeBtNode(" + plStr + ", " + plStr + ".behaviour)");
-			//SOL_LUA_VIEW.script("tbl = " + plStr + ":getUnitsByClass(UnitClass.CYBORG_ENGINEER, -1)");
 		}
 
 		int numPlayersWithUnits = 0;

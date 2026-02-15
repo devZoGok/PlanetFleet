@@ -1,1 +1,1 @@
-game = {players = {}}
+game = {cpuPlayers = {}}
