@@ -16,6 +16,15 @@ namespace battleship{
 			return pathfinder;
 		}
 
+		vector<float> Pathfinder::calcHeuristics(vector<Map::Cell> &cells, int dest){
+			vector<float> heuristics;
+
+			for(Map::Cell &cell : cells)
+				heuristics.push_back(145 * (cells[dest].pos.getDistanceFrom(cell.pos)));
+
+			return heuristics;
+		}
+
 		vector<int> Pathfinder::findPath(vector<Map::Cell> &cells, vector<float> &heuristics, int source, int dest, Vehicle *vehicle){
 			const int size = cells.size();
 			u32 *distances = new u32[size];

@@ -343,12 +343,12 @@ namespace battleship{
 				}
 		}
 
-		vector<float> heuristics;
+		Pathfinder *pf = Pathfinder::getSingleton();
+		vector<float> heuristics = pf->calcHeuristics(cells, dest);
+		vector<int> path = pf->findPath(cells, heuristics, source, dest, this);
 
-		for(Map::Cell &cell : cells)
-			heuristics.push_back(145 * (cells[dest].pos.getDistanceFrom(cell.pos)));
+		if(path.empty()) return;
 
-		vector<int> path = Pathfinder::getSingleton()->findPath(cells, heuristics, source, dest, this);
 		path.erase(path.begin());
 		bool pathTruncated = false;
 
