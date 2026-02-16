@@ -19,6 +19,7 @@
 #include "engineer.h"
 #include "destructable.h"
 #include "pointDefense.h"
+#include "pathfinder.h"
 #include "resourceDeposit.h"
 
 using namespace std;
@@ -165,12 +166,28 @@ namespace battleship{
 			"multVec", [](Quaternion q, Vector3 v){return q * v;}
 		);
 
+		SOL_LUA_STATE.new_usertype<Map::Cell>(
+			"Cell",
+			"pos", &Map::Cell::pos,
+			"type", &Map::Cell::type
+		);
+
 		SOL_LUA_STATE.new_usertype<Map>(
 			"Map",
 			"getSingleton", &Map::getSingleton,
+			"getCell", &Map::getCell,
+			"getCells", &Map::getCells,
+			"getCellId", &Map::getCellId,
 			"getMapSize", &Map::getMapSize,
 			"getSpawnPoint", &Map::getSpawnPoint,
 			"getNumSpawnPoints", &Map::getNumSpawnPoints
+		);
+
+		SOL_LUA_STATE.new_usertype<Pathfinder>(
+			"Pathfinder",
+			"getSingleton", &Pathfinder::getSingleton,
+			"calcHeuristics", &Pathfinder::calcHeuristics,
+			"findPath", &Pathfinder::findPath
 		);
 	}
 

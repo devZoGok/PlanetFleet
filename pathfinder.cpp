@@ -26,6 +26,9 @@ namespace battleship{
 		}
 
 		vector<int> Pathfinder::findPath(vector<Map::Cell> &cells, vector<float> &heuristics, int source, int dest, Vehicle *vehicle){
+			if(heuristics.empty() || (heuristics.size() == 1 && heuristics[0] == 0.0))
+				heuristics = calcHeuristics(cells, dest);
+
 			const int size = cells.size();
 			u32 *distances = new u32[size];
 			vector<int> *paths = new vector<int>[size];

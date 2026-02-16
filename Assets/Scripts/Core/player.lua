@@ -331,8 +331,27 @@ function Player:formTaskForces(arguments)
 	return BTNodeResult.SUCCESS
 end
 
+--TODO remove heuristics
+function Player:landRouteToSpawnpoint(mapPoint)
+	map = Map.getSingleton()
+	dest = map:getCellId(mapPoint, false)
+	source = map:getCellId(map:getSpawnPoint(self:getSpawnPointId()), false)
+
+	pf = Pathfinder.getSingleton()
+	cells = map:getCells()
+	heurs = pf:calcHeuristics(cells, dest)
+	path = pf:findPath(cells, heurs, source, dest, nil)
+
+	for i = 1, #path do
+		if cells[path[i]].type == 1 then return false end
+	end
+
+	return true
+end
+
 function Player:isLandRouteToSpawnpoint(arguments)
-	return BTNodeResult.SUCCESS
+	mapPoint = Map.getSingleton():getSpawnPoint(self.taskForces[arguments.taskForceId].spawnPointId)
+	return (self:landRouteToSpawnpoint(mapPoint) and BTNodeResult.SUCCESS or BTNodeResult.FAILURE)
 end
 
 function Player:occupySpawnPoint(arguments)

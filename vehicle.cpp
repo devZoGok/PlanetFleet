@@ -316,22 +316,20 @@ namespace battleship{
 
 	//TODO allow ships to attack land targets and vice versa 
 	//TODO recursively search for vacant dest cell neibourghss 
-	void Vehicle::preparePathpoints(Order &order, Vector3 destPos, bool appendDestPos){
-		removeAllPathpoints();
-
+	bool Vehicle::canReachTarget(Vector3 destPos, int &source, int &dest){
 		Map *map = Map::getSingleton();
 		vector<Map::Cell> &cells = map->getCells();
 
-		int source = map->getCellId(pos);
+		source = map->getCellId(pos);
 		bool ship = (type == UnitType::UNDERWATER || type == UnitType::SEA_LEVEL);
 		bool waterVehCanMove = (ship && cells[source].type == Map::Cell::WATER);
 		bool landVehCanMove = (type == UnitType::LAND && cells[source].type == Map::Cell::LAND);
 
-		if(type != UnitType::HOVER && !(waterVehCanMove || landVehCanMove)) return;
+		if(type != UnitType::HOVER && !(waterVehCanMove || landVehCanMove)) return false;
 
-		int dest = map->getCellId(destPos);
+		dest = map->getCellId(destPos);
 
-		if(type != UnitType::UNDERWATER && type == UnitType::SEA_LEVEL && fabs(destPos.y - cells[dest].pos.y) > .1) return;
+		if(type != UnitType::UNDERWATER && type == UnitType::SEA_LEVEL && fabs(destPos.y - cells[dest].pos.y) > .1) return false;
 
 		if(cells[dest].blockedBy){
 			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
@@ -343,14 +341,13 @@ namespace battleship{
 				}
 		}
 
-		Pathfinder *pf = Pathfinder::getSingleton();
-		vector<float> heuristics = pf->calcHeuristics(cells, dest);
-		vector<int> path = pf->findPath(cells, heuristics, source, dest, this);
+		return true;
+	}
 
-		if(path.empty()) return;
-
-		path.erase(path.begin());
+	bool Vehicle::truncatePath(Order &order, vector<int> &path, Vector3 destPos, bool appendDestPos){
 		bool pathTruncated = false;
+		bool ship = (type == UnitType::UNDERWATER || type == UnitType::SEA_LEVEL);
+		vector<Map::Cell> &cells = Map::getSingleton()->getCells();
 
 		for(int i = 0; i < path.size(); i++){
 			if((ship && cells[path[i]].type != Map::Cell::WATER) || (order.type != Order::TYPE::GARRISON && type == UnitType::LAND && cells[path[i]].type != Map::Cell::LAND)){
@@ -361,7 +358,7 @@ namespace battleship{
 				break;
 			}
 			else if(order.type == Order::TYPE::GARRISON && type == UnitType::LAND && cells[path[i]].type != Map::Cell::LAND && path.size() - 1 != i)
-				return;
+				return false;
 		}
 
 		for(int p : path) addPathpoint(cells[p].pos);
@@ -410,6 +407,27 @@ namespace battleship{
 
 		if(appendDestPos && !pathTruncated)
 			addPathpoint(destPos);
+
+		return true;
+	}
+
+	void Vehicle::preparePathpoints(Order &order, Vector3 destPos, bool appendDestPos){
+		removeAllPathpoints();
+
+		vector<Map::Cell> &cells = Map::getSingleton()->getCells();
+		int source, dest;
+
+		if(!canReachTarget(destPos, source, dest)) return;
+
+		vector<float> heurs;
+		Pathfinder *pf = Pathfinder::getSingleton();
+		vector<int> path = pf->findPath(cells, heurs, source, dest, this);
+
+		if(path.empty()) return;
+
+		path.erase(path.begin());
+
+		if(!truncatePath(order, path, destPos, appendDestPos)) return;
 	}
 
 	void Vehicle::removePathpoint(int i){
