@@ -39,6 +39,8 @@ namespace battleship{
 		void deselectUnit(Unit*);
 		std::vector<GameObject*> getDestructables();
 		void updateGameStats(Unit*);
+		std::vector<Unit*> getFriendlyUnits(bool = true);
+		bool isObjectVisible(GameObject*, std::vector<Unit*>);
 		inline int getResource(ResourceType rt){return resources[(int)rt];}
 		inline void updateResource(ResourceType rt, int amount, bool add){resources[(int)rt] = (add ? resources[(int)rt] + amount : amount);}
 		inline Trader* getTrader(){return trader;}

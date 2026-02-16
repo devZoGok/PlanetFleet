@@ -476,73 +476,19 @@ namespace battleship{
 		return (numAboveEdges > 0 && numBelowEdges > 0);
 	}
 
-	//TODO fix fog of war for hostile units
     void ActiveGameState::renderUnits() {
-		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
-		vector<Listbox*> listboxes{};
-		vector<Checkbox*> checkboxes{};
-		vector<Slider*> sliders{};
-		vector<Textbox*> textboxes{};
-		vector<Node*> guiRects = guiManager->getGuiRectangles();
-		vector<Text*> texts{
-			guiManager->getText("depth"),
-			guiManager->getText("refineds"),
-			guiManager->getText("wealth"),
-			guiManager->getText("research")
-		};
+		vector<Unit*> friendlyUnits = mainPlayer->getFriendlyUnits();
 
-		vector<Unit*> units;
+        for (Player *p : Game::getSingleton()->getPlayers(true)){
+			vector<Unit*> units = p->getUnits();
 
-        for (Player *p : Game::getSingleton()->getPlayers(true))
-            for (Unit *u : p->getUnits())
-                units.push_back(u);
-
-		vector<Unit*> selUnits = mainPlayer->getSelectedUnits();
-
-        for (Unit *u : units) {
-			if(u->isVehicle() && ((Vehicle*)u)->getGarrisonable()) continue;
-
-			Node *model = u->getModel();
-
-            if (u->getPlayer()->getTeam() == mainPlayer->getTeam()){
-				if(!u->getLosLightNode()) u->initLosLight();
-
-				model->setVisible(true);
-            }
-			else{
-				if(u->getLosLightNode()) u->destroyLosLight();
-
-				model->setVisible(false);
-
-            	for (int i = 0; i < units.size(); i++)
-					if(units[i]->getPlayer() == mainPlayer){
-            			Vector3 obsUnitPos = units[i]->getPos();
-            			obsUnitPos.y = 0;
-
-						Vector3 compUnitPos = u->getPos();
-						compUnitPos.y = 0;
-						float dist = compUnitPos.getDistanceFrom(obsUnitPos);
-
-						if(dist <= units[i]->getLineOfSight()){
-							model->setVisible(true);
-							break;
-						}
-					}
+			for (Unit *u : units) {
+				if(u->isVehicle() && ((Vehicle*)u)->getGarrisonable()) continue;
+			
+				bool unitVisible = mainPlayer->isObjectVisible((GameObject*)u, friendlyUnits);
+				u->getModel()->setVisible(unitVisible);
 			}
-        }
-    }
-
-	//TODO improve this for greater accuracy
-    bool ActiveGameState::isInLineOfSight(Vector3 center, float radius, Unit *u) {
-        bool inside = false;
-
-        for (int i = 0; i < 4 && !inside; i++)
-            if (center.getDistanceFrom(u->getCorner(i)) <= radius){
-                inside = true;
-				break;
-			}
-
-        return inside;
+		}
     }
 
     void ActiveGameState::updateDragBox() {

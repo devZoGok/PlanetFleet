@@ -286,4 +286,37 @@ namespace battleship{
 			}
 		}
 	}
+
+    vector<Unit*> Player::getFriendlyUnits(bool includeOwn){
+		vector<Unit*> friendlyUnits;
+
+        for (Player *pl : Game::getSingleton()->getPlayers(true))
+            for (Unit *u : pl->getUnits())
+				if((includeOwn && pl == this) || pl->getTeam() == getTeam())
+                	friendlyUnits.push_back(u);
+
+		return friendlyUnits;
+	}
+
+	//TODO improve this for greater accuracy
+    bool Player::isObjectVisible(GameObject *object, std::vector<Unit*> friendlyUnits) {
+		Player *objPlayer = object->getPlayer();
+
+		for(Unit *friendlyUnit : friendlyUnits){
+			if(objPlayer == this || objPlayer->getTeam() == getTeam())
+				return true;
+			
+			Vector3 obsUnitPos = object->getPos();
+			obsUnitPos.y = 0;
+			
+			Vector3 compUnitPos = friendlyUnit->getPos();
+			compUnitPos.y = 0;
+			float dist = compUnitPos.getDistanceFrom(obsUnitPos);
+			
+			if(dist <= friendlyUnit->getLineOfSight())
+				return true;
+		}
+
+		return false;
+    }
 }

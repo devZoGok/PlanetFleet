@@ -73,18 +73,35 @@ namespace battleship{
 		}
 	}
 
-	//TODO fix which unit frames light green or red
+	//TODO include checking if frame is outside of line of sight
 	void GameObjectFrameController::checkPlacement(GameObjectFrame &s){
 		s.status = GameObjectFrame::PLACEABLE;
 
 		Map *map = Map::getSingleton();
 		Vector3 mapSize = map->getMapSize();
+		Vector3 cellSize = map->getCellSize();
 		int dirMult[][2]{{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+		vector<Map::Cell> &cells = map->getCells();
+
+		sol::table tbl = generateView()["units"][s.getId() + 1];
+		UnitType ut = (UnitType)tbl["unitType"];
+
+		//vector<Unit*> friendlyUnits = s.getPlayer()->getFriendlyUnits();
 
 		for(int i = 0; i < 4; i++){
 			Vector3 cornerPos = (s.getPos() + s.getDirVec() * .5 * dirMult[i][0] * s.getLength() + s.getLeftVec() * .5 * dirMult[i][1] * s.getWidth());
 
-			if(!(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <=.5  * mapSize.z)){
+			if(!(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <= .5  * mapSize.z)){
+				s.status = GameObjectFrame::NOT_PLACEABLE;
+				return;
+			}
+
+			Map::Cell cell = cells[map->getCellId(cornerPos, false)];
+			bool landUnitOnWater = (ut == UnitType::LAND && cell.type == Map::Cell::Type::WATER);
+			bool waterUnitOnLand = ((ut == UnitType::SEA_LEVEL || ut == UnitType::UNDERWATER) && cell.type == Map::Cell::Type::LAND);
+			bool withinCell = (fabs(cell.pos.x - cornerPos.x) < .5 * cellSize.x && fabs(cell.pos.z - cornerPos.z) < .5 * cellSize.z);
+
+			if((landUnitOnWater || waterUnitOnLand) && withinCell){
 				s.status = GameObjectFrame::NOT_PLACEABLE;
 				return;
 			}
