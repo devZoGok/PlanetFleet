@@ -307,13 +307,12 @@ namespace battleship{
 				return true;
 			
 			Vector3 obsUnitPos = object->getPos();
-			obsUnitPos.y = 0;
+			Vector2 oup2d = Vector2(obsUnitPos.x, obsUnitPos.z);
 			
 			Vector3 compUnitPos = friendlyUnit->getPos();
-			compUnitPos.y = 0;
-			float dist = compUnitPos.getDistanceFrom(obsUnitPos);
+			Vector2 cup2d = Vector2(compUnitPos.x, compUnitPos.z);
 			
-			if(dist <= friendlyUnit->getLineOfSight())
+			if(cup2d.getDistanceFrom(oup2d) <= friendlyUnit->getLineOfSight())
 				return true;
 		}
 

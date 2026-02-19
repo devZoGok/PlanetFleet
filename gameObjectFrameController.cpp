@@ -54,7 +54,7 @@ namespace battleship{
 				buildDir = gameObjectFrames[1].getModel()->getPosition() - gameObjectFrames[0].getModel()->getPosition();
 
 			Vector3 pos = paintSelectRowStart + buildDir.norm() * hypothenuse * gameObjectFrames.size();
-			addGameObjectFrame(GameObjectFrame(structureId, GameObject::Type::UNIT, nullptr, pos));
+			addGameObjectFrame(GameObjectFrame(structureId, GameObject::Type::UNIT, gameObjectFrames[0].getPlayer(), nullptr, pos));
 		}
 	}
 
@@ -86,7 +86,8 @@ namespace battleship{
 		sol::table tbl = generateView()["units"][s.getId() + 1];
 		UnitType ut = (UnitType)tbl["unitType"];
 
-		//vector<Unit*> friendlyUnits = s.getPlayer()->getFriendlyUnits();
+		vector<Unit*> friendlyUnits = (s.getPlayer() ? s.getPlayer()->getFriendlyUnits() : vector<Unit*>{});
+		bool withinLos = false;
 
 		for(int i = 0; i < 4; i++){
 			Vector3 cornerPos = (s.getPos() + s.getDirVec() * .5 * dirMult[i][0] * s.getLength() + s.getLeftVec() * .5 * dirMult[i][1] * s.getWidth());
@@ -105,6 +106,18 @@ namespace battleship{
 				s.status = GameObjectFrame::NOT_PLACEABLE;
 				return;
 			}
+			
+			if(!withinLos)
+				for(Unit *fu : friendlyUnits)
+					if(fu->getPos().getDistanceFrom(s.getPos()) < fu->getLineOfSight()){
+						withinLos = true;
+						break;
+					}
+		}
+		
+		if(!withinLos){
+			s.status = GameObjectFrame::NOT_PLACEABLE;
+			return;
 		}
 
 		MeshData meshData = map->getNodeParent()->getChild(0)->getMesh(0)->getMeshBase();

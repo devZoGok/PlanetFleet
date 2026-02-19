@@ -8,6 +8,7 @@
 #include <root.h>
 
 #include "gameManager.h"
+#include "gameObjectFrameController.h"
 #include "gameObjectFactory.h"
 #include "map.h"
 #include "game.h"
@@ -151,6 +152,7 @@ namespace battleship{
 			"norm", &Vector3::norm,
 			"getAngleBetween", &Vector3::getAngleBetween,
 			"getDistanceFrom", &Vector3::getDistanceFrom,
+			"neg", [](Vector3 v){return -v;},
 			"add", [](Vector3 v1, Vector3 v2){return v1 + v2;},
 			"subtr", [](Vector3 v1, Vector3 v2){return v1 - v2;},
 			"mult", [](Vector3 v1, float s){return v1 * s;},
@@ -163,6 +165,8 @@ namespace battleship{
 			"x", &Quaternion::x,
 			"y", &Quaternion::y,
 			"z", &Quaternion::z,
+			"getAngle", &Quaternion::getAngle,
+			"getAxis", &Quaternion::getAxis,
 			"multVec", [](Quaternion q, Vector3 v){return q * v;}
 		);
 
@@ -188,6 +192,24 @@ namespace battleship{
 			"getSingleton", &Pathfinder::getSingleton,
 			"calcHeuristics", &Pathfinder::calcHeuristics,
 			"findPath", &Pathfinder::findPath
+		);
+
+		SOL_LUA_STATE.new_usertype<GameObjectFrame>(
+			"GameObjectFrame", sol::constructors<GameObjectFrame(int, GameObject::Type, Player*, Unit*, Vector3, Quaternion)>(),
+			"getOriginalUnit", &GameObjectFrame::getOriginalUnit,
+			"destroy", &GameObjectFrame::destroy,
+			"placeAt", &GameObjectFrame::placeAt,
+			"getDirVec", &GameObjectFrame::getDirVec,
+			"getLeftVec", &GameObjectFrame::getLeftVec,
+			"getLength", &GameObjectFrame::getLength,
+			"getWidth", &GameObjectFrame::getWidth,
+			"status", &GameObjectFrame::status
+		);
+
+		SOL_LUA_STATE.new_usertype<GameObjectFrameController>(
+			"GameObjectFrameController",
+			"getSingleton", &GameObjectFrameController::getSingleton,
+			"checkPlacement", &GameObjectFrameController::checkPlacement
 		);
 	}
 

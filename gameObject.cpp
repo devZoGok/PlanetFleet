@@ -153,7 +153,7 @@ namespace battleship{
 		model->setMaterial(mat);
 		sol::optional<sol::table> colNodeOpt = gameObjTable["colorNodes"];
 
-		if(player && colNodeOpt != sol::nullopt)
+		if(!(model->isWireframe() || colNodeOpt == sol::nullopt))
 			useColor(player->getColorMaterial());
 
 		root->getRootNode()->attachChild(model);

@@ -311,7 +311,7 @@ namespace battleship{
 
 			if(!buildableStructSelected)
 				for(int i = 0; i < selectedUnits.size(); i++)
-					fc->addGameObjectFrame(GameObjectFrame(selectedUnits[i]->getId(), GameObject::Type::UNIT, selectedUnits[i], targets[0].pos));
+					fc->addGameObjectFrame(GameObjectFrame(selectedUnits[i]->getId(), GameObject::Type::UNIT, mainPlayer, selectedUnits[i], targets[0].pos));
 
 			selectingDestOrient = true;
 			fc->setRotating(true);

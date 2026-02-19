@@ -1,5 +1,6 @@
 Player.numStartEngis = 3
-Player.baseDir = nil 
+Player.baseQuat = nil 
+Player.baseRadius = 180
 Player.numDefWarMechs = 1
 Player.behaviour = {}
 Player.pointDefenseTrans = {}
@@ -37,7 +38,7 @@ Player.taskForceData = {
 
 Player.taskForces = {}
 
-function Player:initBaseDir()
+function Player:initBaseQuat()
 	map = Map.getSingleton()
 	sp = map:getSpawnPoint(self:getSpawnPointId())
 	minDistId = nil 
@@ -54,43 +55,107 @@ function Player:initBaseDir()
 		::continue::
 	end
 
-	self.baseDir = map:getSpawnPoint(minDistId):subtr(sp):norm()
+	dir = map:getSpawnPoint(minDistId):subtr(sp):norm()
+	left = (Vector3:new(1, 0, 0):getAngleBetween(dir) < .5 * math.pi)
+	angle = dir:getAngleBetween(Vector3:new(0, 0, 1)) * (left and 1 or -1)
+
+	self.baseQuat = Quaternion:new(angle, Vector3:new(0, 1, 0))
 end
 
 function Player:initPdSpots()
-	numPd = 6
-	radius = 100
-	map = Map.getSingleton()
-	mapSize = map:getMapSize()
+	pdId = self.unitClassMappings[UnitClass.POINT_DEFENSE + 1][self:getFaction() + 1]
+	pdFrame = GameObjectFrame:new(pdId, 0, self, nil, Vector3:new(0, 0, 0), Quaternion:new(1, 0, 0, 0))
+	baseDir = self.baseQuat:multVec(Vector3:new(0, 0, 1))
+	frameCtrl = GameObjectFrameController.getSingleton()
+
+	numPd = 12
 
 	for i = 1, numPd do
 		angle = (i - 1) * 2 * math.pi / numPd
-		rotDir = Quaternion:new(angle, Vector3:new(0, 1, 0)):multVec(self.baseDir)
-		pdPos = map:getSpawnPoint(self:getSpawnPointId()):add(rotDir:norm():mult(radius))
+		rotDir = Quaternion:new(angle, Vector3:new(0, 1, 0)):multVec(baseDir)
+		pdPos = Map.getSingleton():getSpawnPoint(self:getSpawnPointId()):add(rotDir:norm():mult(self.baseRadius))
+		pdFrame:placeAt(pdPos)
 
-		if math.abs(pdPos.x) < .5 * mapSize.x and math.abs(pdPos.z) < .5 * mapSize.z then
+		frameCtrl:checkPlacement(pdFrame)
+
+		if pdFrame.status == 0 then
 			self.pointDefenseTrans[#self.pointDefenseTrans + 1] = {pos = pdPos, angle = angle}
 		end
 	end
+
+	pdFrame:destroy()
+end
+
+--TODO replace this method with more robust checks to determine the possibility of building on a given spot
+function Player:updatePdSpots()
+	pdId = self.unitClassMappings[UnitClass.POINT_DEFENSE + 1][self:getFaction() + 1]
+	pdFrame = GameObjectFrame:new(pdId, 0, self, nil, Vector3:new(0, 0, 0), Quaternion:new(1, 0, 0, 0))
+
+	gofCtrl = GameObjectFrameController.getSingleton()
+	delPdTrans = {}
+
+	for i = 1, #self.pointDefenseTrans do
+		pdFrame:placeAt(self.pointDefenseTrans[i].pos)
+		gofCtrl:checkPlacement(pdFrame)
+
+		if pdFrame.status == 1 then
+			table.insert(delPdTrans, i)
+		end
+	end
+
+	for i = #delPdTrans, 1, -1 do
+		table.remove(self.pointDefenseTrans, i)
+	end
+
+	pdFrame:destroy()
 end
 
 function Player:init()
-	self:initBaseDir()
+	self:initBaseQuat()
 	self:initPdSpots()
+end
+
+function Player:findSuitableSpot(buildingId, startPos)
+	structFrame = GameObjectFrame:new(buildingId, 0, self, nil, startPos, self.baseQuat)
+	numYPos = math.floor(2 * self.baseRadius / structFrame:getLength())
+	numXPos = math.floor(2 * self.baseRadius / structFrame:getWidth())
+
+	baseDir = self.baseQuat:multVec(Vector3:new(0, 0, 1))
+	baseLeft = self.baseQuat:multVec(Vector3:new(1, 0, 0))
+	point = Map.getSingleton():getSpawnPoint(self:getSpawnPointId()):add(baseDir:mult(self.baseRadius)):add(baseLeft:mult(self.baseRadius))
+
+	frameCtrl = GameObjectFrameController.getSingleton()
+	frameCtrl:checkPlacement(structFrame)
+
+	if structFrame.status == 1 then
+		for i = 1, numXPos do
+			point = point:add(baseLeft:neg():mult(i - 1))
+			structFrame:placeAt(point)
+			frameCtrl:checkPlacement(structFrame)
+
+			if structFrame.status == 0 then
+				structFrame:destroy()
+				return point
+			end
+		end
+	else
+		structFrame:destroy()
+		return startPos
+	end
+
+	structFrame:destroy()
+	return nil
 end
 
 function Player:buildStructure(engineer, buildingId, buildPos, buildAngle)
 	if not engineer then return BTNodeResult.FAILURE end
+	print(buildAngle)
 
 	self:deselectUnits()
 	self:selectUnits({engineer})
 	
-	building = GameObjectFactory.createUnit(self, buildingId, buildPos, Quaternion:new(buildAngle, Vector3:new(0, 1, 0)), 0)
+	building = GameObjectFactory.createUnit(self, buildingId, buildPos, Quaternion:new(-buildAngle, Vector3:new(0, 1, 0)), 0)
 	self:issueOrder(OrderType.BUILD, Vector3:new(0, 0, 0), {Target:new(building:toGameObject(), Vector3:new(0, 0, 0))}, false)
-end
-
-function Player:findSuitableSpot()
-	return Vector3:new(0, 0, 0)
 end
 
 function Player:findIdleEngineer()
@@ -115,7 +180,6 @@ function Player:getBuildableUnitSlotId(buildingUnit, buildableUnitId)
 	return nil
 end
 
---TODO simplify building construction
 function Player:buildLandFactory(arguments)
 	factory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]
 
@@ -124,10 +188,14 @@ function Player:buildLandFactory(arguments)
 	end
 
 	factId = self.unitClassMappings[UnitClass.LAND_FACTORY + 1][self:getFaction() + 1]
+	rd = self.baseQuat:multVec(Vector3:new(0, 0, 1)):mult(self.baseRadius)
 	sp = Map.getSingleton():getSpawnPoint(self:getSpawnPointId())
-	self:buildStructure(self:findIdleEngineer(), factId, sp, angle)
+	pos = self:findSuitableSpot(factId, sp:add(rd))
 
-	return BTNodeResult.RUNNING
+	if pos then
+		self:buildStructure(self:findIdleEngineer(), factId, pos, self.baseQuat:getAngle())
+		return BTNodeResult.RUNNING
+	else return BTNodeResult.FAILURE end
 end
 
 function Player:trainEngineers(arguments)
@@ -150,16 +218,25 @@ function Player:trainEngineers(arguments)
 end
 
 function Player:buildRefinery(arguments)
-	refinery = self:getUnitsByClass(UnitClass.REFINERY, 1)
-	if #refinery > 0 then
-		return (refinery[1]:toStructure():isComplete() and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
+	refinery = self:getUnitsByClass(UnitClass.REFINERY, 1)[1]
+	if refinery then
+		return (refinery:toStructure():isComplete() and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
 	end
 
-	buildPos = Map.getSingleton():getSpawnPoint(self:getSpawnPointId()):add(self.baseDir:mult(20))
-	factId = self.unitClassMappings[UnitClass.REFINERY + 1][self:getFaction() + 1]
-	self:buildStructure(self:findIdleEngineer(), factId, buildPos, -.0)
+	refId = self.unitClassMappings[UnitClass.REFINERY + 1][self:getFaction() + 1]
+	factId = self.unitClassMappings[UnitClass.LAND_FACTORY + 1][self:getFaction() + 1]
 
-	return BTNodeResult.RUNNING
+	rd = self.baseQuat:multVec(Vector3:new(0, 0, 1)):mult(self.baseRadius - .5 * (units[factId + 1].size.z + units[refId + 1].size.z))
+	sp = Map.getSingleton():getSpawnPoint(self:getSpawnPointId())
+	buildPos = sp:add(rd)
+
+	pos = self:findSuitableSpot(refId, buildPos)
+
+	if pos then
+		buildAngle = (self.baseQuat:getAngle() + math.pi)
+		self:buildStructure(self:findIdleEngineer(), refId, buildPos, buildAngle)
+		return BTNodeResult.RUNNING
+	else return BTNodeResult.FAILURE end
 end
 
 -- TODO optimize deposit position check
@@ -281,8 +358,10 @@ function Player:buildLandForce(arguments)
 end
 
 function Player:buildPointDefenseRing(arguments)
+	self:updatePdSpots()
 	pointDefs = self:getUnitsByClass(UnitClass.POINT_DEFENSE, -1)
-	if #pointDefs == #self.pointDefenseTrans then return BTNodeResult.SUCCESS end
+
+	if #pointDefs >= #self.pointDefenseTrans then return BTNodeResult.SUCCESS end
 
 	pdId = self.unitClassMappings[UnitClass.POINT_DEFENSE + 1][self:getFaction() + 1]
 	pdTrans = self.pointDefenseTrans[#pointDefs + 1]
