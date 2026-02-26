@@ -4,6 +4,8 @@ Player.baseRadius = 180
 Player.numDefWarMechs = 1
 Player.behaviour = {}
 Player.pointDefenseTrans = {}
+Player.canReachSpawnPoint = {}
+Player.navalFactoryCellId = nil
 
 Player.unitClassMappings = {
 	{UnitId.ACS_MECH, UnitId.AINC_MECH, UnitId.ER_MECH},
@@ -11,7 +13,7 @@ Player.unitClassMappings = {
 	{UnitId.ACS_ARTILLERY, UnitId.AINC_ARTILLERY, UnitId.ER_ARTILLERY},
 	{UnitId.ACS_ROBO_ENGINEER, UnitId.AINC_ROBO_ENGINEER, UnitId.ER_ROBO_ENGINEER},
 	{UnitId.ACS_CYBORG_ENGINEER, UnitId.AINC_CYBORG_ENGINEER, UnitId.ER_CYBORG_ENGINEER},
-	{UnitId.ACS_MECH, UnitId.AINC_MECH, UnitId.ER_MECH},
+	{UnitId.ACS_TRANSPORT, UnitId.AINC_TRANSPORT, UnitId.ER_TRANSPORT},
 	{UnitId.ACS_CARGO_SHIP, UnitId.AINC_CARGO_SHIP, UnitId.ER_CARGO_SHIP},
 	{UnitId.ACS_CRUISER, UnitId.AINC_CRUISER, UnitId.ER_CRUISER},
 	{UnitId.ACS_ANTI_SUB_CRUISER, UnitId.AINC_ANTI_SUB_CRUISER, UnitId.ER_ANTI_SUB_CRUISER},
@@ -30,10 +32,16 @@ Player.unitClassMappings = {
 	{UnitId.ACS_REFINERY, UnitId.AINC_REFINERY, UnitId.ER_REFINERY},
 }
 
-Player.taskForceData = {
+Player.landTaskForceData = {
 	{class = UnitClass.MECH, numUnits = 2},
 	{class = UnitClass.TANK, numUnits = 1},
 	{class = UnitClass.ARTILLERY, numUnits = 1}
+}
+
+Player.navalTaskForceData = {
+	{class = UnitClass.TRANSPORT, numUnits = 1},
+	--{class = UnitClass.CRUISER, numUnits = 1},
+	--{class = UnitClass.ANTI_SUB_CRUISER, numUnits = 1}
 }
 
 Player.taskForces = {}
@@ -110,26 +118,65 @@ function Player:updatePdSpots()
 	pdFrame:destroy()
 end
 
+--TODO remove heuristics
+function Player:landRouteToSpawnpoint_(mapPoint)
+	map = Map.getSingleton()
+	dest = map:getCellId(mapPoint, false)
+	source = map:getCellId(map:getSpawnPoint(self:getSpawnPointId()), false)
+
+	pf = Pathfinder.getSingleton()
+	cells = map:getCells()
+	heurs = pf:calcHeuristics(cells, dest)
+	path = pf:findPath(cells, heurs, source, dest, nil)
+
+	for i = 1, #path do
+		if cells[path[i]].type == 1 then
+			if not self.navalFactoryCellId then self.navalFactoryCellId = path[i] end
+			return false
+		end
+	end
+
+	return true
+end
+
+function Player:landRouteToSpawnpoint(arguments)
+	spId = self.taskForces[arguments.taskForceId].spawnPointId + 1
+	return self.canReachSpawnPoint[spId] and BTNodeType.SUCCESS or BTNodeType.FAILURE
+end
+
 function Player:init()
 	self:initBaseQuat()
 	self:initPdSpots()
+
+	for i = 1, Map.getSingleton():getNumSpawnPoints() do
+		if i - 1 == self:getSpawnPointId() then self.canReachSpawnPoint[i] = true end
+
+		spawnPoint = Map.getSingleton():getSpawnPoint(i - 1)
+		self.canReachSpawnPoint[i] = self:landRouteToSpawnpoint_(spawnPoint)
+	end
 end
 
-function Player:findSuitableSpot(buildingId, startPos)
-	structFrame = GameObjectFrame:new(buildingId, 0, self, nil, startPos, self.baseQuat)
+function Player:findSuitableSpot(buildingId, idealPos)
+	structFrame = GameObjectFrame:new(buildingId, 0, self, nil, idealPos, self.baseQuat)
 	numYPos = math.floor(2 * self.baseRadius / structFrame:getLength())
 	numXPos = math.floor(2 * self.baseRadius / structFrame:getWidth())
 
 	baseDir = self.baseQuat:multVec(Vector3:new(0, 0, 1))
 	baseLeft = self.baseQuat:multVec(Vector3:new(1, 0, 0))
-	point = Map.getSingleton():getSpawnPoint(self:getSpawnPointId()):add(baseDir:mult(self.baseRadius)):add(baseLeft:mult(self.baseRadius))
 
 	frameCtrl = GameObjectFrameController.getSingleton()
 	frameCtrl:checkPlacement(structFrame)
 
-	if structFrame.status == 1 then
-		for i = 1, numXPos do
-			point = point:add(baseLeft:neg():mult(i - 1))
+	if structFrame.status == 0 then
+		structFrame:destroy()
+		return idealPos
+	end
+
+	startPos = idealPos:add(baseDir:mult(self.baseRadius)):add(baseLeft:mult(self.baseRadius))
+
+	for i = 1, numXPos do
+		for j = 1, numYPos do
+			point = startPos:add(baseLeft:neg():mult(i - 1)):add(baseDir:neg():mult(j - 1))
 			structFrame:placeAt(point)
 			frameCtrl:checkPlacement(structFrame)
 
@@ -138,9 +185,6 @@ function Player:findSuitableSpot(buildingId, startPos)
 				return point
 			end
 		end
-	else
-		structFrame:destroy()
-		return startPos
 	end
 
 	structFrame:destroy()
@@ -190,7 +234,7 @@ function Player:buildLandFactory(arguments)
 	factId = self.unitClassMappings[UnitClass.LAND_FACTORY + 1][self:getFaction() + 1]
 	rd = self.baseQuat:multVec(Vector3:new(0, 0, 1)):mult(self.baseRadius)
 	sp = Map.getSingleton():getSpawnPoint(self:getSpawnPointId())
-	pos = self:findSuitableSpot(factId, sp:add(rd))
+	pos = self:findSuitableSpot(factId, sp)
 
 	if pos then
 		self:buildStructure(self:findIdleEngineer(), factId, pos, self.baseQuat:getAngle())
@@ -226,7 +270,7 @@ function Player:buildRefinery(arguments)
 	refId = self.unitClassMappings[UnitClass.REFINERY + 1][self:getFaction() + 1]
 	factId = self.unitClassMappings[UnitClass.LAND_FACTORY + 1][self:getFaction() + 1]
 
-	rd = self.baseQuat:multVec(Vector3:new(0, 0, 1)):mult(self.baseRadius - .5 * (units[factId + 1].size.z + units[refId + 1].size.z))
+	rd = self.baseQuat:multVec(Vector3:new(0, 0, 1)):mult(-.5 * (units[factId + 1].size.z + units[refId + 1].size.z))
 	sp = Map.getSingleton():getSpawnPoint(self:getSpawnPointId())
 	buildPos = sp:add(rd)
 
@@ -321,21 +365,61 @@ function Player:startHarvesting()
 	return BTNodeResult.SUCCESS
 end
 
-function Player:buildLandForce(arguments)
-	landFactory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)
+function Player:canReachAllSpawnPoints(arguments)
+	return self.navalFactoryCellId and BTNodeResult.FAILURE or BTNodeResult.SUCCESS
+end
 
-	if #landFactory == 0 then return BTNodeResult.FAILURE end
+function Player:buildNavalFactory(arguments)
+	navalFactory = self:getUnitsByClass(UnitClass.NAVAL_FACTORY, 1)[1]
 
-	landFactory = landFactory[1]:toFactory()
-	numAttackableSpawnPoints = Map.getSingleton():getNumSpawnPoints() - 1
+	if navalFactory then
+		return (navalFactory:toStructure():isComplete() and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
+	end
 
-	if #landFactory:getQueue() == 0 then
+	navalFactId = self.unitClassMappings[UnitClass.NAVAL_FACTORY + 1][self:getFaction() + 1]
+	pos = self:findSuitableSpot(navalFactId, Map.getSingleton():getCell(self.navalFactoryCellId).pos)
+
+	if pos then
+		self:buildStructure(self:findIdleEngineer(), navalFactId, pos, self.baseQuat:getAngle())
+		return BTNodeResult.RUNNING
+	else return BTNodeResult.FAILURE end
+end
+
+function Player:buildNavalForce(arguments)
+	transports = self:getUnitsByClass(UnitClass.TRANSPORT, -1)
+
+	if #transports >= #self.taskForces then return BTNodeResult.SUCCESS end
+
+	factory = self:getUnitsByClass(UnitClass.NAVAL_FACTORY, 1)[1]:toFactory()
+
+	if #factory:getQueue() > 0 then return BTNodeResult.RUNNING end
+
+	transportBuildId = self.unitClassMappings[UnitClass.TRANSPORT + 1][self:getFaction() + 1]
+	numBuildTransports = #self.taskForces - #transports
+
+	for i = 1, numBuildTransports do
+		factory:appendToQueue(self:getBuildableUnitSlotId(factory, transportBuildId))
+	end
+
+	return BTNodeResult.RUNNING
+end
+
+function Player:buildTaskForces(arguments)
+	factory = self:getUnitsByClass(arguments.factoryClass, 1)
+
+	if #factory == 0 then return BTNodeResult.FAILURE end
+
+	factory = factory[1]:toFactory()
+	numTaskForces = arguments.numTaskForces or 1
+	taskForceData = arguments.taskForceData
+
+	if #factory:getQueue() == 0 then
 		enoughUnits = true
 
-		for i = 1, #self.taskForceData do
-			tfUnits = self:getUnitsByClass(self.taskForceData[i].class, -1)
+		for i = 1, #taskForceData do
+			tfUnits = self:getUnitsByClass(taskForceData[i].class, -1)
 
-			if #tfUnits < numAttackableSpawnPoints * self.taskForceData[i].numUnits then
+			if #tfUnits < numTaskForces * taskForceData[i].numUnits then
 				enoughUnits = false
 				break
 			end
@@ -344,12 +428,12 @@ function Player:buildLandForce(arguments)
 		if enoughUnits then return BTNodeResult.SUCCESS end
 	else return BTNodeResult.RUNNING end
 
-	for i = 1, numAttackableSpawnPoints do
-		for j = 1, #self.taskForceData do
-			for k = 1, self.taskForceData[j].numUnits do
-				unitId = self.unitClassMappings[self.taskForceData[j].class + 1][self:getFaction() + 1]
-				slotId = self:getBuildableUnitSlotId(landFactory, unitId)
-				landFactory:appendToQueue(slotId)
+	for i = 1, numTaskForces do
+		for j = 1, #taskForceData do
+			for k = 1, taskForceData[j].numUnits do
+				unitId = self.unitClassMappings[taskForceData[j].class + 1][self:getFaction() + 1]
+				slotId = self:getBuildableUnitSlotId(factory, unitId)
+				factory:appendToQueue(slotId)
 			end
 		end
 	end
@@ -370,16 +454,16 @@ function Player:buildPointDefenseRing(arguments)
 	return BTNodeResult.RUNNING
 end
 
-function Player:formTaskForces(arguments)
+function Player:formLandTaskForces(arguments)
 	numSpawnPoints = Map.getSingleton():getNumSpawnPoints()
 
 	if #self.taskForces == numSpawnPoints - 1 then return BTNodeResult.SUCCESS end
 
 	unitGroups = {}
 
-	for i = 1, #self.taskForceData do
-		unitGroups[i] = self:getUnitsByClass(self.taskForceData[i].class, -1)
-		enoughGroupUnits = (#unitGroups[i] >= (numSpawnPoints - 1) * self.taskForceData[i].numUnits)
+	for i = 1, #self.landTaskForceData do
+		unitGroups[i] = self:getUnitsByClass(self.landTaskForceData[i].class, -1)
+		enoughGroupUnits = (#unitGroups[i] >= (numSpawnPoints - 1) * self.landTaskForceData[i].numUnits)
 
 		if not enoughGroupUnits then return BTNodeResult.FAILURE end
 	end
@@ -391,12 +475,12 @@ function Player:formTaskForces(arguments)
 
 		self.taskForces[tfId] = {units = {}, moving = false, arrived = false, spawnPointId = i - 1}
 
-		for j = 1, #self.taskForceData do
-			subArrId = (tfId - 1) * self.taskForceData[j].numUnits + 1
+		for j = 1, #self.landTaskForceData do
+			subArrId = (tfId - 1) * self.landTaskForceData[j].numUnits + 1
 			unitTbl = table.move(
 				unitGroups[j], 
 				subArrId, 
-				subArrId + self.taskForceData[j].numUnits, 
+				subArrId + self.landTaskForceData[j].numUnits, 
 				#self.taskForces[tfId].units + 1, 
 				self.taskForces[tfId].units
 			)
@@ -410,27 +494,16 @@ function Player:formTaskForces(arguments)
 	return BTNodeResult.SUCCESS
 end
 
---TODO remove heuristics
-function Player:landRouteToSpawnpoint(mapPoint)
-	map = Map.getSingleton()
-	dest = map:getCellId(mapPoint, false)
-	source = map:getCellId(map:getSpawnPoint(self:getSpawnPointId()), false)
-
-	pf = Pathfinder.getSingleton()
-	cells = map:getCells()
-	heurs = pf:calcHeuristics(cells, dest)
-	path = pf:findPath(cells, heurs, source, dest, nil)
-
-	for i = 1, #path do
-		if cells[path[i]].type == 1 then return false end
-	end
-
-	return true
+function Player:boardTransports(arguments)
+	return BTNodeResult.FAILURE
 end
 
-function Player:isLandRouteToSpawnpoint(arguments)
-	mapPoint = Map.getSingleton():getSpawnPoint(self.taskForces[arguments.taskForceId].spawnPointId)
-	return (self:landRouteToSpawnpoint(mapPoint) and BTNodeResult.SUCCESS or BTNodeResult.FAILURE)
+function Player:moveTransports(arguments)
+	return BTNodeResult.FAILURE
+end
+
+function Player:unloadTransports(arguments)
+	return BTNodeResult.FAILURE
 end
 
 function Player:occupySpawnPoint(arguments)
@@ -482,18 +555,18 @@ function Player:generateTaskForceActions()
 				{
 					type = BTNodeType.SELECTOR, 
 					children = {
-						{type = BTNodeType.FUNCTION, func = 'isLandRouteToSpawnpoint', args = arguments},
+						{type = BTNodeType.FUNCTION, func = self.landRouteToSpawnpoint, args = arguments},
 						{
 							type = BTNodeType.SEQUENCE, 
 							children = {
-								{type = BTNodeType.FUNCTION, func = 'boardTransports', args = arguments},
-								{type = BTNodeType.FUNCTION, func = 'moveTransports', args = arguments},
-								{type = BTNodeType.FUNCTION, func = 'unloadTransports', args = arguments},
+								{type = BTNodeType.FUNCTION, func = self.boardTransports, args = arguments},
+								{type = BTNodeType.FUNCTION, func = self.moveTransports, args = arguments},
+								{type = BTNodeType.FUNCTION, func = self.unloadTransports, args = arguments},
 							}
 						}
 					}
 				},
-				{type = BTNodeType.FUNCTION, func = 'occupySpawnPoint', args = arguments}
+				{type = BTNodeType.FUNCTION, func = self.occupySpawnPoint, args = arguments}
 			}
 		}
 
