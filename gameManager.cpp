@@ -59,10 +59,18 @@ namespace battleship{
 			"createResourceDeposit", &GameObjectFactory::createResourceDeposit
 		);
 
+		SOL_LUA_STATE.new_usertype<Unit::GarrisonSlot>(
+			"GarrisonSlot",
+			"vehicle", &Unit::GarrisonSlot::vehicle,
+			"category", &Unit::GarrisonSlot::category
+		);
+
 		SOL_LUA_STATE.new_usertype<Unit>(
 			"Unit", sol::constructors<Unit(Player*, int, Vector3, Quaternion)>(),
 			"setState", &Unit::setState,
 			"getDestructable", &Unit::getDestructable,
+			"getGarrisonSlots", &Unit::getGarrisonSlots,
+			"getNumGarrisonSlots", &Unit::getNumGarrisonSlots,
 			"getOrder", &Unit::getOrder,
 			"getNumOrders", &Unit::getNumOrders,
 			"getPos", &GameObject::getPos,
@@ -113,6 +121,7 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<Player>(
 			"Player", sol::constructors<Player(int, int, int, Vector3, bool, int, string)>(),
 			"getSelectedUnits", &Player::getSelectedUnits,
+			"haltUnits", &Player::haltUnits,
 			"addUnit", &Player::addUnit,
 			"getUnit", &Player::getUnit,
 			"getNumUnits", &Player::getNumUnits,

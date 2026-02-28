@@ -747,9 +747,8 @@ namespace battleship{
 					return cellId;
 			}
 
-			return cellId;
-		}
-		else
 			return surfaceCellId;
+		}
+		else return surfaceCellId;
 	}
 }

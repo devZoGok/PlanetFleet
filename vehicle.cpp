@@ -49,7 +49,11 @@ namespace battleship{
 	void Vehicle::startCurrentOrder(){
 		Unit::startCurrentOrder();
 
-		if(orders[0].type == Order::TYPE::LAUNCH) return;
+		switch(orders[0].type){
+			case Order::TYPE::LAUNCH:
+			case Order::TYPE::EJECT:
+				return;
+	  	}
 
 		removeAllPathpoints();
 

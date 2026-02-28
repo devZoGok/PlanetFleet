@@ -22,6 +22,7 @@ namespace battleship{
         Player(int, int, int, vb01::Vector3, bool = true, int = -1, std::string = "");
         ~Player();
         void update();
+		void haltUnits();
 		void issueOrder(Order::TYPE, vb01::Vector3, std::vector<Order::Target>, bool);
 		void removeUnit(Unit*);
 		void removeUnit(int);

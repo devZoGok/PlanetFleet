@@ -67,7 +67,7 @@ for i = 1, #game.cpuPlayers do
 			},
 			{
 				type = BTNodeType.PARALLEL, 
-				children = game.cpuPlayers[i]:generateTaskForceActions()
+				children = player:generateTaskForceActions()
 			}
 		}
 	}

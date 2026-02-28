@@ -493,7 +493,7 @@ namespace battleship{
 		Map *map = Map::getSingleton();
 
 		if(alignToSurface){
-			vector<RayCaster::CollisionResult> res = RayCaster::cast(Vector3(p.x, 100, p.z), -Vector3::VEC_J, map->getNodeParent()->getChildren(), 0, 20);
+			vector<RayCaster::CollisionResult> res = map->raycastTerrain(Vector3(p.x, 100, p.z), -Vector3::VEC_J, true);
 			
 			if(res.empty() || res[0].mesh->getNode() != map->getNodeParent()->getChild(0))
 				model->lookAt(Vector3(dirVec.x, 0, dirVec.z).norm(), Vector3::VEC_J);
@@ -514,8 +514,7 @@ namespace battleship{
 		if(activeState){
 			map->blockCells(this);
 
-			if(activeState->getPlayer())
-				Map::Minimap::getSingleton()->updateImage();
+			//if(activeState->getPlayer()) Map::Minimap::getSingleton()->updateImage();
 		}
 	}
 

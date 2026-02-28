@@ -4,6 +4,7 @@
 #include "player.h"
 #include "game.h"
 #include "structure.h"
+#include "vehicle.h"
 #include "projectile.h"
 #include "tradeOffer.h"
 #include "destructable.h"
@@ -70,6 +71,11 @@ namespace battleship{
 				pair.second.erase(pair.second.begin());
 		}
     }
+
+	void Player::haltUnits(){
+		for (Unit *u : selectedUnits)
+			u->halt();
+	}
 
 	int Player::getOrderLineId(Order::TYPE type, Vector3 startPos, Vector3 endPos){
 		Vector3 color;
@@ -169,11 +175,15 @@ namespace battleship{
 	}
 
 	void Player::selectUnits(vector<Unit*> selUnits){
-		for(Unit *u : selUnits)
-			if(find(selectedUnits.begin(), selectedUnits.end(), u) == selectedUnits.end()){
+		for(Unit *u : selUnits){
+			bool garrisonable = (!u->isVehicle() || (u->isVehicle() && !((Vehicle*)u)->getGarrisonable()));
+			bool selected = (find(selectedUnits.begin(), selectedUnits.end(), u) != selectedUnits.end());
+
+			if(garrisonable && !selected){
 				selectedUnits.push_back(u);
 				u->select();
 			}
+		}
 	}
 
 	vector<Unit*> Player::getUnitsById(int id, int numUnits){

@@ -751,9 +751,7 @@ namespace battleship{
 					CameraController::getSingleton()->setLookingAround(isPressed);
                 break;
 			case Bind::HALT: 
-				if(isPressed)
-            		for (Unit *u : mainPlayer->getSelectedUnits())
-                    	u->halt();
+				if(isPressed) mainPlayer->haltUnits();
                 break;
 				//TODO reimplement submarine diving mechanic
 			case Bind::LEFT_CONTROL:

@@ -4,7 +4,7 @@ Player.baseRadius = 180
 Player.numDefWarMechs = 1
 Player.behaviour = {}
 Player.pointDefenseTrans = {}
-Player.canReachSpawnPoint = {}
+Player.spawnPointData = {}
 Player.navalFactoryCellId = nil
 
 Player.unitClassMappings = {
@@ -129,19 +129,32 @@ function Player:landRouteToSpawnpoint_(mapPoint)
 	heurs = pf:calcHeuristics(cells, dest)
 	path = pf:findPath(cells, heurs, source, dest, nil)
 
+	embarkCellId = nil
+	disembarkCellId = nil
+
 	for i = 1, #path do
-		if cells[path[i]].type == 1 then
+		if map:getCell(path[i]).type == 1 then
+			embarkCellId = path[i - 1]
 			if not self.navalFactoryCellId then self.navalFactoryCellId = path[i] end
-			return false
+			break;
 		end
 	end
 
-	return true
+	for i = #path, 1, -1 do
+		if map:getCell(path[i]).type == 1 then
+			disembarkCellId = path[i + 1]
+			break;
+		end
+	end
+
+	if embarkCellId or disembarkCellId then
+		return {reachable = false, embarkCellId = embarkCellId, disembarkCellId = disembarkCellId}
+	else return {reachable = true} end
 end
 
 function Player:landRouteToSpawnpoint(arguments)
 	spId = self.taskForces[arguments.taskForceId].spawnPointId + 1
-	return self.canReachSpawnPoint[spId] and BTNodeType.SUCCESS or BTNodeType.FAILURE
+	return self.spawnPointData[spId].reachable == true and BTNodeResult.SUCCESS or BTNodeResult.FAILURE
 end
 
 function Player:init()
@@ -149,10 +162,10 @@ function Player:init()
 	self:initPdSpots()
 
 	for i = 1, Map.getSingleton():getNumSpawnPoints() do
-		if i - 1 == self:getSpawnPointId() then self.canReachSpawnPoint[i] = true end
+		if i - 1 == self:getSpawnPointId() then self.spawnPointData[i] = {reachable = true} end
 
 		spawnPoint = Map.getSingleton():getSpawnPoint(i - 1)
-		self.canReachSpawnPoint[i] = self:landRouteToSpawnpoint_(spawnPoint)
+		self.spawnPointData[i] = self:landRouteToSpawnpoint_(spawnPoint)
 	end
 end
 
@@ -193,7 +206,6 @@ end
 
 function Player:buildStructure(engineer, buildingId, buildPos, buildAngle)
 	if not engineer then return BTNodeResult.FAILURE end
-	print(buildAngle)
 
 	self:deselectUnits()
 	self:selectUnits({engineer})
@@ -495,11 +507,57 @@ function Player:formLandTaskForces(arguments)
 end
 
 function Player:boardTransports(arguments)
-	return BTNodeResult.FAILURE
+	transports = self:getUnitsByClass(UnitClass.TRANSPORT, -1)
+
+	if not transports[1] then return BTNodeResult.FAILURE end
+
+	map = Map.getSingleton()
+	currTransportCell = map:getCell(map:getCellId(transports[1]:getPos(), false))
+
+	if transports[1]:getNumOrders() == 0 and currTransportCell.type == 1 then
+		self:deselectUnits()
+		self:selectUnits(transports)
+		self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, map:getSpawnPoint(self:getSpawnPointId()))}, false)
+	elseif currTransportCell.type == 0 and not self.taskForces[arguments.taskForceId].moving then
+		self:deselectUnits()
+		self:selectUnits(transports)
+		self:haltUnits()
+		self:deselectUnits()
+		self:selectUnits(self.taskForces[arguments.taskForceId].units)
+		self:issueOrder(OrderType.GARRISON, Vector3:new(0, 0, 0), {Target:new(transports[1]:toGameObject(), Vector3:new(0, 0, 0))}, false)
+		self.taskForces[arguments.taskForceId].moving = true
+	end
+
+	garrisonSlots = transports[1]:getGarrisonSlots()
+
+	for i = 1, #garrisonSlots do
+		if not garrisonSlots[i].vehicle then
+			return BTNodeResult.RUNNING
+		end
+	end
+
+	self.taskForces[arguments.taskForceId].moving = false
+	return BTNodeResult.SUCCESS
 end
 
 function Player:moveTransports(arguments)
-	return BTNodeResult.FAILURE
+	transports = self:getUnitsByClass(UnitClass.TRANSPORT, -1)
+	map = Map.getSingleton()
+	spId = self.taskForces[arguments.taskForceId].spawnPointId
+
+	if map:getCellId(transports[1]:getPos(), false) == self.spawnPointData[spId + 1].disembarkCellId then
+		self:deselectUnits()
+		self:selectUnits(transports)
+		self:issueOrder(OrderType.EJECT, Vector3:new(0, 0, 0), {}, false)
+		return BTNodeResult.SUCCESS
+	elseif transports[1]:getNumOrders() > 0 then return BTNodeResult.RUNNING end
+
+	self:deselectUnits()
+	self:selectUnits(transports)
+	targ = Target:new(nil, map:getCell(self.spawnPointData[spId + 1].disembarkCellId).pos)
+	self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {targ}, false)
+
+	return BTNodeResult.RUNNING
 end
 
 function Player:unloadTransports(arguments)
@@ -561,12 +619,13 @@ function Player:generateTaskForceActions()
 							children = {
 								{type = BTNodeType.FUNCTION, func = self.boardTransports, args = arguments},
 								{type = BTNodeType.FUNCTION, func = self.moveTransports, args = arguments},
-								{type = BTNodeType.FUNCTION, func = self.unloadTransports, args = arguments},
 							}
 						}
 					}
 				},
 				{type = BTNodeType.FUNCTION, func = self.occupySpawnPoint, args = arguments}
+				--[[
+				]]--
 			}
 		}
 
