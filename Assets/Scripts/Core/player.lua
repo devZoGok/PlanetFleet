@@ -39,7 +39,7 @@ Player.landTaskForceData = {
 }
 
 Player.navalTaskForceData = {
-	{class = UnitClass.TRANSPORT, numUnits = 1},
+	{class = UnitClass.TRANSPORT, numUnits = 2},
 	--{class = UnitClass.CRUISER, numUnits = 1},
 	--{class = UnitClass.ANTI_SUB_CRUISER, numUnits = 1}
 }
@@ -485,7 +485,7 @@ function Player:formLandTaskForces(arguments)
 	for i = 1, numSpawnPoints do
 		if i - 1 == self:getSpawnPointId() then goto continue end
 
-		self.taskForces[tfId] = {units = {}, moving = false, arrived = false, spawnPointId = i - 1}
+		self.taskForces[tfId] = {units = {}, moving = false, arrived = false, landed = false, spawnPointId = i - 1}
 
 		for j = 1, #self.landTaskForceData do
 			subArrId = (tfId - 1) * self.landTaskForceData[j].numUnits + 1
@@ -506,69 +506,103 @@ function Player:formLandTaskForces(arguments)
 	return BTNodeResult.SUCCESS
 end
 
-function Player:boardTransports(arguments)
-	transports = self:getUnitsByClass(UnitClass.TRANSPORT, -1)
+function Player:getTransportData(transports)
+	allIdle = true
+	allInWater = true
+	allInLand = true
 
-	if not transports[1] then return BTNodeResult.FAILURE end
+	for i = 1, #transports do
+		numOrders = transports[i]:getNumOrders()
+		currCell = map:getCell(map:getCellId(transports[i]:getPos(), false))
+
+		if numOrders > 0 then allIdle = false end
+
+		if currCell.type ~= 1 then allInWater = false
+		elseif currCell.type ~= 0 then allInLand = false end
+	end
+
+	return {allIdle = allIdle, allInWater = allInWater, allInLand = allInLand}
+end
+
+function Player:boardTransports(arguments)
+	taskForce = self.taskForces[arguments.taskForceId]
+
+	if taskForce.landed then return BTNodeResult.SUCCESS end
 
 	map = Map.getSingleton()
-	tpPos = transports[1]:getPos()
-	currTransportCell = map:getCell(map:getCellId(tpPos, false))
+	transports = self:getUnitsByClass(UnitClass.TRANSPORT, -1)
+	tpData = self:getTransportData(transports)
 
-	spId = self.taskForces[arguments.taskForceId].spawnPointId
-	embarkCell = map:getCell(self.spawnPointData[spId + 1].embarkCellId)
-	disembarkCell = map:getCell(self.spawnPointData[spId + 1].disembarkCellId)
-
-	if transports[1]:getNumOrders() == 0 and currTransportCell.type == 1 then
+	if tpData.allIdle and tpData.allInWater then
 		self:deselectUnits()
 		self:selectUnits(transports)
+
+		embarkCell = map:getCell(self.spawnPointData[taskForce.spawnPointId + 1].embarkCellId)
 		self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, embarkCell.pos)}, false)
-	elseif currTransportCell.type == 0 then
-		closerToDisembark = (tpPos:getDistanceFrom(disembarkCell.pos) < tpPos:getDistanceFrom(embarkCell.pos))
+	end
 
-		if closerToDisembark then return BTNodeResult.SUCCESS
-		elseif not self.taskForces[arguments.taskForceId].moving then
+	if tpData.allInWater and not tpData.allIdle then return BTNodeResult.RUNNING end
+
+	if not taskForce.moving and tpData.allInLand and tpData.allIdle then
+		usaId = 1
+
+		for i = 1, #transports do
+			numSlots = transports[i]:getNumGarrisonSlots()
+			un = table.move(taskForce.units, usaId, usaId + numSlots - 1, 1, {})
+			usaId = usaId + numSlots
+
 			self:deselectUnits()
-			self:selectUnits(self.taskForces[arguments.taskForceId].units)
-			self:issueOrder(OrderType.GARRISON, Vector3:new(0, 0, 0), {Target:new(transports[1]:toGameObject(), Vector3:new(0, 0, 0))}, false)
-			self.taskForces[arguments.taskForceId].moving = true
+			self:selectUnits(un)
+			self:issueOrder(OrderType.GARRISON, Vector3:new(0, 0, 0), {Target:new(transports[i]:toGameObject(), Vector3:new(0, 0, 0))}, false)
 		end
+
+		taskForce.moving = true
 	end
 
-	garrisonSlots = transports[1]:getGarrisonSlots()
+	for i = 1, #taskForce.units do
+		garrisoned = taskForce.units[i]:toVehicle():getGarrisonable()
 
-	for i = 1, #garrisonSlots do
-		if not garrisonSlots[i].vehicle then
-			return BTNodeResult.RUNNING
-		end
+		if i == #taskForce.units and garrisoned then 
+			taskForce.moving = false
+			return BTNodeResult.SUCCESS
+		elseif not garrisoned then return BTNodeResult.RUNNING end
 	end
-
-	self.taskForces[arguments.taskForceId].moving = false
-	return BTNodeResult.SUCCESS
 end
 
 function Player:moveTransports(arguments)
 	transports = self:getUnitsByClass(UnitClass.TRANSPORT, -1)
 
-	if transports[1]:isGarrisonEmpty() then return BTNodeResult.SUCCESS end
+	for i = 1, #transports do
+		empty = transports[i]:isGarrisonEmpty()
 
-	map = Map.getSingleton()
-	spId = self.taskForces[arguments.taskForceId].spawnPointId
+		if i == #transports and empty then return BTNodeResult.SUCCESS
+		elseif not empty then break end
+	end
 
-	if map:getCellId(transports[1]:getPos(), false) == self.spawnPointData[spId + 1].disembarkCellId then
+	tpData = self:getTransportData(transports)
+
+	if tpData.allInLand and tpData.allIdle then
+		spId = self.taskForces[arguments.taskForceId].spawnPointId
+		targPos = Map.getSingleton():getCell(self.spawnPointData[spId + 1].disembarkCellId).pos
+
+		for i = 1, #transports do
+			nearDisembarkPoint = (transports[i]:getPos():getDistanceFrom(targPos) < 10)
+
+			if i == #transports and nearDisembarkPoint then
+				self:deselectUnits()
+				self:selectUnits(transports)
+				self:issueOrder(OrderType.EJECT, Vector3:new(0, 0, 0), {}, false)
+				self.taskForces[arguments.taskForceId].landed = true
+				return BTNodeResult.SUCCESS
+			elseif not nearDisembarkPoint then break end
+		end
+
 		self:deselectUnits()
 		self:selectUnits(transports)
-		self:issueOrder(OrderType.EJECT, Vector3:new(0, 0, 0), {}, false)
-		return BTNodeResult.SUCCESS
-	elseif transports[1]:getNumOrders() > 0 then return BTNodeResult.RUNNING end
+		self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, targPos)}, false)
+	end
 
-	self:deselectUnits()
-	self:selectUnits(transports)
-
-	targPos = map:getCell(self.spawnPointData[spId + 1].disembarkCellId).pos
-	self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, targPos)}, false)
-
-	return BTNodeResult.RUNNING
+	if not tpData.allIdle then return BTNodeResult.RUNNING end
 end
 
 function Player:occupySpawnPoint(arguments)

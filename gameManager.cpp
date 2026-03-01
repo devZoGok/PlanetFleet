@@ -17,6 +17,7 @@
 #include "player.h"
 #include "extractor.h"
 #include "factory.h"
+#include "vehicle.h"
 #include "engineer.h"
 #include "destructable.h"
 #include "pointDefense.h"
@@ -83,9 +84,16 @@ namespace battleship{
 			"toStructure", &Unit::toStructure,
 			"toFactory", &Unit::toFactory,
 			"toGameObject", &Unit::toGameObject,
+			"toVehicle", &Unit::toVehicle,
+			//"toVehicle", [](Unit *u){return (Vehicle*)u;},
 			"getBuildableUnit", &Unit::getBuildableUnit,
 			"getBuildableUnits", &Unit::getBuildableUnits,
 			"getNumBuildableUnits", &Unit::getNumBuildableUnits
+		);
+
+		SOL_LUA_STATE.new_usertype<Vehicle>(
+			"Engineer", sol::constructors<Vehicle(Player*, int, Vector3, Quaternion, Unit::State)>(),
+			"getGarrisonable", &Vehicle::getGarrisonable
 		);
 
 		SOL_LUA_STATE.new_usertype<Engineer>(

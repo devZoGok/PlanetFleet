@@ -30,6 +30,7 @@ namespace battleship{
 	class Weapon;
 	class Unit;
 	class Vehicle;
+	class Vehicle;
 	class Structure;
 	class Factory;
 	class Cruiser;
@@ -121,6 +122,7 @@ namespace battleship{
 		int getNumFreeGarrisonSlots();
 		inline void setState(State s){state = s;}
 		inline State getState(){return state;}
+		inline Vehicle* toVehicle(){return (Vehicle*)this;}
 		inline Engineer* toEngineer(){return (Engineer*)this;}
 		inline Structure* toStructure(){return (Structure*)this;}
 		inline Factory* toFactory(){return (Factory*)this;}
