@@ -118,6 +118,7 @@ namespace battleship{
 		bool canGarrison(Vehicle*);
 		void initLosLight();
 		void destroyLosLight();
+		int getNumFreeGarrisonSlots();
 		inline void setState(State s){state = s;}
 		inline State getState(){return state;}
 		inline Engineer* toEngineer(){return (Engineer*)this;}
@@ -127,6 +128,7 @@ namespace battleship{
 		inline PointDefense* toPointDefense(){return (PointDefense*)this;}
 		inline GameObject* toGameObject(){return (GameObject*)this;}
 		inline int getNumGarrisonSlots(){return garrisonSlots.size();}
+		inline bool isGarrisonEmpty(){return getNumFreeGarrisonSlots() == getNumGarrisonSlots();}
 		inline const std::vector<GarrisonSlot>& getGarrisonSlots(){return garrisonSlots;}
         inline float getLineOfSight() {return lineOfSight;}
         inline UnitType getType() {return type;}

@@ -171,6 +171,15 @@ namespace battleship{
 		delete losLightNode;
 		losLightNode = nullptr;
 	}
+
+	int Unit::getNumFreeGarrisonSlots(){
+		int numFreeSlots = 0;
+
+		for(GarrisonSlot &slot : garrisonSlots)
+			if(!slot.vehicle) numFreeSlots++;
+
+		return numFreeSlots;
+	}
 	
 	void Unit::destroySound(){
 		selectionSfx->stop();
@@ -468,6 +477,8 @@ namespace battleship{
 
 		if(order.type == Order::TYPE::BUILD && order.targets[0].unit)
 			player->addUnit((Unit*)order.targets[0].unit);
+
+        executeOrders();
     }
 
     void Unit::halt() {
