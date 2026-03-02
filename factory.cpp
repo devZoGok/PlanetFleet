@@ -15,7 +15,7 @@ namespace battleship{
 	using namespace std;
 	using namespace gameBase;
 
-	Factory::Factory(Player *player, int id, Vector3 pos, Quaternion rot, int buildStatus, Unit::State state) : Structure(player, id, pos, rot, buildStatus, state){}
+	Factory::Factory(Player *player, int id, Vector3 pos, Quaternion rot, int buildStatus, Unit::State state) : Structure(player, id, pos, rot, buildStatus, state), rallyPoint(pos + 30 * dirVec){}
 
 	void Factory::update(){
 		Structure::update();
@@ -70,7 +70,7 @@ namespace battleship{
 			if(trainingStatus >= 100){
 				Unit *unit = GameObjectFactory::createUnit(player, unitQueue[0], pos, rot);
 				player->addUnit(unit);
-				unit->receiveOrder(Order(Order::TYPE::MOVE, vector<Order::Target>{Order::Target(nullptr, pos + 30 * dirVec)}, Vector3::VEC_ZERO), false);
+				unit->receiveOrder(Order(Order::TYPE::MOVE, vector<Order::Target>{Order::Target(nullptr, rallyPoint)}, Vector3::VEC_ZERO), false);
 
 				unitQueue.erase(unitQueue.begin());
 				trainingStatus = 0;

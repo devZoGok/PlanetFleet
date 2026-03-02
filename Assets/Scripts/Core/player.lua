@@ -6,6 +6,7 @@ Player.behaviour = {}
 Player.pointDefenseTrans = {}
 Player.spawnPointData = {}
 Player.navalFactoryCellId = nil
+Player.navalRallyPoint = nil
 
 Player.unitClassMappings = {
 	{UnitId.ACS_MECH, UnitId.AINC_MECH, UnitId.ER_MECH},
@@ -39,7 +40,7 @@ Player.landTaskForceData = {
 }
 
 Player.navalTaskForceData = {
-	{class = UnitClass.TRANSPORT, numUnits = 2},
+	{class = UnitClass.TRANSPORT, numUnits = 3},
 	--{class = UnitClass.CRUISER, numUnits = 1},
 	--{class = UnitClass.ANTI_SUB_CRUISER, numUnits = 1}
 }
@@ -250,6 +251,8 @@ function Player:buildLandFactory(arguments)
 
 	if pos then
 		self:buildStructure(self:findIdleEngineer(), factId, pos, self.baseQuat:getAngle())
+		factory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]:toFactory()
+		factory:setRallyPoint(factory:getPos():add(factory:getDirVec():mult(40)))
 		return BTNodeResult.RUNNING
 	else return BTNodeResult.FAILURE end
 end
@@ -282,9 +285,9 @@ function Player:buildRefinery(arguments)
 	refId = self.unitClassMappings[UnitClass.REFINERY + 1][self:getFaction() + 1]
 	factId = self.unitClassMappings[UnitClass.LAND_FACTORY + 1][self:getFaction() + 1]
 
-	rd = self.baseQuat:multVec(Vector3:new(0, 0, 1)):mult(-.5 * (units[factId + 1].size.z + units[refId + 1].size.z))
-	sp = Map.getSingleton():getSpawnPoint(self:getSpawnPointId())
-	buildPos = sp:add(rd)
+	rd = self.baseQuat:multVec(Vector3:new(0, 0, 1)):mult(-.6 * (units[factId + 1].size.z + units[refId + 1].size.z))
+	fp = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]:getPos()
+	buildPos = fp:add(rd)
 
 	pos = self:findSuitableSpot(refId, buildPos)
 
@@ -393,6 +396,7 @@ function Player:buildNavalFactory(arguments)
 
 	if pos then
 		self:buildStructure(self:findIdleEngineer(), navalFactId, pos, self.baseQuat:getAngle())
+		self.navalRallyPoint = self:getUnitsByClass(UnitClass.NAVAL_FACTORY, 1)[1]:toFactory():getRallyPoint()
 		return BTNodeResult.RUNNING
 	else return BTNodeResult.FAILURE end
 end
@@ -492,7 +496,7 @@ function Player:formLandTaskForces(arguments)
 			unitTbl = table.move(
 				unitGroups[j], 
 				subArrId, 
-				subArrId + self.landTaskForceData[j].numUnits, 
+				math.max(subArrId + self.landTaskForceData[j].numUnits - 1, 1),
 				#self.taskForces[tfId].units + 1, 
 				self.taskForces[tfId].units
 			)
@@ -525,6 +529,7 @@ function Player:getTransportData(transports)
 end
 
 function Player:boardTransports(arguments)
+	print('executing BOARD ' .. arguments.taskForceId)
 	taskForce = self.taskForces[arguments.taskForceId]
 
 	if taskForce.landed then return BTNodeResult.SUCCESS end
@@ -570,6 +575,8 @@ function Player:boardTransports(arguments)
 end
 
 function Player:moveTransports(arguments)
+	if self.taskForces[arguments.taskForceId].landed then return BTNodeResult.SUCCESS end
+
 	transports = self:getUnitsByClass(UnitClass.TRANSPORT, -1)
 
 	for i = 1, #transports do
@@ -593,6 +600,7 @@ function Player:moveTransports(arguments)
 				self:selectUnits(transports)
 				self:issueOrder(OrderType.EJECT, Vector3:new(0, 0, 0), {}, false)
 				self.taskForces[arguments.taskForceId].landed = true
+				self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, self.navalRallyPoint)}, false)
 				return BTNodeResult.SUCCESS
 			elseif not nearDisembarkPoint then break end
 		end
@@ -607,6 +615,10 @@ end
 
 function Player:occupySpawnPoint(arguments)
 	tfId = arguments.taskForceId
+
+	if not self.spawnPointData[self.taskForces[tfId].spawnPointId + 1].reachable and not self.taskForces[tfId].landed then
+		return BTNodeResult.FAILURE
+	end
 
 	if #self.taskForces[tfId].units > 0  then
 		if self.taskForces[tfId].moving then
@@ -640,35 +652,34 @@ function Player:occupySpawnPoint(arguments)
 end
 
 function Player:generateTaskForceActions()
-	children = {}
-	tfId = 1
+	children = {
+		{type = BTNodeType.SEQUENCE, children = {}}, 
+		{type = BTNodeType.PARALLEL, children = {}}, 
+	}
 	numSpawnPoints = Map.getSingleton():getNumSpawnPoints()
+	tfId = 1
 
 	for i = 1, numSpawnPoints do
 		if i - 1 == self:getSpawnPointId() then goto continue end
 
 		arguments = {taskForceId = tfId}
-		children[#children + 1] = {
-			type = BTNodeType.SEQUENCE,
-			children = {
-				{
-					type = BTNodeType.SELECTOR, 
-					children = {
-						{type = BTNodeType.FUNCTION, func = self.landRouteToSpawnpoint, args = arguments},
-						{
-							type = BTNodeType.SEQUENCE, 
-							children = {
-								{type = BTNodeType.FUNCTION, func = self.boardTransports, args = arguments},
-								{type = BTNodeType.FUNCTION, func = self.moveTransports, args = arguments},
-							}
+		table.insert(
+			children[1].children,
+			{
+				type = BTNodeType.SELECTOR, 
+				children = {
+					{type = BTNodeType.FUNCTION, func = self.landRouteToSpawnpoint, args = arguments},
+					{
+						type = BTNodeType.SEQUENCE, 
+						children = {
+							{type = BTNodeType.FUNCTION, func = self.boardTransports, args = arguments},
+							{type = BTNodeType.FUNCTION, func = self.moveTransports, args = arguments},
 						}
 					}
-				},
-				{type = BTNodeType.FUNCTION, func = self.occupySpawnPoint, args = arguments}
-				--[[
-				]]--
+				}
 			}
-		}
+		)
+		table.insert(children[2].children, {type = BTNodeType.FUNCTION, func = self.occupySpawnPoint, args = arguments})
 
 		tfId = tfId + 1
 		::continue::

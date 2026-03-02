@@ -76,19 +76,20 @@ namespace battleship{
 			"isGarrisonEmpty", &Unit::isGarrisonEmpty,
 			"getOrder", &Unit::getOrder,
 			"getNumOrders", &Unit::getNumOrders,
+			"getDirVec", &GameObject::getDirVec,
+			"getLeftVec", &GameObject::getLeftVec,
 			"getPos", &GameObject::getPos,
 			"getUnitClass", &Unit::getUnitClass,
 			"getLineOfSight", &Unit::getLineOfSight,
-			"toEngineer", &Unit::toEngineer,
-			"toPointDefense", &Unit::toPointDefense,
-			"toStructure", &Unit::toStructure,
-			"toFactory", &Unit::toFactory,
-			"toGameObject", &Unit::toGameObject,
-			"toVehicle", &Unit::toVehicle,
-			//"toVehicle", [](Unit *u){return (Vehicle*)u;},
 			"getBuildableUnit", &Unit::getBuildableUnit,
 			"getBuildableUnits", &Unit::getBuildableUnits,
-			"getNumBuildableUnits", &Unit::getNumBuildableUnits
+			"getNumBuildableUnits", &Unit::getNumBuildableUnits,
+			"toGameObject", [](Unit *u){return (GameObject*)u;},
+			"toVehicle", [](Unit *u){return (Vehicle*)u;},
+			"toEngineer", [](Unit *u){return (Engineer*)u;},
+			"toStructure", [](Unit *u){return (Structure*)u;},
+			"toFactory", [](Unit *u){return (Factory*)u;},
+			"toPointDefense", [](Unit *u){return (PointDefense*)u;}
 		);
 
 		SOL_LUA_STATE.new_usertype<Vehicle>(
@@ -121,10 +122,14 @@ namespace battleship{
 			"getBuildableUnit", &Unit::getBuildableUnit,
 			"getBuildableUnits", &Unit::getBuildableUnits,
 			"getNumBuildableUnits", &Unit::getNumBuildableUnits,
+			"getDirVec", &GameObject::getDirVec,
+			"getLeftVec", &GameObject::getLeftVec,
 			"getPos", &GameObject::getPos,
 			"appendToQueue", &Factory::appendToQueue,
 			"getBuildStatus", &Structure::getBuildStatus,
 			"getNumQueueUnitsById", &Factory::getNumQueueUnitsById,
+			"getRallyPoint", &Factory::getRallyPoint,
+			"setRallyPoint", &Factory::setRallyPoint,
 			"getQueue", &Factory::getQueue
 		);
 
