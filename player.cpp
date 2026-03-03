@@ -308,6 +308,17 @@ namespace battleship{
 		return friendlyUnits;
 	}
 
+    vector<Unit*> Player::getHostileUnits(){
+		vector<Unit*> hostileUnits, friendlyUnits = getFriendlyUnits(true);
+
+        for (Player *pl : Game::getSingleton()->getPlayers(true))
+            for (Unit *u : pl->getUnits())
+				if(pl->getTeam() != getTeam() && isObjectVisible(u, friendlyUnits))
+                	hostileUnits.push_back(u);
+
+		return hostileUnits;
+	}
+
 	//TODO improve this for greater accuracy
     bool Player::isObjectVisible(GameObject *object, std::vector<Unit*> friendlyUnits) {
 		Player *objPlayer = object->getPlayer();

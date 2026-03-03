@@ -148,6 +148,7 @@ namespace battleship{
 			"getFaction", &Player::getFaction,
 			"getTeam", &Player::getTeam,
 			"getUnits", &Player::getUnits,
+			"getHostileUnits", &Player::getHostileUnits,
 			"getUnitsById", &Player::getUnitsById,
 			"getUnitsByClass", &Player::getUnitsByClass
 		);

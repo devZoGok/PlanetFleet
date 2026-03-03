@@ -238,6 +238,8 @@ namespace battleship{
 	}
 
 	void Vehicle::navigate(float destOffset){
+		if(pathPoints.empty()) return;
+
 		Vector3 hypVec = (pathPoints[0] - pos);
 		Vector3 baseDir = getVecToPlane(pos, hypVec, upVec);
 		float angle = baseDir.getAngleBetween(dirVec);
@@ -253,8 +255,7 @@ namespace battleship{
     void Vehicle::move(Order order) {
 		navigate(0.5 * Map::getSingleton()->getCellSize().x);
 
-		if(pathPoints.empty())
-			removeOrder(0);
+		if(pathPoints.empty()) removeOrder(0);
     }
 
 	void Vehicle::exitGarrisonable(Vector3 exitPos){

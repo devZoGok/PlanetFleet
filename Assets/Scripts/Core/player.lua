@@ -237,6 +237,24 @@ function Player:getBuildableUnitSlotId(buildingUnit, buildableUnitId)
 	return nil
 end
 
+function Player:updateTaskForces(arguments)
+	units = self:getUnits()
+	
+	for i = 1, #self.taskForces do
+		for j = #self.taskForces[i].units, 1, -1 do
+			for k = 1, #units do
+				if self.taskForces[i].units[j] == units[k] then goto continue end
+			end
+
+			table.remove(self.taskForces[i].units, j)
+
+			::continue::
+		end
+	end
+
+	return BTNodeResult.SUCCESS
+end
+
 function Player:buildLandFactory(arguments)
 	factory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]
 
@@ -244,13 +262,17 @@ function Player:buildLandFactory(arguments)
 		return factory:toStructure():isComplete() and BTNodeResult.SUCCESS or BTNodeResult.RUNNING
 	end
 
+	engi = self:findIdleEngineer()
+
+	if not engi then return BTNodeResult.FAILURE end
+
 	factId = self.unitClassMappings[UnitClass.LAND_FACTORY + 1][self:getFaction() + 1]
 	rd = self.baseQuat:multVec(Vector3:new(0, 0, 1)):mult(self.baseRadius)
 	sp = Map.getSingleton():getSpawnPoint(self:getSpawnPointId())
 	pos = self:findSuitableSpot(factId, sp)
 
 	if pos then
-		self:buildStructure(self:findIdleEngineer(), factId, pos, self.baseQuat:getAngle())
+		self:buildStructure(engi, factId, pos, self.baseQuat:getAngle())
 		factory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]:toFactory()
 		factory:setRallyPoint(factory:getPos():add(factory:getDirVec():mult(40)))
 		return BTNodeResult.RUNNING
@@ -401,25 +423,6 @@ function Player:buildNavalFactory(arguments)
 	else return BTNodeResult.FAILURE end
 end
 
-function Player:buildNavalForce(arguments)
-	transports = self:getUnitsByClass(UnitClass.TRANSPORT, -1)
-
-	if #transports >= #self.taskForces then return BTNodeResult.SUCCESS end
-
-	factory = self:getUnitsByClass(UnitClass.NAVAL_FACTORY, 1)[1]:toFactory()
-
-	if #factory:getQueue() > 0 then return BTNodeResult.RUNNING end
-
-	transportBuildId = self.unitClassMappings[UnitClass.TRANSPORT + 1][self:getFaction() + 1]
-	numBuildTransports = #self.taskForces - #transports
-
-	for i = 1, numBuildTransports do
-		factory:appendToQueue(self:getBuildableUnitSlotId(factory, transportBuildId))
-	end
-
-	return BTNodeResult.RUNNING
-end
-
 function Player:buildTaskForces(arguments)
 	factory = self:getUnitsByClass(arguments.factoryClass, 1)
 
@@ -489,7 +492,7 @@ function Player:formLandTaskForces(arguments)
 	for i = 1, numSpawnPoints do
 		if i - 1 == self:getSpawnPointId() then goto continue end
 
-		self.taskForces[tfId] = {units = {}, moving = false, arrived = false, landed = false, spawnPointId = i - 1}
+		self.taskForces[tfId] = {units = {}, moving = false, attacking = false, arrived = false, landed = false, spawnPointId = i - 1}
 
 		for j = 1, #self.landTaskForceData do
 			subArrId = (tfId - 1) * self.landTaskForceData[j].numUnits + 1
@@ -529,7 +532,6 @@ function Player:getTransportData(transports)
 end
 
 function Player:boardTransports(arguments)
-	print('executing BOARD ' .. arguments.taskForceId)
 	taskForce = self.taskForces[arguments.taskForceId]
 
 	if taskForce.landed then return BTNodeResult.SUCCESS end
@@ -621,31 +623,41 @@ function Player:occupySpawnPoint(arguments)
 	end
 
 	if #self.taskForces[tfId].units > 0  then
-		if self.taskForces[tfId].moving then
-			return BTNodeResult.RUNNING
-		elseif self.taskForces[tfId].arrived then
+		if self.taskForces[tfId].arrived then
 			return BTNodeResult.SUCCESS
 		end
 	elseif #self.taskForces[tfId].units == 0 then
 		return BTNodeResult.FAILURE
 	end
 
+	hostileUnits = self:getHostileUnits()
 	spawnPoint = Map.getSingleton():getSpawnPoint(self.taskForces[tfId].spawnPointId)
 	minDist = 10
 
-	for i = 1, #self.taskForces[tfId].units do
-		if self.taskForces[tfId].units[i]:getPos():getDistanceFrom(spawnPoint) < minDist then
-			self.taskForces[tfId].moving = false
-			self.taskForces[tfId].arrived = true
-			return BTNodeResult.SUCCESS
+	if #hostileUnits == 0 then
+		for i = 1, #self.taskForces[tfId].units do
+			if self.taskForces[tfId].units[i]:getPos():getDistanceFrom(spawnPoint) < minDist then
+				self.taskForces[tfId].moving = false
+				self.taskForces[tfId].arrived = true
+				return BTNodeResult.SUCCESS
+			end
 		end
-	end
 
-	if not self.taskForces[tfId].moving then
+		if not self.taskForces[tfId].moving then
+			self.taskForces[tfId].moving = true
+			self:deselectUnits()
+			self:selectUnits(self.taskForces[tfId].units)
+			self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, spawnPoint)}, false)
+		end
+
+		self.taskForces[tfId].attacking = false
 		self.taskForces[tfId].moving = true
+	elseif #hostileUnits > 0 and self.taskForces[tfId].units[1]:getNumOrders() == 0 then
 		self:deselectUnits()
 		self:selectUnits(self.taskForces[tfId].units)
-		self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, spawnPoint)}, false)
+		self:issueOrder(OrderType.ATTACK, Vector3:new(0, 0, 0), {Target:new(hostileUnits[1]:toGameObject(), Vector3:new(0, 0, 0))}, false)
+		self.taskForces[tfId].attacking = true
+		self.taskForces[tfId].movign = false
 	end
 
 	return BTNodeResult.RUNNING
