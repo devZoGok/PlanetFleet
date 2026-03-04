@@ -89,6 +89,7 @@ namespace battleship{
 			"toEngineer", [](Unit *u){return (Engineer*)u;},
 			"toStructure", [](Unit *u){return (Structure*)u;},
 			"toFactory", [](Unit *u){return (Factory*)u;},
+			"toExtractor", [](Unit *u){return (Extractor*)u;},
 			"toPointDefense", [](Unit *u){return (PointDefense*)u;}
 		);
 
@@ -149,18 +150,23 @@ namespace battleship{
 			"getTeam", &Player::getTeam,
 			"getUnits", &Player::getUnits,
 			"getHostileUnits", &Player::getHostileUnits,
+			"getFriendlyUnits", &Player::getFriendlyUnits,
 			"getUnitsById", &Player::getUnitsById,
-			"getUnitsByClass", &Player::getUnitsByClass
+			"getUnitsByClass", &Player::getUnitsByClass,
+			"isObjectVisible", &Player::isObjectVisible
 		);
 
 		SOL_LUA_STATE.new_usertype<Extractor>(
-			"Extractor", sol::constructors<Extractor(Player*, int, Vector3, Quaternion, int, ResourceDeposit*, Unit::State)>()
+			"Extractor", sol::constructors<Extractor(Player*, int, Vector3, Quaternion, int, ResourceDeposit*, Unit::State)>(),
+			"getDeposit", &Extractor::getDeposit
 		);
 
 		SOL_LUA_STATE.new_usertype<ResourceDeposit>(
 			"ResourceDeposit", sol::constructors<ResourceDeposit(Player*, int, Vector3, Quaternion, int)>(),
 			"getExtractor", &ResourceDeposit::getExtractor,
-			"getPos", &GameObject::getPos
+			"getAmmount", &ResourceDeposit::getAmmount,
+			"getPos", &GameObject::getPos,
+			"toGameObject", [](ResourceDeposit *rd){return (GameObject*)rd;}
 		);
 
 		SOL_LUA_STATE.new_usertype<Game>(

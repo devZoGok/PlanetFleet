@@ -1,4 +1,3 @@
-Player.numStartEngis = 3
 Player.baseQuat = nil 
 Player.baseRadius = 180
 Player.numDefWarMechs = 1
@@ -274,28 +273,9 @@ function Player:buildLandFactory(arguments)
 	if pos then
 		self:buildStructure(engi, factId, pos, self.baseQuat:getAngle())
 		factory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]:toFactory()
-		factory:setRallyPoint(factory:getPos():add(factory:getDirVec():mult(40)))
+		factory:setRallyPoint(factory:getPos():add(factory:getDirVec():mult(50)))
 		return BTNodeResult.RUNNING
 	else return BTNodeResult.FAILURE end
-end
-
-function Player:trainEngineers(arguments)
-	engis = self:getUnitsByClass(UnitClass.CYBORG_ENGINEER, -1)
-
-	if #engis >= self.numStartEngis then return BTNodeResult.SUCCESS end
-
-	factory = self:getUnitsByClass(UnitClass.LAND_FACTORY, -1)[1]:toFactory()
-
-	if #factory:getQueue() > 0 then return BTNodeResult.RUNNING end
-
-	engiBuildId = self.unitClassMappings[UnitClass.CYBORG_ENGINEER + 1][self:getFaction() + 1]
-	numBuildEngis = self.numStartEngis - #engis
-
-	for i = 1, numBuildEngis do
-		factory:appendToQueue(self:getBuildableUnitSlotId(factory, engiBuildId))
-	end
-
-	return BTNodeResult.RUNNING
 end
 
 function Player:buildRefinery(arguments)
@@ -320,47 +300,42 @@ function Player:buildRefinery(arguments)
 	else return BTNodeResult.FAILURE end
 end
 
--- TODO optimize deposit position check
-function Player:buildExtractor(arguments)
-	extractor = self:getUnitsByClass(UnitClass.EXTRACTOR, -1)
-
-	if #extractor > 0 then
-		return (extractor[1]:toStructure():isComplete() and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
-	end
-
+function Player:getVisibleDeposits(nearBase)
 	visibleDeposits = {}
 	players = Game.getSingleton():getPlayers(true)
+	friendlyUnits = self:getFriendlyUnits(true)
+	sp = Map.getSingleton():getSpawnPoint(self:getSpawnPointId())
 
 	for i = 1, #players do
 		deposits = players[i]:getResourceDeposits()
 
 		for j = 1, #deposits do
-			for k = 1, #self:getUnits() do
-				unit = self:getUnit(k - 1)
-
-				if unit:getPos():getDistanceFrom(deposits[j]:getPos()) <= unit:getLineOfSight() and not deposits[j]:getExtractor() then
-					visibleDeposits[#visibleDeposits + 1] = deposits[i]
-					goto continue
+			if self:isObjectVisible(deposits[j]:toGameObject(), friendlyUnits) then
+				if not nearBase or (nearBase and deposits[j]:getPos():getDistanceFrom(sp) < self.baseRadius) then
+					visibleDeposits[#visibleDeposits + 1] = deposits[j]
 				end
 			end
-
-			::continue::
 		end
 	end
 
-	if #visibleDeposits == 0 then return BTNodeResult.FAILURE end
+	return visibleDeposits
+end
 
-	depPos = visibleDeposits[1]:getPos()
-	spawnPoint = Map.getSingleton():getSpawnPoint(self:getSpawnPointId())
+function Player:buildExtractors(arguments)
+	extractors = self:getUnitsByClass(UnitClass.EXTRACTOR, -1)
+	visibleDeposits = self:getVisibleDeposits()
+	depId = nil
 
 	for i = 1, #visibleDeposits do
-		if visibleDeposits[i]:getPos():getDistanceFrom(spawnPoint) < depPos:getDistanceFrom(spawnPoint) then
-			depPos = deposits[i]:getPos()
+		if not visibleDeposits[i]:getExtractor() then
+			depId = i
+			break
 		end
 	end
 
-	self:buildStructure(self:findIdleEngineer(), UnitId.EXTRACTOR, depPos, 0)
+	if not depId then return BTNodeResult.SUCCESS end
 
+	self:buildStructure(self:findIdleEngineer(), UnitId.EXTRACTOR, visibleDeposits[depId]:getPos(), 0)
 	return BTNodeResult.RUNNING
 end
 
@@ -385,21 +360,40 @@ end
 
 function Player:startHarvesting()
 	harvesters = self:getUnitsByClass(UnitClass.RESOURCE_ROVER, -1)
+	harvester = nil
 
 	for i = 1, #harvesters do
-		if harvesters[i]:getNumOrders() > 0 and harvesters[i]:getOrder(0).type == 7 then
+		order = (harvesters[i]:getNumOrders() > 0 and harvesters[i]:getOrder(0) or nil)
+
+		if i == #harvesters and order.type == OrderType.SUPPLY then
 			return BTNodeResult.SUCCESS
+		elseif not order or (order and order.type ~= OrderType.SUPPLY) then
+			harvester = harvesters[i]
+			break
 		end
 	end
 
-	extractor = self:getUnitsByClass(UnitClass.EXTRACTOR, 1)[1]
-	if not extractor then return BTNodeResult.FAILURE end
+	extractors = self:getUnitsByClass(UnitClass.EXTRACTOR, -1)
+	if #extractors == 0 then return BTNodeResult.FAILURE end
+
+	for i = #extractors, 1, -1 do
+		if extractors[i]:toExtractor():getDeposit():getAmmount() == 0 then
+			table.remove(extractors, i)
+		end
+	end
+
+	minDistId = 1
+	for i = 1, #extractors do
+		if extractors[i]:getPos():getDistanceFrom(harvester:getPos()) < extractors[minDistId]:getPos():getDistanceFrom(harvester:getPos()) then
+			minDistId = i
+		end
+	end
 
 	self:deselectUnits()
-	self:selectUnits({harvesters[1]})
-	self:issueOrder(OrderType.SUPPLY, Vector3:new(0, 0, 0), {Target:new(extractor:toGameObject(), Vector3:new(0, 0, 0))}, false)
+	self:selectUnits({harvester})
+	self:issueOrder(OrderType.SUPPLY, Vector3:new(0, 0, 0), {Target:new(extractors[minDistId]:toGameObject(), Vector3:new(0, 0, 0))}, false)
 
-	return BTNodeResult.SUCCESS
+	return BTNodeResult.RUNNING
 end
 
 function Player:canReachAllSpawnPoints(arguments)
