@@ -237,12 +237,12 @@ function Player:getBuildableUnitSlotId(buildingUnit, buildableUnitId)
 end
 
 function Player:updateTaskForces(arguments)
-	units = self:getUnits()
+	numUnits = self:getNumUnits()
 	
 	for i = 1, #self.taskForces do
 		for j = #self.taskForces[i].units, 1, -1 do
-			for k = 1, #units do
-				if self.taskForces[i].units[j] == units[k] then goto continue end
+			for k = 1, numUnits do
+				if self.taskForces[i].units[j] == self:getUnit(k - 1) then goto continue end
 			end
 
 			table.remove(self.taskForces[i].units, j)
@@ -339,25 +339,6 @@ function Player:buildExtractors(arguments)
 	return BTNodeResult.RUNNING
 end
 
-function Player:buildHarvester(arguments)
-	if #self:getUnitsByClass(UnitClass.RESOURCE_ROVER, 1) > 0 then
-		return BTNodeResult.SUCCESS
-	end
-
-	factory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]
-
-	if not factory then return BTNodeResult.FAILURE end
-
-	factory = factory:toFactory()
-	roverSlotId = self.unitClassMappings[UnitClass.RESOURCE_ROVER + 1][self:getFaction() + 1]
-
-	if #factory:getQueue() == 0 then
-		factory:appendToQueue(self:getBuildableUnitSlotId(factory, roverSlotId))
-	end
-
-	return BTNodeResult.RUNNING
-end
-
 function Player:startHarvesting()
 	harvesters = self:getUnitsByClass(UnitClass.RESOURCE_ROVER, -1)
 	harvester = nil
@@ -365,7 +346,7 @@ function Player:startHarvesting()
 	for i = 1, #harvesters do
 		order = (harvesters[i]:getNumOrders() > 0 and harvesters[i]:getOrder(0) or nil)
 
-		if i == #harvesters and order.type == OrderType.SUPPLY then
+		if i == #harvesters and order and order.type == OrderType.SUPPLY then
 			return BTNodeResult.SUCCESS
 		elseif not order or (order and order.type ~= OrderType.SUPPLY) then
 			harvester = harvesters[i]
@@ -383,10 +364,13 @@ function Player:startHarvesting()
 	end
 
 	minDistId = 1
+	hPos = harvester:getPos()
+
 	for i = 1, #extractors do
-		if extractors[i]:getPos():getDistanceFrom(harvester:getPos()) < extractors[minDistId]:getPos():getDistanceFrom(harvester:getPos()) then
-			minDistId = i
-		end
+		currDist = extractors[i]:getPos():getDistanceFrom(hPos)
+		minDist = extractors[minDistId]:getPos():getDistanceFrom(hPos)
+
+		if currDist < minDist then minDistId = i end
 	end
 
 	self:deselectUnits()
@@ -612,15 +596,16 @@ end
 function Player:occupySpawnPoint(arguments)
 	tfId = arguments.taskForceId
 
+	if not self.taskForces[tfId] then return BTNodeResult.FAILURE end
+
 	if not self.spawnPointData[self.taskForces[tfId].spawnPointId + 1].reachable and not self.taskForces[tfId].landed then
 		return BTNodeResult.FAILURE
 	end
 
-	if #self.taskForces[tfId].units > 0  then
-		if self.taskForces[tfId].arrived then
-			return BTNodeResult.SUCCESS
-		end
+	if #self.taskForces[tfId].units > 0 and self.taskForces[tfId].arrived then
+		return BTNodeResult.SUCCESS
 	elseif #self.taskForces[tfId].units == 0 then
+		table.remove(self.taskForces, tfId)
 		return BTNodeResult.FAILURE
 	end
 

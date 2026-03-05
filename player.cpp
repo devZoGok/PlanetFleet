@@ -154,6 +154,12 @@ namespace battleship{
 
 		delete units[id];
 		units.erase(units.begin() + id);
+
+		if(cpuPlayer){
+			sol::state_view SOL_LUA_VIEW = generateView();
+			int id = getCpuPlayerId() + 1;
+			SOL_LUA_VIEW.script("game.cpuPlayers[" + to_string(id) + "]:updateTaskForces()");
+		}
 	}
 
 	void Player::removeResourceDeposit(int id){
@@ -339,4 +345,14 @@ namespace battleship{
 
 		return false;
     }
+
+	int Player::getCpuPlayerId(){
+		vector<Player*> cpuPlayers = Game::getSingleton()->getCpuPlayers();
+
+		for(int i = 0; i < cpuPlayers.size(); i++)
+			if(cpuPlayers[i] == this)
+				return i;
+
+		return -1;
+	}
 }

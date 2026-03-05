@@ -306,6 +306,20 @@ namespace battleship{
 
 		if(!currOrderStarted) startCurrentOrder();
 
+		if(!orders[0].targets.empty() && orders[0].targets[0].unit){
+			vector<Unit*> units;
+
+			for(Player *pl : Game::getSingleton()->getPlayers(true)){
+				vector<Unit*> us = pl->getUnits();
+				units.insert(units.end(), us.begin(), us.end());
+			}
+
+			if(find(units.begin(), units.end(), orders[0].targets[0].unit) == units.end()){
+				removeOrder(0);
+				return;
+			}
+		}
+
 		switch (orders[0].type) {
 		    case Order::TYPE::ATTACK:
 		        attack(orders[0]);

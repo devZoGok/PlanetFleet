@@ -5,7 +5,6 @@ for i = 1, #game.cpuPlayers do
 	player.behaviour = {
 		type = BTNodeType.SEQUENCE,
 		children = {
-			--{type = BTNodeType.FUNCTION, func = player.updateTaskForces},
 			{type = BTNodeType.FUNCTION, func = player.buildLandFactory},
 			{
 				type = BTNodeType.FUNCTION, 
