@@ -339,14 +339,31 @@ namespace battleship{
 		if(cells[dest].blockedBy){
 			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
 
-			for(int scid : surrCellIds)
-				if(!cells[scid].blockedBy){
-					dest = scid;
-					break;
-				}
-		}
+			for(int scid : surrCellIds){
+				if(!cells[scid].blockedBy)
+					switch(type){
+						case UnitType::HOVER:
+							dest = scid;
+							return true;
+						case UnitType::LAND:
+							if(cells[scid].type == Map::Cell::LAND){
+								dest = scid;
+								return true;
+							}
+							break;
+						case UnitType::SEA_LEVEL:
+						case UnitType::UNDERWATER:
+							if(cells[scid].type == Map::Cell::WATER){
+								dest = scid;
+								return true;
+							}
+							break;
+					}
+			}
 
-		return true;
+			return false;
+		}
+		else return true;
 	}
 
 	bool Vehicle::truncatePath(Order &order, vector<int> &path, Vector3 destPos, bool appendDestPos){

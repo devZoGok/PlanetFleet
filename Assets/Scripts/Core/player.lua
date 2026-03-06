@@ -15,7 +15,7 @@ Player.unitClassMappings = {
 	{UnitId.ACS_CYBORG_ENGINEER, UnitId.AINC_CYBORG_ENGINEER, UnitId.ER_CYBORG_ENGINEER},
 	{UnitId.ACS_TRANSPORT, UnitId.AINC_TRANSPORT, UnitId.ER_TRANSPORT},
 	{UnitId.ACS_CARGO_SHIP, UnitId.AINC_CARGO_SHIP, UnitId.ER_CARGO_SHIP},
-	{UnitId.ACS_CRUISER, UnitId.AINC_CRUISER, UnitId.ER_CRUISER},
+	{UnitId.ACS_ASSAULT_CRUISER, UnitId.AINC_ASSAULT_CRUISER, UnitId.ER_ASSAULT_CRUISER},
 	{UnitId.ACS_ANTI_SUB_CRUISER, UnitId.AINC_ANTI_SUB_CRUISER, UnitId.ER_ANTI_SUB_CRUISER},
 	{nil, nil, nil},
 	{UnitId.ACS_SUBMARINE, UnitId.AINC_SUBMARINE, UnitId.ER_SUBMARINE},
@@ -39,9 +39,9 @@ Player.landTaskForceData = {
 }
 
 Player.navalTaskForceData = {
-	{class = UnitClass.TRANSPORT, numUnits = 3},
-	--{class = UnitClass.CRUISER, numUnits = 1},
-	--{class = UnitClass.ANTI_SUB_CRUISER, numUnits = 1}
+	{class = UnitClass.TRANSPORT, numUnits = 2},
+	--{class = UnitClass.CRUISER, numUnits = 2},
+	{class = UnitClass.ANTI_SUB_CRUISER, numUnits = 1}
 }
 
 Player.taskForces = {}
@@ -131,9 +131,12 @@ function Player:landRouteToSpawnpoint_(mapPoint)
 
 	embarkCellId = nil
 	disembarkCellId = nil
+	navalSupportCellId = nil
+	navalRallyCellId = nil
 
 	for i = 1, #path do
 		if map:getCell(path[i]).type == 1 then
+			navalRallyCellId = path[i]
 			embarkCellId = path[i - 1]
 			if not self.navalFactoryCellId then self.navalFactoryCellId = path[i] end
 			break;
@@ -142,13 +145,20 @@ function Player:landRouteToSpawnpoint_(mapPoint)
 
 	for i = #path, 1, -1 do
 		if map:getCell(path[i]).type == 1 then
+			navalSupportCellId = path[i]
 			disembarkCellId = path[i + 1]
 			break;
 		end
 	end
 
 	if embarkCellId or disembarkCellId then
-		return {reachable = false, embarkCellId = embarkCellId, disembarkCellId = disembarkCellId}
+		return {
+			reachable = false, 
+			embarkCellId = embarkCellId, 
+			navalRallyCellId = navalRallyCellId, 
+			navalSupportCellId = navalSupportCellId, 
+			disembarkCellId = disembarkCellId
+		}
 	else return {reachable = true} end
 end
 
@@ -520,6 +530,13 @@ function Player:boardTransports(arguments)
 
 	if tpData.allIdle and tpData.allInWater then
 		self:deselectUnits()
+		self:selectUnits(self:getUnitsByClass(UnitClass.CRUISER, -1))
+		self:selectUnits(self:getUnitsByClass(UnitClass.ANTI_SUB_CRUISER, -1))
+
+		rallyCell = map:getCell(self.spawnPointData[taskForce.spawnPointId + 1].navalRallyCellId)
+		self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, rallyCell.pos)}, false)
+
+		self:deselectUnits()
 		self:selectUnits(transports)
 
 		embarkCell = map:getCell(self.spawnPointData[taskForce.spawnPointId + 1].embarkCellId)
@@ -588,9 +605,61 @@ function Player:moveTransports(arguments)
 		self:deselectUnits()
 		self:selectUnits(transports)
 		self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, targPos)}, false)
+		self:deselectUnits()
+		self:selectUnits(self:getUnitsByClass(UnitClass.CRUISER, -1))
+		self:selectUnits(self:getUnitsByClass(UnitClass.ANTI_SUB_CRUISER, -1))
+
+		targPos = Map.getSingleton():getCell(self.spawnPointData[spId + 1].navalSupportCellId).pos
+		self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, targPos)}, false)
 	end
 
 	if not tpData.allIdle then return BTNodeResult.RUNNING end
+end
+
+function Player:getNearestHostileUnits(friendlyUnits, hostileUnits)
+end
+
+function Player:clearShoreDefenses(arguments)
+	self:deselectUnits()
+	self:selectUnits(self:getUnitsByClass(UnitClass.CRUISER, -1))
+	self:selectUnits(self:getUnitsByClass(UnitClass.ANTI_SUB_CRUISER, -1))
+	selUnits = self:getSelectedUnits()
+	maxLineOfSight = nil
+
+	for i = 1, #selUnits do
+		if not maxLineOfSight then maxLineOfSight = selUnits[i]:getLineOfSight() end 
+
+		if selUnits[i]:getLineOfSight() > maxLineOfSight then
+			maxLineOfSight = selUnits[i]:getLineOfSight()
+		end
+	end
+
+	if not selUnits[1] then return BTNodeResult.FAILURE end
+
+	hostileUnits = self:getHostileUnits()
+	order = (selUnits[1]:getNumOrders() > 0 and selUnits[1]:getOrder(0) or nil)
+
+	for i = 1, #hostileUnits do
+		for j = 1, #selUnits do
+			if hostileUnits[i]:getPos():getDistanceFrom(selUnits[j]:getPos()) < maxLineOfSight then
+
+				if not order or (order and (order.type ~= OrderType.ATTACK or (order.type == OrderType.ATTACK and order.targets[1].unit ~= hostileUnits[i]))) then
+					self:issueOrder(OrderType.ATTACK, Vector3:new(0, 0, 0), {Target:new(hostileUnits[i]:toGameObject(), hostileUnits[i]:getPos())}, false)
+				end
+
+				return BTNodeResult.RUNNING
+			end
+		end
+	end
+
+	map = Map.getSingleton()
+	supportCellId = self.spawnPointData[arguments.spawnPointId + 1].navalSupportCellId
+
+	if map:getCellId(selUnits[1]:getPos(), true) ~= supportCellId and not order or (order and order.type ~= OrderType.MOVE) then
+		self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, map:getCell(supportCellId).pos)}, false)
+	end
+
+	return BTNodeResult.SUCCESS
 end
 
 function Player:occupySpawnPoint(arguments)
@@ -661,10 +730,16 @@ function Player:generateTaskForceActions()
 				children = {
 					{type = BTNodeType.FUNCTION, func = self.landRouteToSpawnpoint, args = arguments},
 					{
-						type = BTNodeType.SEQUENCE, 
+						type = BTNodeType.PARALLEL, 
 						children = {
-							{type = BTNodeType.FUNCTION, func = self.boardTransports, args = arguments},
-							{type = BTNodeType.FUNCTION, func = self.moveTransports, args = arguments},
+							{
+								type = BTNodeType.SEQUENCE, 
+								children = {
+									{type = BTNodeType.FUNCTION, func = self.boardTransports, args = arguments},
+									{type = BTNodeType.FUNCTION, func = self.moveTransports, args = arguments},
+								}
+							},
+							{type = BTNodeType.FUNCTION, func = self.clearShoreDefenses, args = {spawnPointId = i - 1}}
 						}
 					}
 				}
