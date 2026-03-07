@@ -593,10 +593,13 @@ function Player:moveTransports(arguments)
 			nearDisembarkPoint = (transports[i]:getPos():getDistanceFrom(targPos) < 10)
 
 			if i == #transports and nearDisembarkPoint then
+				self.taskForces[arguments.taskForceId].landed = true
+
 				self:deselectUnits()
 				self:selectUnits(transports)
 				self:issueOrder(OrderType.EJECT, Vector3:new(0, 0, 0), {}, false)
-				self.taskForces[arguments.taskForceId].landed = true
+				self:selectUnits(self:getUnitsByClass(UnitClass.CRUISER, -1))
+				self:selectUnits(self:getUnitsByClass(UnitClass.ANTI_SUB_CRUISER, -1))
 				self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, self.navalRallyPoint)}, false)
 				return BTNodeResult.SUCCESS
 			elseif not nearDisembarkPoint then break end
@@ -620,6 +623,8 @@ function Player:getNearestHostileUnits(friendlyUnits, hostileUnits)
 end
 
 function Player:clearShoreDefenses(arguments)
+	if self.taskForces[arguments.taskForceId].landed then return BTNodeResult.SUCCESS end
+
 	self:deselectUnits()
 	self:selectUnits(self:getUnitsByClass(UnitClass.CRUISER, -1))
 	self:selectUnits(self:getUnitsByClass(UnitClass.ANTI_SUB_CRUISER, -1))
@@ -652,8 +657,9 @@ function Player:clearShoreDefenses(arguments)
 		end
 	end
 
+	spawnPointId = self.taskForces[arguments.taskForceId].spawnPointId + 1
+	supportCellId = self.spawnPointData[spawnPointId].navalSupportCellId
 	map = Map.getSingleton()
-	supportCellId = self.spawnPointData[arguments.spawnPointId + 1].navalSupportCellId
 
 	if map:getCellId(selUnits[1]:getPos(), true) ~= supportCellId and not order or (order and order.type ~= OrderType.MOVE) then
 		self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, map:getCell(supportCellId).pos)}, false)
@@ -730,16 +736,16 @@ function Player:generateTaskForceActions()
 				children = {
 					{type = BTNodeType.FUNCTION, func = self.landRouteToSpawnpoint, args = arguments},
 					{
-						type = BTNodeType.PARALLEL, 
+						type = BTNodeType.SEQUENCE, 
 						children = {
+							{type = BTNodeType.FUNCTION, func = self.boardTransports, args = arguments},
 							{
-								type = BTNodeType.SEQUENCE, 
+								type = BTNodeType.PARALLEL, 
 								children = {
-									{type = BTNodeType.FUNCTION, func = self.boardTransports, args = arguments},
 									{type = BTNodeType.FUNCTION, func = self.moveTransports, args = arguments},
+									{type = BTNodeType.FUNCTION, func = self.clearShoreDefenses, args = arguments}
 								}
 							},
-							{type = BTNodeType.FUNCTION, func = self.clearShoreDefenses, args = {spawnPointId = i - 1}}
 						}
 					}
 				}
