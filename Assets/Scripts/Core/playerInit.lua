@@ -11,7 +11,7 @@ for i = 1, #game.cpuPlayers do
 				func = player.buildTaskForces, 
 				args = {
 					factoryClass = UnitClass.LAND_FACTORY,
-					taskForceData = {{class = UnitClass.CYBORG_ENGINEER, numUnits = 5}}
+					taskForceData = {{class = UnitClass.CYBORG_ENGINEER, numUnits = 4}}
 				}
 			},
 			{
@@ -63,7 +63,7 @@ for i = 1, #game.cpuPlayers do
 								func = player.buildTaskForces, 
 								args = {
 									factoryClass = UnitClass.LAND_FACTORY,
-									numTaskForces = Map.getSingleton():getNumSpawnPoints() - 1,
+									numTaskForces = player:getNumEmptyTaskForces(),
 									taskForceData = player.landTaskForceData
 								}
 							},

@@ -172,10 +172,18 @@ function Player:init()
 	self:initPdSpots()
 
 	for i = 1, Map.getSingleton():getNumSpawnPoints() do
-		if i - 1 == self:getSpawnPointId() then self.spawnPointData[i] = {reachable = true} end
+		taskForce = {units = {}, moving = false, attacking = false, arrived = false, landed = false, spawnPointId = i - 1}
 
+		if i - 1 == self:getSpawnPointId() then
+			taskForce.arrived = true
+			taskForce.landed = true
+			self.spawnPointData[i] = {reachable = true}
+		end
+
+		self.taskForces[i] = taskForce
 		spawnPoint = Map.getSingleton():getSpawnPoint(i - 1)
 		self.spawnPointData[i] = self:landRouteToSpawnpoint_(spawnPoint)
+
 	end
 end
 
@@ -259,6 +267,13 @@ function Player:updateTaskForces(arguments)
 
 			::continue::
 		end
+
+		if #self.taskForces[i].units == 0 then
+			self.taskForces[i].arrived = false
+			self.taskForces[i].moving = false
+			self.taskForces[i].attacking = false
+			self.taskForces[i].landed = false
+		end
 	end
 
 	return BTNodeResult.SUCCESS
@@ -283,7 +298,7 @@ function Player:buildLandFactory(arguments)
 	if pos then
 		self:buildStructure(engi, factId, pos, self.baseQuat:getAngle())
 		factory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]:toFactory()
-		factory:setRallyPoint(factory:getPos():add(factory:getDirVec():mult(50)))
+		factory:setRallyPoint(factory:getPos():add(factory:getDirVec():mult(100)))
 		return BTNodeResult.RUNNING
 	else return BTNodeResult.FAILURE end
 end
@@ -411,6 +426,16 @@ function Player:buildNavalFactory(arguments)
 	else return BTNodeResult.FAILURE end
 end
 
+function Player:getNumEmptyTaskForces()
+	numEmpty = 0
+
+	for i = 1, #self.taskForces do
+		if #self.taskForces[i].units == 0 then numEmpty = numEmpty + 1 end
+	end
+
+	return numEmpty
+end
+
 function Player:buildTaskForces(arguments)
 	factory = self:getUnitsByClass(arguments.factoryClass, 1)
 
@@ -464,34 +489,35 @@ end
 function Player:formLandTaskForces(arguments)
 	numSpawnPoints = Map.getSingleton():getNumSpawnPoints()
 
-	if #self.taskForces == numSpawnPoints - 1 then return BTNodeResult.SUCCESS end
+	for i = 1, #self.taskForces do
+		if i == #self.taskForces and #self.taskForces[i].units > 0 then return BTNodeResult.SUCCESS
+		else break end
+	end
 
 	unitGroups = {}
 
 	for i = 1, #self.landTaskForceData do
 		unitGroups[i] = self:getUnitsByClass(self.landTaskForceData[i].class, -1)
-		enoughGroupUnits = (#unitGroups[i] >= (numSpawnPoints - 1) * self.landTaskForceData[i].numUnits)
+		enoughGroupUnits = (#unitGroups[i] >= #self.taskForces * self.landTaskForceData[i].numUnits)
 
 		if not enoughGroupUnits then return BTNodeResult.FAILURE end
 	end
 
 	tfId = 1
 
-	for i = 1, numSpawnPoints do
-		if i - 1 == self:getSpawnPointId() then goto continue end
-
-		self.taskForces[tfId] = {units = {}, moving = false, attacking = false, arrived = false, landed = false, spawnPointId = i - 1}
+	for i = 1, #self.taskForces do
+		if #self.taskForces[i].units > 0 then goto continue end
 
 		for j = 1, #self.landTaskForceData do
-			subArrId = (tfId - 1) * self.landTaskForceData[j].numUnits + 1
+			subArrId = #unitGroups[j] - (tfId * self.landTaskForceData[j].numUnits) + 1
 			unitTbl = table.move(
 				unitGroups[j], 
 				subArrId, 
-				math.max(subArrId + self.landTaskForceData[j].numUnits - 1, 1),
-				#self.taskForces[tfId].units + 1, 
-				self.taskForces[tfId].units
+				subArrId + self.landTaskForceData[j].numUnits - 1,
+				#self.taskForces[i].units + 1, 
+				self.taskForces[i].units
 			)
-			self.taskForces[tfId].units = unitTbl
+			self.taskForces[i].units = unitTbl
 		end
 
 		tfId = tfId + 1
@@ -671,8 +697,6 @@ end
 function Player:occupySpawnPoint(arguments)
 	tfId = arguments.taskForceId
 
-	if not self.taskForces[tfId] then return BTNodeResult.FAILURE end
-
 	if not self.spawnPointData[self.taskForces[tfId].spawnPointId + 1].reachable and not self.taskForces[tfId].landed then
 		return BTNodeResult.FAILURE
 	end
@@ -680,7 +704,6 @@ function Player:occupySpawnPoint(arguments)
 	if #self.taskForces[tfId].units > 0 and self.taskForces[tfId].arrived then
 		return BTNodeResult.SUCCESS
 	elseif #self.taskForces[tfId].units == 0 then
-		table.remove(self.taskForces, tfId)
 		return BTNodeResult.FAILURE
 	end
 
@@ -726,9 +749,7 @@ function Player:generateTaskForceActions()
 	tfId = 1
 
 	for i = 1, numSpawnPoints do
-		if i - 1 == self:getSpawnPointId() then goto continue end
-
-		arguments = {taskForceId = tfId}
+		arguments = {taskForceId = i}
 		table.insert(
 			children[1].children,
 			{
