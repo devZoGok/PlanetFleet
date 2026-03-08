@@ -75,15 +75,14 @@ namespace battleship{
 		FxManager::getSingleton()->update();
 	}
 
-	void Game::initLuaPlayers(bool resetBehaviour){
+	void Game::initLuaPlayers(){
 		sol::state_view SOL_LUA_VIEW = generateView();
 		vector<Player*> cpuPlayers = getCpuPlayers();
 
 		for(int i = 0; i < cpuPlayers.size(); i++)
 			SOL_LUA_VIEW["game"]["cpuPlayers"][i + 1] = cpuPlayers[i];
 
-		if(resetBehaviour)
-			SOL_LUA_VIEW.script_file(GameManager::getSingleton()->getPath() + "Scripts/Core/playerInit.lua");
+		SOL_LUA_VIEW.script_file(GameManager::getSingleton()->getPath() + "Scripts/Core/playerInit.lua");
 	}
 
 	void Game::removeAllElements(){

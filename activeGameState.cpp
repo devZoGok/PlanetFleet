@@ -478,14 +478,15 @@ namespace battleship{
 
     void ActiveGameState::renderUnits() {
 		vector<Unit*> friendlyUnits = mainPlayer->getFriendlyUnits();
+		Game *game = Game::getSingleton();
 
-        for (Player *p : Game::getSingleton()->getPlayers(true)){
+        for (Player *p : game->getPlayers(true)){
 			vector<Unit*> units = p->getUnits();
 
 			for (Unit *u : units) {
 				if(u->isVehicle() && ((Vehicle*)u)->getGarrisonable()) continue;
 			
-				bool unitVisible = mainPlayer->isObjectVisible((GameObject*)u, friendlyUnits);
+				bool unitVisible = (game->isDebug() || mainPlayer->isObjectVisible((GameObject*)u, friendlyUnits));
 				u->getModel()->setVisible(unitVisible);
 			}
 		}
