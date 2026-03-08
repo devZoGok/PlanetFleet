@@ -13,12 +13,14 @@ namespace battleship{
 		CPPUNIT_TEST_SUITE(PathfinderTest);
 		CPPUNIT_TEST(testFindPath);
 		CPPUNIT_TEST(testFindBigPath);
+		CPPUNIT_TEST(testFindShorePath);
 		CPPUNIT_TEST_SUITE_END();
 
 		public:
 			PathfinderTest(){}
 			void testFindPath();
 			void testFindBigPath();
+			void testFindShorePath();
 			void setUp();
 			void tearDown();
 		private:

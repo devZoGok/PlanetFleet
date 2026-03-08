@@ -25,44 +25,55 @@ namespace battleship{
 			return heuristics;
 		}
 
-		vector<int> Pathfinder::findPath(vector<Map::Cell> &cells, vector<float> &heuristics, int source, int dest, Vehicle *vehicle){
+		vector<int> Pathfinder::findPath(vector<Map::Cell> &cells, vector<float> &heuristics, int source, int dest, int vehicleType){
 			if(heuristics.empty() || (heuristics.size() == 1 && heuristics[0] == 0.0))
 				heuristics = calcHeuristics(cells, dest);
+
+			bool useHeur = !heuristics.empty();
 
 			const int size = cells.size();
 			u32 *distances = new u32[size];
 			vector<int> *paths = new vector<int>[size];
-			paths[source].push_back(source);
-
 			vector<pair<int, bool>> cellsByCheck;
-
-			vector<bool> cellChecked;
+			vector<bool> posMinCellChecked;
+			vector<int> possibleMinCells = vector<int>{source};
 
 			for(int i = 0; i < size; i++){
 				cellsByCheck.push_back(pair(i, false));
-				distances[i] = (i == source ? 0 : impassibleNodeVal);
-				cellChecked.push_back(false);
+				distances[i] = impassibleNodeVal;
+				posMinCellChecked.push_back(false);
 			}
 
-			bool useHeur = !heuristics.empty();
-			vector<int> possibleMinCells = vector<int>{source};
-			cellChecked[source] = true;
+			paths[source].push_back(source);
+			distances[source] = 0;
+			posMinCellChecked[source] = true;
+
+			int lastVertStrich = -1;
 
 			while(!cellsByCheck[dest].second){
-				int vertStrich = possibleMinCells[0], vsId = 0;
+				int posMinCellId = 0, vertStrich = possibleMinCells[posMinCellId];
 
 				for(int i = 0; i < possibleMinCells.size(); i++){
 					float sum1 = distances[possibleMinCells[i]] + (useHeur ? heuristics[possibleMinCells[i]] : 0); 
-					float sum2 = distances[possibleMinCells[vsId]] + (useHeur ? heuristics[possibleMinCells[vsId]] : 0); 
+					float sum2 = distances[possibleMinCells[posMinCellId]] + (useHeur ? heuristics[possibleMinCells[posMinCellId]] : 0); 
 
 					if(sum1 < sum2 || (useHeur && sum1 == sum2 && heuristics[i] < heuristics[vertStrich])){
+						posMinCellId = i;
 						vertStrich = possibleMinCells[i];
-						vsId = i;
 					}
 				}
 
-				cellChecked[possibleMinCells[vsId]] = false;
-				possibleMinCells.erase(possibleMinCells.begin() + vsId);
+				if(distances[vertStrich] == impassibleNodeVal){
+					vector<int> path = paths[lastVertStrich];
+
+					delete[] paths;
+					delete[] distances;
+
+					return path;
+				}
+
+				posMinCellChecked[possibleMinCells[posMinCellId]] = false;
+				possibleMinCells.erase(possibleMinCells.begin() + posMinCellId);
 
 				cellsByCheck[vertStrich].second = true;
 
@@ -73,14 +84,20 @@ namespace battleship{
 
 					if(cellsByCheck[edgeNode].second) continue;
 
-					if(!cellChecked[edgeNode]){
-						cellChecked[edgeNode] = true;
+					if(!posMinCellChecked[edgeNode]){
+						posMinCellChecked[edgeNode] = true;
 						possibleMinCells.push_back(edgeNode);
 					}
 
-					bool canMoveToStrichCell = true;
+					UnitType ut = (UnitType)vehicleType;
+					Map::Cell::Type ct = cells[edgeNode].type;
+					bool ship = (ut == UnitType::UNDERWATER || ut == UnitType::SEA_LEVEL);
+					int weightMult = 1;
 
-					if(vehicle){
+					if((ut == UnitType::LAND && ct == Map::Cell::WATER) || (ship && ct == Map::Cell::LAND))
+						weightMult = 10;
+					/*
+					if(vehicleType != -1){
 						UnitType unitType = vehicle->getType();
 						bool ship = (unitType == UnitType::UNDERWATER || unitType == UnitType::SEA_LEVEL);
 						Unit *blockingUnit = cells[vertStrich].blockedBy;
@@ -106,13 +123,16 @@ namespace battleship{
 							continue;
 						}
 					}
+					*/
 
-					if(distances[vertStrich] + cells[vertStrich].edges[i].weight < distances[edgeNode]){
-						distances[edgeNode] = distances[vertStrich] + cells[vertStrich].edges[i].weight;
+					if(distances[vertStrich] + weightMult * cells[vertStrich].edges[i].weight < distances[edgeNode]){
+						distances[edgeNode] = distances[vertStrich] + weightMult * cells[vertStrich].edges[i].weight;
 						paths[edgeNode] = paths[vertStrich];
 						paths[edgeNode].push_back(edgeNode);
 					}
 				}
+
+				lastVertStrich = vertStrich;
 			}
 
 			vector<int> path = paths[dest];
