@@ -97,7 +97,7 @@ namespace battleship{
 		inline float getBaseHeight(){return baseHeight;}
 		inline void setBaseHeight(float bh){this->baseHeight = bh;}
     private:
-		std::string mapTable = "map";
+		std::string mapTable = "metadata";
 		vb01::Node *terrainNode = nullptr, *cellNode = nullptr;
 		vb01::Material *landCellMat = nullptr, *waterCellMat = nullptr;
 		std::string mapName;

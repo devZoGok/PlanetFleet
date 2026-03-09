@@ -371,7 +371,7 @@ namespace battleship{
 		if(name != "")
 			generateView().script_file(GameManager::getSingleton()->getPath() + "Models/Maps/" + name + "/" + name + ".lua");
 
-		sol::table spawnPointsTbl = generateView()["map"]["spawnPoints"];
+		sol::table spawnPointsTbl = generateView()["metadata"]["spawnPoints"];
 		return spawnPointsTbl.size();
 	}
 
@@ -525,7 +525,7 @@ namespace battleship{
 	//TODO implement toggleable cell rendering
 	void Map::loadCells(){
 		sol::state_view SOL_LUA_VIEW = generateView();
-		sol::table cellsTable = SOL_LUA_VIEW[mapTable]["cells"];
+		sol::table cellsTable = SOL_LUA_VIEW["cells"];
 		int numCells = cellsTable.size();
 
 		for(int i = 0; i < numCells; i++){
@@ -570,6 +570,7 @@ namespace battleship{
 
 		sol::state_view SOL_LUA_STATE = generateView();
 		SOL_LUA_STATE.script_file(path + "Models/Maps/" + mapName + "/" + mapName + ".lua");
+		SOL_LUA_STATE.script_file(path + "Models/Maps/" + mapName + "/cells.lua");
 
 		preprareScene(false);
 		loadSpawnPoints();
