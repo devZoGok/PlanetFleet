@@ -83,6 +83,7 @@ namespace battleship{
 		std::vector<int> getSurroundingCells(vb01::Vector3, int);
 		void blockCells(Unit*);
 		void unblockCells(Unit*);
+		inline Map::Cell getCell(int i){return cells[i];}
 		inline std::string getMapName(){return mapName;}
 		inline vb01::Node* getNodeParent(){return terrainNode;}
 		inline vb01::Vector3 getCellSize(){return CELL_SIZE;}

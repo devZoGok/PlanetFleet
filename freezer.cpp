@@ -33,7 +33,7 @@ namespace battleship{
 
 		Vehicle::build(order);
 
-		if(targ->getUnitClass() == UnitClass::ICE_SHEET && ((Structure*)targ)->getBuildStatus() >= 100)
+		if(targ->getUnitClass() == UnitClass::ICE_SHEET && ((Structure*)targ)->isComplete())
 			removeOrder(0);
 	}
 }

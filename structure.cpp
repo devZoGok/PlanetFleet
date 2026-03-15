@@ -31,7 +31,7 @@ namespace battleship{
 		vector<Player*> selectingPlayers = getSelectingPlayers();
 		bool mainPlayerSelecting = (activeState && find(selectingPlayers.begin(), selectingPlayers.end(), mainPlayer) != selectingPlayers.end());
 
-		if(buildStatus < 100)
+		if(!isComplete())
 			destructable->displayStats(buildStatusForeground, buildStatusBackground, buildStatus, 100, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
 		else{
 			buildStatusBackground->setVisible(false);

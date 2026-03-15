@@ -45,8 +45,7 @@ namespace battleship{
     }
 
 	void CameraController::orientCamera(Vector3 rotAxis, double str){
-		float minStr = .001;
-		Quaternion rotQuat = Quaternion(.5 * (fabs(str) > minStr ? str : 0), rotAxis);
+		Quaternion rotQuat = Quaternion(.025 * str, rotAxis);
 		Camera *cam = Root::getSingleton()->getCamera();
 		Vector3 dir = rotQuat * cam->getDirection(), up = rotQuat * cam->getUp();
 		cam->lookAt(dir, up);

@@ -28,15 +28,9 @@ namespace vb01{
 namespace battleship{
     class Player;
 	class Weapon;
-	class Unit;
-	class Vehicle;
-	class Structure;
-	class Factory;
-	class Cruiser;
-	class Engineer;
-	class PointDefense;
-	class Projectile;
 	class GameObject;
+	class Vehicle;
+	class Projectile;
     
     struct Order {
         enum class TYPE {ATTACK, BUILD, MOVE, GARRISON, EJECT, PATROL, LAUNCH, SUPPLY, LOAD, UNLOAD, HACK};
@@ -67,15 +61,18 @@ namespace battleship{
     enum class Corner {FRONT_LEFT, FRONT_RIGHT, REAR_LEFT, REAR_RIGHT};
     enum class UnitType {UNDERWATER, SEA_LEVEL, HOVER, LAND, AIR, NONE = -1};
     enum class UnitClass {
-		WAR_MECH,
+		MECH,
 	   	TANK,
 	   	ARTILLERY,
-	   	ENGINEER,
+	   	ROBO_ENGINEER,
+	   	CYBORG_ENGINEER,
 	   	TRANSPORT,
 	   	RESOURCE_ROVER,
 	   	CRUISER,
+	   	ANTI_SUB_CRUISER,
 	   	CARRIER,
 	   	SUBMARINE,
+	   	MISSILE_SUBMARINE,
 		ICEBREAKER,
 		FREEZER,
 		EMP_BOAT,
@@ -86,7 +83,6 @@ namespace battleship{
 	   	POINT_DEFENSE,
 	   	EXTRACTOR,
 	   	REFINERY,
-		FORT,
 		ICE_SHEET
 	};
     
@@ -116,15 +112,11 @@ namespace battleship{
 		bool canGarrison(Vehicle*);
 		void initLosLight();
 		void destroyLosLight();
+		int getNumFreeGarrisonSlots();
 		inline void setState(State s){state = s;}
 		inline State getState(){return state;}
-		inline Engineer* toEngineer(){return (Engineer*)this;}
-		inline Structure* toStructure(){return (Structure*)this;}
-		inline Factory* toFactory(){return (Factory*)this;}
-		inline Cruiser* toCruiser(){return (Cruiser*)this;}
-		inline PointDefense* toPointDefense(){return (PointDefense*)this;}
-		inline GameObject* toGameObject(){return (GameObject*)this;}
 		inline int getNumGarrisonSlots(){return garrisonSlots.size();}
+		inline bool isGarrisonEmpty(){return getNumFreeGarrisonSlots() == getNumGarrisonSlots();}
 		inline const std::vector<GarrisonSlot>& getGarrisonSlots(){return garrisonSlots;}
         inline float getLineOfSight() {return lineOfSight;}
         inline UnitType getType() {return type;}

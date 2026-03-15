@@ -4,6 +4,7 @@
 #include "player.h"
 #include "game.h"
 #include "structure.h"
+#include "vehicle.h"
 #include "projectile.h"
 #include "tradeOffer.h"
 #include "destructable.h"
@@ -71,6 +72,11 @@ namespace battleship{
 		}
     }
 
+	void Player::haltUnits(){
+		for (Unit *u : selectedUnits)
+			u->halt();
+	}
+
 	int Player::getOrderLineId(Order::TYPE type, Vector3 startPos, Vector3 endPos){
 		Vector3 color;
 
@@ -116,7 +122,7 @@ namespace battleship{
 					break;
 				}
 
-				if(!u->isVehicle() && ((Structure*)u)->getBuildStatus() < 100){
+				if(!u->isVehicle() && ((Structure*)u)->isComplete()){
 					structBuilt = false;
 					break;
 				}
@@ -148,6 +154,12 @@ namespace battleship{
 
 		delete units[id];
 		units.erase(units.begin() + id);
+
+		if(cpuPlayer){
+			sol::state_view SOL_LUA_VIEW = generateView();
+			int id = getCpuPlayerId() + 1;
+			SOL_LUA_VIEW.script("game.cpuPlayers[" + to_string(id) + "]:updateTaskForces()");
+		}
 	}
 
 	void Player::removeResourceDeposit(int id){
@@ -169,11 +181,15 @@ namespace battleship{
 	}
 
 	void Player::selectUnits(vector<Unit*> selUnits){
-		for(Unit *u : selUnits)
-			if(find(selectedUnits.begin(), selectedUnits.end(), u) == selectedUnits.end()){
+		for(Unit *u : selUnits){
+			bool garrisonable = (!u->isVehicle() || (u->isVehicle() && !((Vehicle*)u)->getGarrisonable()));
+			bool selected = (find(selectedUnits.begin(), selectedUnits.end(), u) != selectedUnits.end());
+
+			if(garrisonable && !selected){
 				selectedUnits.push_back(u);
 				u->select();
 			}
+		}
 	}
 
 	vector<Unit*> Player::getUnitsById(int id, int numUnits){
@@ -285,5 +301,58 @@ namespace battleship{
 				targUnitPlayer->incStructuresLost();
 			}
 		}
+	}
+
+    vector<Unit*> Player::getFriendlyUnits(bool includeOwn){
+		vector<Unit*> friendlyUnits;
+
+        for (Player *pl : Game::getSingleton()->getPlayers(true))
+            for (Unit *u : pl->getUnits())
+				if((includeOwn && pl == this) || pl->getTeam() == getTeam())
+                	friendlyUnits.push_back(u);
+
+		return friendlyUnits;
+	}
+
+    vector<Unit*> Player::getHostileUnits(){
+		vector<Unit*> hostileUnits, friendlyUnits = getFriendlyUnits(true);
+
+        for (Player *pl : Game::getSingleton()->getPlayers(true))
+            for (Unit *u : pl->getUnits())
+				if(pl->getTeam() != getTeam() && isObjectVisible(u, friendlyUnits))
+                	hostileUnits.push_back(u);
+
+		return hostileUnits;
+	}
+
+	//TODO improve this for greater accuracy
+    bool Player::isObjectVisible(GameObject *object, std::vector<Unit*> friendlyUnits) {
+		Player *objPlayer = object->getPlayer();
+
+		for(Unit *friendlyUnit : friendlyUnits){
+			if(objPlayer == this || objPlayer->getTeam() == getTeam())
+				return true;
+			
+			Vector3 obsUnitPos = object->getPos();
+			Vector2 oup2d = Vector2(obsUnitPos.x, obsUnitPos.z);
+			
+			Vector3 compUnitPos = friendlyUnit->getPos();
+			Vector2 cup2d = Vector2(compUnitPos.x, compUnitPos.z);
+			
+			if(cup2d.getDistanceFrom(oup2d) <= friendlyUnit->getLineOfSight())
+				return true;
+		}
+
+		return false;
+    }
+
+	int Player::getCpuPlayerId(){
+		vector<Player*> cpuPlayers = Game::getSingleton()->getCpuPlayers();
+
+		for(int i = 0; i < cpuPlayers.size(); i++)
+			if(cpuPlayers[i] == this)
+				return i;
+
+		return -1;
 	}
 }

@@ -171,6 +171,15 @@ namespace battleship{
 		delete losLightNode;
 		losLightNode = nullptr;
 	}
+
+	int Unit::getNumFreeGarrisonSlots(){
+		int numFreeSlots = 0;
+
+		for(GarrisonSlot &slot : garrisonSlots)
+			if(!slot.vehicle) numFreeSlots++;
+
+		return numFreeSlots;
+	}
 	
 	void Unit::destroySound(){
 		selectionSfx->stop();
@@ -297,6 +306,20 @@ namespace battleship{
 
 		if(!currOrderStarted) startCurrentOrder();
 
+		if(!orders[0].targets.empty() && orders[0].targets[0].unit){
+			vector<Unit*> units;
+
+			for(Player *pl : Game::getSingleton()->getPlayers(true)){
+				vector<Unit*> us = pl->getUnits();
+				units.insert(units.end(), us.begin(), us.end());
+			}
+
+			if(find(units.begin(), units.end(), orders[0].targets[0].unit) == units.end()){
+				removeOrder(0);
+				return;
+			}
+		}
+
 		switch (orders[0].type) {
 		    case Order::TYPE::ATTACK:
 		        attack(orders[0]);
@@ -413,7 +436,7 @@ namespace battleship{
 				return destructTarg && !getWeaponsByOrder(Order::TYPE::ATTACK).empty();
 			}
 		    case Order::TYPE::BUILD:
-				return (unitClass == UnitClass::ENGINEER || unitClass == UnitClass::FREEZER);
+				return (unitClass == UnitClass::ROBO_ENGINEER || unitClass == UnitClass::CYBORG_ENGINEER || unitClass == UnitClass::FREEZER);
 		    case Order::TYPE::PATROL:
 		    case Order::TYPE::MOVE:
 				return vehicle;
@@ -465,6 +488,11 @@ namespace battleship{
 		}
 
 		orders.push_back(order);
+
+		if(order.type == Order::TYPE::BUILD && order.targets[0].unit)
+			player->addUnit((Unit*)order.targets[0].unit);
+
+        executeOrders();
     }
 
     void Unit::halt() {
@@ -490,7 +518,7 @@ namespace battleship{
 		Map *map = Map::getSingleton();
 
 		if(alignToSurface){
-			vector<RayCaster::CollisionResult> res = RayCaster::cast(Vector3(p.x, 100, p.z), -Vector3::VEC_J, map->getNodeParent()->getChildren(), 0, 20);
+			vector<RayCaster::CollisionResult> res = map->raycastTerrain(Vector3(p.x, 100, p.z), -Vector3::VEC_J, true);
 			
 			if(res.empty() || res[0].mesh->getNode() != map->getNodeParent()->getChild(0))
 				model->lookAt(Vector3(dirVec.x, 0, dirVec.z).norm(), Vector3::VEC_J);
@@ -511,8 +539,7 @@ namespace battleship{
 		if(activeState){
 			map->blockCells(this);
 
-			if(activeState->getPlayer())
-				Map::Minimap::getSingleton()->updateImage();
+			//if(activeState->getPlayer()) Map::Minimap::getSingleton()->updateImage();
 		}
 	}
 

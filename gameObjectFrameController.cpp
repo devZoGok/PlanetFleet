@@ -54,7 +54,7 @@ namespace battleship{
 				buildDir = gameObjectFrames[1].getModel()->getPosition() - gameObjectFrames[0].getModel()->getPosition();
 
 			Vector3 pos = paintSelectRowStart + buildDir.norm() * hypothenuse * gameObjectFrames.size();
-			addGameObjectFrame(GameObjectFrame(structureId, GameObject::Type::UNIT, nullptr, pos));
+			addGameObjectFrame(GameObjectFrame(structureId, GameObject::Type::UNIT, gameObjectFrames[0].getPlayer(), nullptr, pos));
 		}
 	}
 
@@ -73,14 +73,56 @@ namespace battleship{
 		}
 	}
 
-	//TODO fix which unit frames light green or red
+	//TODO include checking if frame is outside of line of sight
 	void GameObjectFrameController::checkPlacement(GameObjectFrame &s){
+		s.status = GameObjectFrame::PLACEABLE;
+
 		Map *map = Map::getSingleton();
+		Vector3 mapSize = map->getMapSize();
+		Vector3 cellSize = map->getCellSize();
+		int dirMult[][2]{{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+		vector<Map::Cell> &cells = map->getCells();
+
+		sol::table tbl = generateView()["units"][s.getId() + 1];
+		UnitType ut = (UnitType)tbl["unitType"];
+
+		vector<Unit*> friendlyUnits = (s.getPlayer() ? s.getPlayer()->getFriendlyUnits() : vector<Unit*>{});
+		bool withinLos = false;
+
+		for(int i = 0; i < 4; i++){
+			Vector3 cornerPos = (s.getPos() + s.getDirVec() * .5 * dirMult[i][0] * s.getLength() + s.getLeftVec() * .5 * dirMult[i][1] * s.getWidth());
+
+			if(!(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <= .5  * mapSize.z)){
+				s.status = GameObjectFrame::NOT_PLACEABLE;
+				return;
+			}
+
+			Map::Cell cell = cells[map->getCellId(cornerPos, false)];
+			bool landUnitOnWater = (ut == UnitType::LAND && cell.type == Map::Cell::Type::WATER);
+			bool waterUnitOnLand = ((ut == UnitType::SEA_LEVEL || ut == UnitType::UNDERWATER) && cell.type == Map::Cell::Type::LAND);
+			bool withinCell = (fabs(cell.pos.x - cornerPos.x) < .5 * cellSize.x && fabs(cell.pos.z - cornerPos.z) < .5 * cellSize.z);
+
+			if((landUnitOnWater || waterUnitOnLand) && withinCell){
+				s.status = GameObjectFrame::NOT_PLACEABLE;
+				return;
+			}
+			
+			if(!withinLos)
+				for(Unit *fu : friendlyUnits)
+					if(fu->getPos().getDistanceFrom(s.getPos()) < fu->getLineOfSight()){
+						withinLos = true;
+						break;
+					}
+		}
+		
+		if(!withinLos){
+			s.status = GameObjectFrame::NOT_PLACEABLE;
+			return;
+		}
+
 		MeshData meshData = map->getNodeParent()->getChild(0)->getMesh(0)->getMeshBase();
 		MeshData::Vertex *verts = meshData.vertices;
 		int numVerts = 3 * meshData.numTris;
-
-		s.status = GameObjectFrame::PLACEABLE;
 
 		if(s.getMaxUnevenness() > 0)
 			for(int i = 0; i < numVerts; i++){
@@ -90,7 +132,7 @@ namespace battleship{
 
 				if(diffX < 0.5 * s.getWidth() && diffZ < 0.5 * s.getLength() && diffY > s.getMaxUnevenness()){
 					s.status = GameObjectFrame::NOT_PLACEABLE;
-					break;
+					return;
 				}
 			}
 
@@ -132,7 +174,7 @@ namespace battleship{
 
 			if(intersects){
 				s.status = GameObjectFrame::NOT_PLACEABLE;
-				break;
+				return;
 			}
 		}
 	}

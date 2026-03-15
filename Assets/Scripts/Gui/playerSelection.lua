@@ -4,7 +4,7 @@ Size = {x = 150, y = 20}
 gap = 10
 gapFactor = 3
 
-factions = {'None', "America inc.", "European Republic", "Asian Co-Prosperity Sphere"}
+factions = {'None', 'Asian Co-Prosperity Sphere', 'America inc.', 'European Republic'}
 difficulties = {"Easy", "Medium", "Hard"}
 colors = {'White', 'Black', 'Red'}
 teams = {'0', '1', '2', '3', '4'}
