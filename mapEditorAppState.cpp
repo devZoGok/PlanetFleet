@@ -354,10 +354,10 @@ namespace battleship{
 					Vector3 waterPos = terrainNode->getChild(k)->getPosition();
 					Vector3 waterSize = ((Quad*)terrainNode->getChild(k)->getMesh(0))->getSize();
 
-					if(fabs(res[0].pos.x - waterPos.x) < .5 * waterSize.x && fabs(res[0].pos.z - waterPos.z) < .5 * waterSize.y){
+					if(pos.y < waterPos.y && fabs(res[0].pos.x - waterPos.x) < .5 * waterSize.x && fabs(res[0].pos.z - waterPos.z) < .5 * waterSize.y){
 						type = Map::Cell::Type::WATER;
 						pos.y = waterPos.y;
-						waterBodyBedPoints.push_back(pair(numVertCells * i + j, res[0].pos.y));
+						waterBodyBedPoints.push_back(pair(numVertCells * j + i, res[0].pos.y));
 						break;
 					}
 				}
@@ -478,7 +478,7 @@ namespace battleship{
 	void MapEditorAppState::MapEditor::generateMapScript(vector<Map::Cell> &cells){
 		int numWaterBodies = map->getNodeParent()->getNumChildren() - 1;
 
-		string mapScript = "map = {\n\tlights = {";
+		string mapScript = "metadata = {\n\tlights = {";
 
 		for(Node *light : map->getLights()){
 			mapScript += "\n\t\t{type = " + to_string((int)light->getLight(0)->getLightType());
@@ -514,31 +514,6 @@ namespace battleship{
 
 		mapScript += "\t},\n";
 		mapScript += "\tcivilianPlayer = {\n" + generatePlayerTableStr(game->getCivilianPlayer()) + "\n\t},\n";
-		mapScript += "\tcells = {\n";
-
-		for(Map::Cell cell : cells){
-			Vector3 p = cell.pos;
-			mapScript += "\t\t{type = " + to_string((int)cell.type) + ", pos = {x = " + to_string(p.x) + ", y = " + to_string(p.y) + ", z = " + to_string(p.z) + "}, numEdges = " + to_string(cell.edges.size()) + ", edges = {";
-
-			for(Map::Edge edge : cell.edges)
-				mapScript += "{srcCellId = " + to_string(edge.srcCellId) + ", destCellId = "  + to_string(edge.destCellId) + ", weight = "  + to_string(edge.weight) + "}, ";
-
-			int numSubCells = cell.underWaterCellIds.size();
-			mapScript += "}, numUnderWaterCells = " + to_string(numSubCells) + ",";
-
-			if(numSubCells > 0){
-				mapScript += "underWaterCellId = {";
-
-				for(int subCellId : cell.underWaterCellIds)
-					mapScript += to_string(subCellId) + ", ";
-
-				mapScript += "}";
-			}
-
-			mapScript += "\t\t},\n";
-		}
-
-		mapScript += "\t},\n";
 
 		Root *root = Root::getSingleton();
 		string skyboxPath = "";
@@ -568,10 +543,40 @@ namespace battleship{
 
 		mapScript += "\t}\n}";
 
-		string file = GameManager::getSingleton()->getPath() + "Models/Maps/" + map->getMapName() + "/" + map->getMapName() + ".lua";
+		string cellsScript = "cells = {\n";
 
-		std::ofstream outFile(file);
+		for(Map::Cell cell : cells){
+			Vector3 p = cell.pos;
+			cellsScript += "\t\t{type = " + to_string((int)cell.type) + ", pos = {x = " + to_string(p.x) + ", y = " + to_string(p.y) + ", z = " + to_string(p.z) + "}, numEdges = " + to_string(cell.edges.size()) + ", edges = {";
+
+			for(Map::Edge edge : cell.edges)
+				cellsScript += "{srcCellId = " + to_string(edge.srcCellId) + ", destCellId = "  + to_string(edge.destCellId) + ", weight = "  + to_string(edge.weight) + "}, ";
+
+			int numSubCells = cell.underWaterCellIds.size();
+			cellsScript += "}, numUnderWaterCells = " + to_string(numSubCells) + ",";
+
+			if(numSubCells > 0){
+				cellsScript += "underWaterCellId = {";
+
+				for(int subCellId : cell.underWaterCellIds)
+					cellsScript += to_string(subCellId) + ", ";
+
+				cellsScript += "}";
+			}
+
+			cellsScript += "\t\t},\n";
+		}
+
+		cellsScript += "\t}";
+
+		string basePath = GameManager::getSingleton()->getPath() + "Models/Maps/" + map->getMapName() + "/";
+
+		std::ofstream outFile(basePath + map->getMapName() + ".lua");
 		outFile << mapScript;
+		outFile.close();
+
+		outFile = std::ofstream(basePath + "cells.lua");
+		outFile << cellsScript;
 		outFile.close();
 	}
 

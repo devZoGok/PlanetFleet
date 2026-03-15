@@ -221,39 +221,38 @@ namespace battleship{
 	}
 
 	Map* Map::getSingleton(){
-		if(!map)
-			map = new Map;
+		if(!map) map = new Map;
 
 		return map;
 	}
 
 	vector<Map::Edge> Map::generateAdjacentNodeEdges(int numVertCells, int i, int numHorCells, int j, int weight){
 		vector<Map::Edge> edges;
-		bool up = (i > 0), right = (j < numHorCells - 1), down = (i < numVertCells - 1), left = (j > 0);
+		bool checkUp = (i > 0), checkRight = (j < numHorCells - 1), checkDown = (i < numVertCells - 1), checkLeft = (j > 0);
 
-		if(left)
-			edges.push_back(Map::Edge(weight, numVertCells * i + j, numVertCells * i + j - 1));
+		if(checkLeft)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * i + j - 1));
 
-		if(right)
-			edges.push_back(Map::Edge(weight, numVertCells * i + j, numVertCells * i + j + 1));
+		if(checkRight)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * i + j + 1));
 
-		if(up)
-			edges.push_back(Map::Edge(weight, numVertCells * i + j, numVertCells * (i - 1) + j));
+		if(checkUp)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * (i - 1) + j));
 
-		if(down)
-			edges.push_back(Map::Edge(weight, numVertCells * i + j, numVertCells * (i + 1) + j));
+		if(checkDown)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * (i + 1) + j));
 
-		if(up && left)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numVertCells * i + j, numVertCells * (i - 1) + j - 1));
+		if(checkUp && checkLeft)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i - 1) + j - 1));
 
-		if(up && right)
-			edges.push_back(Map::Edge((sqrt(2 * weight * weight)), numVertCells * i + j, numVertCells * (i - 1) + j + 1));
+		if(checkUp && checkRight)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i - 1) + j + 1));
 
-		if(down && left)
-			edges.push_back(Map::Edge((sqrt(2 * weight * weight)), numVertCells * i + j, numVertCells * (i + 1) + j - 1));
+		if(checkDown && checkLeft)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i + 1) + j - 1));
 
-		if(down && right)
-			edges.push_back(Map::Edge((sqrt(2 * weight * weight)), numVertCells * i + j, numVertCells * (i + 1) + j + 1));
+		if(checkDown && checkRight)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i + 1) + j + 1));
 
 		return edges;
 	}
@@ -371,7 +370,7 @@ namespace battleship{
 		if(name != "")
 			generateView().script_file(GameManager::getSingleton()->getPath() + "Models/Maps/" + name + "/" + name + ".lua");
 
-		sol::table spawnPointsTbl = generateView()["map"]["spawnPoints"];
+		sol::table spawnPointsTbl = generateView()["metadata"]["spawnPoints"];
 		return spawnPointsTbl.size();
 	}
 
@@ -525,7 +524,7 @@ namespace battleship{
 	//TODO implement toggleable cell rendering
 	void Map::loadCells(){
 		sol::state_view SOL_LUA_VIEW = generateView();
-		sol::table cellsTable = SOL_LUA_VIEW[mapTable]["cells"];
+		sol::table cellsTable = SOL_LUA_VIEW["cells"];
 		int numCells = cellsTable.size();
 
 		for(int i = 0; i < numCells; i++){
@@ -570,6 +569,7 @@ namespace battleship{
 
 		sol::state_view SOL_LUA_STATE = generateView();
 		SOL_LUA_STATE.script_file(path + "Models/Maps/" + mapName + "/" + mapName + ".lua");
+		SOL_LUA_STATE.script_file(path + "Models/Maps/" + mapName + "/cells.lua");
 
 		preprareScene(false);
 		loadSpawnPoints();
