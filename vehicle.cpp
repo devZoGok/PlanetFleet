@@ -371,7 +371,7 @@ namespace battleship{
 		bool ship = (type == UnitType::UNDERWATER || type == UnitType::SEA_LEVEL);
 		vector<Map::Cell> &cells = Map::getSingleton()->getCells();
 
-		for(int i = 0; i < path.size(); i++){
+		for(int i = 1; i < path.size(); i++){
 			if((ship && cells[path[i]].type != Map::Cell::WATER) || (order.type != Order::TYPE::GARRISON && type == UnitType::LAND && cells[path[i]].type != Map::Cell::LAND)){
 				path = vector<int>(path.begin(), path.begin() + i);
 				order.targets[0].unit = nullptr;
@@ -443,13 +443,11 @@ namespace battleship{
 
 		vector<float> heurs;
 		Pathfinder *pf = Pathfinder::getSingleton();
-		vector<int> path = pf->findPath(cells, heurs, source, dest, this);
+		vector<int> path = pf->findPath(cells, heurs, source, dest, (int)type);
 
-		if(path.empty()) return;
+		if(path.empty() || !truncatePath(order, path, destPos, appendDestPos)) return;
 
 		path.erase(path.begin());
-
-		if(!truncatePath(order, path, destPos, appendDestPos)) return;
 	}
 
 	void Vehicle::removePathpoint(int i){

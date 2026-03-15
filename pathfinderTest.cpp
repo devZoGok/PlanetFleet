@@ -1,5 +1,6 @@
 #include "pathfinderTest.h"
 #include "pathfinder.h"
+#include "unit.h"
 
 #include <vector.h>
 #include <util.h>
@@ -61,9 +62,6 @@ namespace battleship{
 				Map::Cell(Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 6, 6)})
 			};
 
-			const u16 INF = u16(0 - 1);
-			pathfinder->setImpassibleNodeVal(INF);
-
 			int src = 0, dest = cells.size() - 1;
 			vector<float> heur;
 			vector<int> path = pathfinder->findPath(cells, heur, src, dest);
@@ -93,8 +91,27 @@ namespace battleship{
 			CPPUNIT_ASSERT(sumTime <= threshold);
 		}
 
+		void PathfinderTest::testFindShorePath(){
+			int numSideCells = 25;
+			cells = generateCellGraph(numSideCells);
+
+			for(int i = 0; i < numSideCells; i++)
+				cells[numSideCells * i + int(.5 * numSideCells)].type = Map::Cell::WATER;
+
+			vector<float> heur = vector<float>{};
+			vector<int> p1 = pathfinder->findPath(cells, heur, 0, 4, (int)UnitType::LAND);
+
+			int numEdges = cells[p1[p1.size() - 1]].edges.size();
+			//for(int i = 0; i < numEdges; i++){}
+
+			vector<int> p2 = pathfinder->findPath(cells, heur, 2, 4, (int)UnitType::SEA_LEVEL);
+			CPPUNIT_ASSERT(cells[p2[p2.size() - 1]].type == Map::Cell::WATER);
+		}
+
 		void PathfinderTest::setUp(){
 			pathfinder = Pathfinder::getSingleton();
+			const u16 INF = u16(0 - 1);
+			pathfinder->setImpassibleNodeVal(INF);
 		}
 
 		void PathfinderTest::tearDown(){}
