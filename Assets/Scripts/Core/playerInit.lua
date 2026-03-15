@@ -11,7 +11,7 @@ for i = 1, #game.cpuPlayers do
 				func = player.buildTaskForces, 
 				args = {
 					factoryClass = UnitClass.LAND_FACTORY,
-					taskForceData = {{class = UnitClass.CYBORG_ENGINEER, numUnits = 4}}
+					taskForceData = {{class = UnitClass.CYBORG_ENGINEER, numUnits = 5}}
 				}
 			},
 			{

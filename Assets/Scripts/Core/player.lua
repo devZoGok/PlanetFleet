@@ -33,8 +33,8 @@ Player.unitClassMappings = {
 }
 
 Player.landTaskForceData = {
-	{class = UnitClass.MECH, numUnits = 2},
-	{class = UnitClass.TANK, numUnits = 1},
+	{class = UnitClass.MECH, numUnits = 3},
+	{class = UnitClass.TANK, numUnits = 2},
 	{class = UnitClass.ARTILLERY, numUnits = 1}
 }
 
@@ -127,7 +127,7 @@ function Player:landRouteToSpawnpoint_(mapPoint)
 	pf = Pathfinder.getSingleton()
 	cells = map:getCells()
 	heurs = pf:calcHeuristics(cells, dest)
-	path = pf:findPath(cells, heurs, source, dest, nil)
+	path = pf:findPath(cells, heurs, source, dest, -1)
 
 	embarkCellId = nil
 	disembarkCellId = nil
