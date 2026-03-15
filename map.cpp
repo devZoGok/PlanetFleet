@@ -221,39 +221,38 @@ namespace battleship{
 	}
 
 	Map* Map::getSingleton(){
-		if(!map)
-			map = new Map;
+		if(!map) map = new Map;
 
 		return map;
 	}
 
 	vector<Map::Edge> Map::generateAdjacentNodeEdges(int numVertCells, int i, int numHorCells, int j, int weight){
 		vector<Map::Edge> edges;
-		bool up = (i > 0), right = (j < numHorCells - 1), down = (i < numVertCells - 1), left = (j > 0);
+		bool checkUp = (i > 0), checkRight = (j < numHorCells - 1), checkDown = (i < numVertCells - 1), checkLeft = (j > 0);
 
-		if(left)
-			edges.push_back(Map::Edge(weight, numVertCells * i + j, numVertCells * i + j - 1));
+		if(checkLeft)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * i + j - 1));
 
-		if(right)
-			edges.push_back(Map::Edge(weight, numVertCells * i + j, numVertCells * i + j + 1));
+		if(checkRight)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * i + j + 1));
 
-		if(up)
-			edges.push_back(Map::Edge(weight, numVertCells * i + j, numVertCells * (i - 1) + j));
+		if(checkUp)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * (i - 1) + j));
 
-		if(down)
-			edges.push_back(Map::Edge(weight, numVertCells * i + j, numVertCells * (i + 1) + j));
+		if(checkDown)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * (i + 1) + j));
 
-		if(up && left)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numVertCells * i + j, numVertCells * (i - 1) + j - 1));
+		if(checkUp && checkLeft)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i - 1) + j - 1));
 
-		if(up && right)
-			edges.push_back(Map::Edge((sqrt(2 * weight * weight)), numVertCells * i + j, numVertCells * (i - 1) + j + 1));
+		if(checkUp && checkRight)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i - 1) + j + 1));
 
-		if(down && left)
-			edges.push_back(Map::Edge((sqrt(2 * weight * weight)), numVertCells * i + j, numVertCells * (i + 1) + j - 1));
+		if(checkDown && checkLeft)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i + 1) + j - 1));
 
-		if(down && right)
-			edges.push_back(Map::Edge((sqrt(2 * weight * weight)), numVertCells * i + j, numVertCells * (i + 1) + j + 1));
+		if(checkDown && checkRight)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i + 1) + j + 1));
 
 		return edges;
 	}
