@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 set(GAME_NAME battleship)
 project(${GAME_NAME})
@@ -16,31 +16,30 @@ set(BUILD_TESTS OFF)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL FORCED)
 cmake_policy(SET CMP0015 NEW)
 
-set(STATES activeGameState.cpp inGameAppState.cpp guiAppState.cpp mapEditorAppState.cpp loadingAppState.cpp)
+set(STATES src/Core/activeGameState.cpp src/Core/inGameAppState.cpp src/Core/guiAppState.cpp src/Core/mapEditorAppState.cpp src/Core/loadingAppState.cpp)
 
-set(UNIT_BUTTONS unitButton.cpp tradeButton.cpp buildButton.cpp trainButton.cpp researchButton.cpp orderButton.cpp stateToggleButton.cpp)
-set(OPTIONS_BUTTONS optionsButton.cpp tabButton.cpp okButton.cpp defaultsButton.cpp)
-set(TRADING_BUTTONS activeStateBackButton.cpp playerTradeButton.cpp tradingScreenButton.cpp offerButton.cpp resourceAmmountButton.cpp)
-set(MENU_BUTTONS mainMenuButton.cpp singlePlayerButton.cpp exitButton.cpp backButton.cpp playButton.cpp)
-set(MAP_EDITOR_BUTTONS mapEditorButton.cpp newMapButton.cpp loadMapButton.cpp exportButton.cpp)
-set(BUTTONS statsButton.cpp activeStateButton.cpp minimapButton.cpp ${TRADING_BUTTONS} ${OPTIONS_BUTTONS} ${MENU_BUTTONS} ${MAP_EDITOR_BUTTONS} ${UNIT_BUTTONS})
+set(UNIT_BUTTONS src/UI/unitButton.cpp src/UI/tradeButton.cpp src/UI/buildButton.cpp src/UI/trainButton.cpp src/UI/researchButton.cpp src/UI/orderButton.cpp src/UI/stateToggleButton.cpp) 
+set(OPTIONS_BUTTONS src/UI/optionsButton.cpp src/UI/tabButton.cpp src/UI/okButton.cpp src/UI/defaultsButton.cpp) 
+set(TRADING_BUTTONS src/UI/activeStateBackButton.cpp src/UI/playerTradeButton.cpp src/UI/tradingScreenButton.cpp src/UI/offerButton.cpp src/UI/resourceAmmountButton.cpp) 
+set(MENU_BUTTONS src/UI/mainMenuButton.cpp src/UI/singlePlayerButton.cpp src/UI/exitButton.cpp src/UI/backButton.cpp src/UI/playButton.cpp) 
+set(MAP_EDITOR_BUTTONS src/UI/mapEditorButton.cpp src/UI/newMapButton.cpp src/UI/loadMapButton.cpp src/UI/exportButton.cpp) 
+set(BUTTONS src/UI/statsButton.cpp src/UI/activeStateButton.cpp src/UI/minimapButton.cpp ${TRADING_BUTTONS} ${OPTIONS_BUTTONS} ${MENU_BUTTONS} ${MAP_EDITOR_BUTTONS} ${UNIT_BUTTONS})
 
-set(LISTBOXES skyboxTextureListbox.cpp landTextureListbox.cpp gameObjectListbox.cpp mapListbox.cpp)
-set(GUI tooltip.cpp concreteGuiManager.cpp ${BUTTONS} ${LISTBOXES})
+set(LISTBOXES src/UI/skyboxTextureListbox.cpp src/UI/landTextureListbox.cpp src/UI/gameObjectListbox.cpp src/UI/mapListbox.cpp) 
+set(GUI src/UI/tooltip.cpp src/Core/concreteGuiManager.cpp ${BUTTONS} ${LISTBOXES})
 
-set(CONTROLLERS gameObjectFrameController.cpp cameraController.cpp)
-set(CONSOLE console.cpp abstractCommand.cpp addUnitCommand.cpp addResourceCommand.cpp addTechnologyCommand.cpp toggleDebugCommand.cpp)
-set(CORE gameManager.cpp game.cpp pathfinder.cpp environment.cpp fxManager.cpp defConfigs.cpp player.cpp trader.cpp ${CONSOLE} ${CONTROLLERS})
+set(CONTROLLERS src/UI/gameObjectFrameController.cpp src/Map/cameraController.cpp) 
+set(CONSOLE src/Core/console.cpp src/Commands/abstractCommand.cpp src/Commands/addUnitCommand.cpp src/Commands/addResourceCommand.cpp src/Commands/addTechnologyCommand.cpp src/Commands/toggleDebugCommand.cpp) 
+set(CORE src/Core/gameManager.cpp src/Core/game.cpp src/Core/pathfinder.cpp src/Core/environment.cpp src/Core/fxManager.cpp src/Core/defConfigs.cpp src/Core/player.cpp src/Core/trader.cpp ${CONSOLE} ${CONTROLLERS})
 
-set(PROJECTILES projectile.cpp missile.cpp cruiseMissile.cpp shell.cpp depthCharge.cpp torpedo.cpp torpedo.h)
-set(VEHICLES vehicle.cpp submarine.cpp engineer.cpp resourceRover.cpp freezer.cpp)
-set(STRUCTURES structure.cpp factory.cpp pointDefense.cpp extractor.cpp researchStruct.cpp iceSheet.cpp)
-set(WEAPONS weapon.cpp)
-set(UNITS unit.cpp ${WEAPONS} ${STRUCTURES} ${VEHICLES})
-set(CONTENT map.cpp gameObject.cpp destructable.cpp gameObjectFrame.h gameObjectFactory.cpp resourceDeposit.cpp ${UNITS} ${PROJECTILES})
+set(PROJECTILES src/Entities/projectile.cpp src/Entities/missile.cpp src/Entities/cruiseMissile.cpp src/Entities/shell.cpp src/Entities/depthCharge.cpp src/Entities/torpedo.cpp src/Entities/torpedo.h) 
+set(VEHICLES src/Entities/vehicle.cpp src/Entities/submarine.cpp src/Entities/engineer.cpp src/Entities/resourceRover.cpp src/Entities/freezer.cpp) 
+set(STRUCTURES src/Entities/structure.cpp src/Entities/factory.cpp src/Entities/pointDefense.cpp src/Entities/extractor.cpp src/Entities/researchStruct.cpp src/Entities/iceSheet.cpp) 
+set(WEAPONS src/Entities/weapon.cpp) 
+set(UNITS src/Entities/unit.cpp ${WEAPONS} ${STRUCTURES} ${VEHICLES}) 
+set(CONTENT src/Map/map.cpp src/Entities/gameObject.cpp src/EntityComponents/destructable.cpp src/UI/gameObjectFrame.h src/Entities/gameObjectFactory.cpp src/Entities/resourceDeposit.cpp ${UNITS} ${PROJECTILES})
 
-set(UTIL util.cpp binds.h)
-
+set(UTIL src/Core/util.cpp src/Core/binds.h)
 set(GAME_SRC ${STATES} ${GUI} ${CORE} ${CONTENT} ${UTIL})
 
 set(SFML_DIR external/gameBase/external/SFML)
@@ -48,12 +47,21 @@ set(VB01_DIR external/vb01)
 set(VB01_GUI_DIR external/vb01Gui)
 set(GAME_BASE_DIR external/gameBase)
 
-add_executable(${GAME_NAME} main.cpp ${GAME_SRC})
+add_executable(${GAME_NAME} src/Core/main.cpp ${GAME_SRC})
 
 include_directories(external/tinydir)
 include_directories(external/vb01/external/glm)
 include_directories(external/vb01/external/glm/glm)
 include_directories(external/gameBase/external/SFML/include)
+
+target_include_directories(${GAME_NAME} PRIVATE 
+    src/Core 
+    src/Entities 
+    src/EntityComponents 
+    src/UI 
+    src/Commands 
+    src/Map
+)
 
 add_subdirectory(${VB01_DIR})
 set(VB01_LIB_DIR ${VB01_DIR}/build)
