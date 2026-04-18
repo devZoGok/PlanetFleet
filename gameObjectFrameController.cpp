@@ -59,7 +59,7 @@ namespace battleship{
 	}
 
 	void GameObjectFrameController::snapToObj(GameObjectFrame &s, vector<GameObject*> snapTargets, float maxDist){
-		s.status = GameObjectFrame::NOT_PLACEABLE;
+		s.status = GameObjectFrame::BLOCKED_BY_DIFF_TERR;
 
 		for(GameObject *st : snapTargets){
 			Vector3 stPos = st->getPos();
@@ -91,19 +91,20 @@ namespace battleship{
 
 		for(int i = 0; i < 4; i++){
 			Vector3 cornerPos = (s.getPos() + s.getDirVec() * .5 * dirMult[i][0] * s.getLength() + s.getLeftVec() * .5 * dirMult[i][1] * s.getWidth());
+			int cellId = map->getCellId(cornerPos, false);
 
-			if(!(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <= .5  * mapSize.z)){
-				s.status = GameObjectFrame::NOT_PLACEABLE;
+			if(cellId < 0 || !(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <= .5  * mapSize.z)){
+				s.status = GameObjectFrame::BLOCKED_BY_MAP_BOUNDS;
 				return;
 			}
 
-			Map::Cell cell = cells[map->getCellId(cornerPos, false)];
+			Map::Cell cell = cells[cellId];
 			bool landUnitOnWater = (ut == UnitType::LAND && cell.type == Map::Cell::Type::WATER);
 			bool waterUnitOnLand = ((ut == UnitType::SEA_LEVEL || ut == UnitType::UNDERWATER) && cell.type == Map::Cell::Type::LAND);
 			bool withinCell = (fabs(cell.pos.x - cornerPos.x) < .5 * cellSize.x && fabs(cell.pos.z - cornerPos.z) < .5 * cellSize.z);
 
 			if((landUnitOnWater || waterUnitOnLand) && withinCell){
-				s.status = GameObjectFrame::NOT_PLACEABLE;
+				s.status = GameObjectFrame::BLOCKED_BY_DIFF_TERR;
 				return;
 			}
 			
@@ -116,7 +117,7 @@ namespace battleship{
 		}
 		
 		if(!withinLos){
-			s.status = GameObjectFrame::NOT_PLACEABLE;
+			s.status = GameObjectFrame::BLOCKED_BY_FOG_OF_WAR;
 			return;
 		}
 
@@ -131,7 +132,7 @@ namespace battleship{
 				float diffZ = fabs(s.getPos().z - verts[i].pos->z);
 
 				if(diffX < 0.5 * s.getWidth() && diffZ < 0.5 * s.getLength() && diffY > s.getMaxUnevenness()){
-					s.status = GameObjectFrame::NOT_PLACEABLE;
+					s.status = GameObjectFrame::BLOCKED_BY_BUMPY_TERR;
 					return;
 				}
 			}
@@ -173,7 +174,7 @@ namespace battleship{
 			);
 
 			if(intersects){
-				s.status = GameObjectFrame::NOT_PLACEABLE;
+				s.status = GameObjectFrame::BLOCKED_BY_UNIT;
 				return;
 			}
 		}
@@ -290,7 +291,6 @@ namespace battleship{
 
 	void GameObjectFrameController::rotateGameObjectFrames(float angle){
 		for(GameObjectFrame &s : gameObjectFrames)
-			if(s.status != GameObjectFrame::PLACED)
-			   	s.orientAt(Quaternion(angle, Vector3::VEC_J) * s.getRot());
+			s.orientAt(Quaternion(angle, Vector3::VEC_J) * s.getRot());
 	}
 }
