@@ -108,19 +108,16 @@ namespace battleship{
 			guiManager->parseLuaScript("gamePaused.lua");
         } 
         else {
-			sol::state_view SOL_LUA_VIEW = generateView();
-
-			for(string f : configData::scripts)
-				SOL_LUA_VIEW.script_file(gm->getPath() + f);
-
-			initLuaPlayers();
 			guiManager->readLuaScreenScript("inGame.lua", activeState->getGuiButtons());
 
-			string gop = SOL_LUA_VIEW["gameObjPrefix"], vfxp = SOL_LUA_VIEW["vfxPrefix"];
-			AssetManager::getSingleton()->load(gm->getPath() + gop, true);
-			AssetManager::getSingleton()->load(gm->getPath() + vfxp, true);
-
 			if(debug){
+				sol::state_view SOL_LUA_VIEW = generateView();
+
+				for(string f : configData::scripts)
+					SOL_LUA_VIEW.script_file(gm->getPath() + f);
+
+				initLuaPlayers();
+
 				vector<GameObject*> gameObjs;
 
 				for(Player *pl : Game::getSingleton()->getPlayers()){
@@ -133,6 +130,10 @@ namespace battleship{
 
 				for(ResourceDeposit *dep : civilianPlayer->getResourceDeposits())
 					gameObjs.push_back((GameObject*)dep);
+
+				string gop = SOL_LUA_VIEW["gameObjPrefix"], vfxp = SOL_LUA_VIEW["vfxPrefix"];
+				AssetManager::getSingleton()->load(gm->getPath() + gop, true);
+				AssetManager::getSingleton()->load(gm->getPath() + vfxp, true);
 
 				for(GameObject *obj : gameObjs)
 					obj->reinit();
