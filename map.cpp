@@ -383,8 +383,8 @@ namespace battleship{
 
 		vector<int> cellIds;
 
-		for(int i = vertId - numRings; i <= vertId + numRings; i++)
-			for(int j = horId - numRings; j <= horId + numRings; j++)
+		for(int i = max(vertId - numRings, 0); i <= min(vertId + numRings, numVertCells - 1); i++)
+			for(int j = max(horId - numRings, 0); j <= min(horId + numRings, numHorCells - 1); j++)
 				cellIds.push_back(numHorCells * i + j);
 
 		return cellIds;
