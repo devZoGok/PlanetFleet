@@ -209,14 +209,9 @@ namespace battleship{
 	}
 
 	void Vehicle::moveByPlane(Vector3 hypVec, float destOffset){
-		float hypAngle = hypVec.norm().getAngleBetween(upVec) - PI / 2;
-		float offset = hypVec.getLength() * sin(hypAngle);
+		Vector3 linDest = Vector3(pathPoints[0].x, pos.y, pathPoints[0].z);
 
-		Vector3 linDest = pathPoints[0] + upVec * offset;
-		Vector3 destDir = (linDest - pos).norm();
-		float angle = (destDir != Vector3::VEC_ZERO ? dirVec.getAngleBetween(destDir) : -1);
-
-		if(pos.getDistanceFrom(pathPoints[0]) > destOffset){
+		if(pos.getDistanceFrom(linDest) > destOffset){
 			float dist = pos.getDistanceFrom(linDest);
 			float movementAmmount = (speed > dist ? dist : speed);
 			advance(movementAmmount);
@@ -242,6 +237,8 @@ namespace battleship{
 
 		Vector3 hypVec = (pathPoints[0] - pos);
 		Vector3 baseDir = getVecToPlane(pos, hypVec, upVec);
+		if(baseDir == Vector3::VEC_ZERO) baseDir = dirVec;
+
 		float angle = baseDir.getAngleBetween(dirVec);
 
 		if(angle > anglePrecision && pos.getDistanceFrom(pathPoints[0]) > destOffset)
@@ -255,7 +252,8 @@ namespace battleship{
     void Vehicle::move(Order order) {
 		navigate(0.5 * Map::getSingleton()->getCellSize().x);
 
-		if(pathPoints.empty()) removeOrder(0);
+		if(pathPoints.empty())
+			removeOrder(0);
     }
 
 	void Vehicle::exitGarrisonable(Vector3 exitPos){
