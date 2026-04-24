@@ -450,9 +450,7 @@ function Player:buildNavalFactory(arguments)
 	navalFactory = self:getUnitsByClass(UnitClass.NAVAL_FACTORY, 1)[1]
 
 	if navalFactory then
-		if not self.navalRallyPoint then
-			self.navalRallyPoint = self:getUnitsByClass(UnitClass.NAVAL_FACTORY, 1)[1]:toFactory():getRallyPoint()
-		end
+		if not self.navalRallyPoint then self.navalRallyPoint = navalFactory:toFactory():getRallyPoint() end
 
 		return (navalFactory:toStructure():isComplete() and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
 	end
