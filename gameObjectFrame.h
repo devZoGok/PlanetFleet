@@ -8,7 +8,14 @@
 
 namespace battleship{
 	struct GameObjectFrame : public GameObject{
-		enum Status{PLACEABLE, NOT_PLACEABLE, PLACED};
+		enum Status{
+			PLACEABLE, 
+			BLOCKED_BY_FOG_OF_WAR,
+			BLOCKED_BY_UNIT,
+			BLOCKED_BY_MAP_BOUNDS,
+			BLOCKED_BY_DIFF_TERR,
+			BLOCKED_BY_BUMPY_TERR
+		};
 	
 		GameObjectFrame(int i, GameObject::Type t, Player *pl, Unit *ou = nullptr, vb01::Vector3 pos = vb01::Vector3::VEC_ZERO, vb01::Quaternion rot = vb01::Quaternion::QUAT_W) : 
 			originalUnit(ou), 

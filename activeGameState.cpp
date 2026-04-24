@@ -683,7 +683,7 @@ namespace battleship{
 							for(int i = 0; i < ufCtr->getNumGameObjectFrames(); i++){
 								GameObjectFrame gmObjFr = ufCtr->getGameObjectFrame(i);
 
-								if(gmObjFr.status == GameObjectFrame::NOT_PLACEABLE) continue;
+								if(gmObjFr.status == GameObjectFrame::BLOCKED_BY_DIFF_TERR) continue;
 
 								Unit *buildStruct = GameObjectFactory::createUnit(mainPlayer, gmObjFr.getId(), gmObjFr.getPos(), gmObjFr.getRot());
 								issueOrder(type, vector<Order::Target>{Order::Target(buildStruct, gmObjFr.getPos())}, shiftPressed);

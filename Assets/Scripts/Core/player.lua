@@ -6,6 +6,7 @@ Player.pointDefenseTrans = {}
 Player.spawnPointData = {}
 Player.navalFactoryCellId = nil
 Player.navalRallyPoint = nil
+Player.suitableBuildingPosIds = nil
 
 Player.unitClassMappings = {
 	{UnitId.ACS_MECH, UnitId.AINC_MECH, UnitId.ER_MECH},
@@ -86,7 +87,7 @@ function Player:initPdSpots()
 
 		frameCtrl:checkPlacement(pdFrame)
 
-		if pdFrame.status == 0 then
+		if pdFrame.status == GameObjectFrameStatus.PLACEABLE then
 			self.pointDefenseTrans[#self.pointDefenseTrans + 1] = {pos = pdPos, angle = angle}
 		end
 	end
@@ -106,7 +107,7 @@ function Player:updatePdSpots()
 		pdFrame:placeAt(self.pointDefenseTrans[i].pos)
 		gofCtrl:checkPlacement(pdFrame)
 
-		if pdFrame.status == 1 then
+		if pdFrame.status ~= GameObjectFrameStatus.PLACEABLE then
 			table.insert(delPdTrans, i)
 		end
 	end
@@ -127,7 +128,7 @@ function Player:landRouteToSpawnpoint_(mapPoint)
 	pf = Pathfinder.getSingleton()
 	cells = map:getCells()
 	heurs = pf:calcHeuristics(cells, dest)
-	path = pf:findPath(cells, heurs, source, dest, -1)
+	path = pf:findPath(cells, heurs, source, dest, UnitType.HOVER)
 
 	embarkCellId = nil
 	disembarkCellId = nil
@@ -187,33 +188,68 @@ function Player:init()
 	end
 end
 
-function Player:findSuitableSpot(buildingId, idealPos)
+function Player:findSuitableSpot(buildingId, idealPos, radius)
 	structFrame = GameObjectFrame:new(buildingId, 0, self, nil, idealPos, self.baseQuat)
-	numYPos = math.floor(2 * self.baseRadius / structFrame:getLength())
-	numXPos = math.floor(2 * self.baseRadius / structFrame:getWidth())
+	diffY = 10
+	diffX = 10
+	numYPos = math.floor(2 * radius / diffY)
+	numXPos = math.floor(2 * radius / diffX)
 
 	baseDir = self.baseQuat:multVec(Vector3:new(0, 0, 1))
 	baseLeft = self.baseQuat:multVec(Vector3:new(1, 0, 0))
 
 	frameCtrl = GameObjectFrameController.getSingleton()
-	frameCtrl:checkPlacement(structFrame)
+	startX = 1
+	startY = 1
 
-	if structFrame.status == 0 then
-		structFrame:destroy()
-		return idealPos
+	if not self.suitableBuildingPosIds then
+		frameCtrl:checkPlacement(structFrame)
+		
+		if structFrame.status == GameObjectFrameStatus.PLACEABLE then
+			structFrame:destroy()
+			return idealPos
+		end
+	else
+		startX = self.suitableBuildingPosIds.x
+		startY = self.suitableBuildingPosIds.y
 	end
 
 	startPos = idealPos:add(baseDir:mult(self.baseRadius)):add(baseLeft:mult(self.baseRadius))
 
-	for i = 1, numXPos do
-		for j = 1, numYPos do
-			point = startPos:add(baseLeft:neg():mult(i - 1)):add(baseDir:neg():mult(j - 1))
+	for i = startX, numXPos do
+		for j = startY, numYPos do
+			point = startPos:add(baseLeft:neg():mult((i - 1) * diffX)):add(baseDir:neg():mult((j - 1) * diffY))
 			structFrame:placeAt(point)
 			frameCtrl:checkPlacement(structFrame)
 
-			if structFrame.status == 0 then
+			if structFrame.status == GameObjectFrameStatus.PLACEABLE then
+				self.suitableBuildingPosIds = nil
 				structFrame:destroy()
 				return point
+			elseif structFrame.status == GameObjectFrameStatus.BLOCKED_BY_FOG_OF_WAR then
+				engis = self:getUnitsByClass(UnitClass.CYBORG_ENGINEER, -1)
+
+				for i = 1, #engis do
+					if engis[i]:getNumOrders() > 0 and engis[i]:getOrder(0).targets[1].pos:getDistanceFrom(point) < engis[i]:getLineOfSight() then
+						structFrame:destroy()
+						return nil
+					end
+				end
+
+				idleEngi = self:findIdleEngineer()
+
+				if not idleEngi then
+					structFrame:destroy()
+					return nil
+				end
+
+				self:deselectUnits()
+				self:selectUnits({idleEngi})
+				self:issueOrder(OrderType.MOVE, Vector3:new(0, 0, 0), {Target:new(nil, point)}, false)
+
+				self.suitableBuildingPosIds = {x = i, y = j}
+				structFrame:destroy()
+				return nil
 			end
 		end
 	end
@@ -293,7 +329,7 @@ function Player:buildLandFactory(arguments)
 	factId = self.unitClassMappings[UnitClass.LAND_FACTORY + 1][self:getFaction() + 1]
 	rd = self.baseQuat:multVec(Vector3:new(0, 0, 1)):mult(self.baseRadius)
 	sp = Map.getSingleton():getSpawnPoint(self:getSpawnPointId())
-	pos = self:findSuitableSpot(factId, sp)
+	pos = self:findSuitableSpot(factId, sp, self.baseRadius, engi)
 
 	if pos then
 		self:buildStructure(engi, factId, pos, self.baseQuat:getAngle())
@@ -316,11 +352,12 @@ function Player:buildRefinery(arguments)
 	fp = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]:getPos()
 	buildPos = fp:add(rd)
 
-	pos = self:findSuitableSpot(refId, buildPos)
+	idleEngi = self:findIdleEngineer()
+	pos = self:findSuitableSpot(refId, buildPos, self.baseRadius, idleEngi)
 
 	if pos then
 		buildAngle = (self.baseQuat:getAngle() + math.pi)
-		self:buildStructure(self:findIdleEngineer(), refId, buildPos, buildAngle)
+		self:buildStructure(idleEngi, refId, buildPos, buildAngle)
 		return BTNodeResult.RUNNING
 	else return BTNodeResult.FAILURE end
 end
@@ -413,15 +450,18 @@ function Player:buildNavalFactory(arguments)
 	navalFactory = self:getUnitsByClass(UnitClass.NAVAL_FACTORY, 1)[1]
 
 	if navalFactory then
+		if not self.navalRallyPoint then self.navalRallyPoint = navalFactory:toFactory():getRallyPoint() end
+
 		return (navalFactory:toStructure():isComplete() and BTNodeResult.SUCCESS or BTNodeResult.RUNNING)
 	end
 
 	navalFactId = self.unitClassMappings[UnitClass.NAVAL_FACTORY + 1][self:getFaction() + 1]
-	pos = self:findSuitableSpot(navalFactId, Map.getSingleton():getCell(self.navalFactoryCellId).pos)
+	navalCellPos = Map.getSingleton():getCell(self.navalFactoryCellId).pos
+	idleEngi = self:findIdleEngineer()
+	pos = self:findSuitableSpot(navalFactId, navalCellPos, self.baseRadius, idleEngi)
 
 	if pos then
-		self:buildStructure(self:findIdleEngineer(), navalFactId, pos, self.baseQuat:getAngle())
-		self.navalRallyPoint = self:getUnitsByClass(UnitClass.NAVAL_FACTORY, 1)[1]:toFactory():getRallyPoint()
+		self:buildStructure(idleEngi, navalFactId, pos, self.baseQuat:getAngle())
 		return BTNodeResult.RUNNING
 	else return BTNodeResult.FAILURE end
 end
