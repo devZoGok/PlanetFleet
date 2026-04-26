@@ -560,6 +560,78 @@ namespace battleship{
 		}
 	}
 
+	void Map::fillRegion(vector<Map::Cell*>& regionCells, int cellId){
+		Map::Cell::Type type = cells[cellId].type;
+
+		if(find(regionCells.begin(), regionCells.end(), &cells[cellId]) == regionCells.end())
+			regionCells.push_back(&cells[cellId]);
+
+		for(int i = 0; i < cells[cellId].edges.size(); i++){
+			int adjCellId = cells[cellId].edges[i].destCellId;
+			bool underwaterWaterCell = (
+					find(cells[cellId].underWaterCellIds.begin(), cells[cellId].underWaterCellIds.end(), adjCellId) 
+					!= 
+					cells[cellId].underWaterCellIds.end()
+			);
+
+			if(underwaterWaterCell || cells[adjCellId].type != type) continue;
+
+			bool adjCellInRegion = (find(regionCells.begin(), regionCells.end(), &cells[adjCellId]) == regionCells.end());
+
+			if(adjCellInRegion) fillRegion(regionCells, adjCellId);
+		}
+	}
+
+	void Map::calculateRegions(){
+		int nextCellId = 0;
+		bool allCellsInRegions = false;
+		int numSurfaceCells = (int(mapSize.x / CELL_SIZE.x)) * (int(mapSize.z / CELL_SIZE.z));
+
+		while(!allCellsInRegions){
+			vector<Map::Cell*> regionCells;
+			fillRegion(regionCells, nextCellId);
+			regions.push_back(make_pair(cells[nextCellId].type, regionCells));
+
+			int sumCellsInRegions = 0;
+
+			for(int i = 0; i < regions.size(); i++)
+				sumCellsInRegions += regions[i].second.size();
+
+			allCellsInRegions = (sumCellsInRegions == numSurfaceCells);
+
+			if(!allCellsInRegions)
+				for(int i = 0; i < cells.size(); i++){
+					bool inRegion = false;
+
+					for(int j = 0; j < regions.size(); j++)
+						if(find(regions[j].second.begin(), regions[j].second.end(), &cells[i]) != regions[j].second.end()){
+							inRegion = true;
+							break;
+						}
+
+					if(!inRegion){
+						nextCellId = i;
+						break;
+					}
+				}
+		}
+
+		for(pair<Map::Cell::Type, vector<Cell*>>& reg : regions){
+			if(reg.first != Cell::Type::WATER) continue;
+
+			int oldNumCells = reg.second.size();
+
+			for(int i = 0; i < oldNumCells; i++)
+				for(int ucId : reg.second[i]->underWaterCellIds)
+					reg.second.push_back(&cells[ucId]);
+		}
+	}
+	/*
+	pair<Map::Cell::Type, vector<Map::Cell&>>& Map::getRegionByCellId(int id){
+		return regions[0];
+	}
+	*/
+
     void Map::load(string mapName){
 		this->mapName = mapName;
 
@@ -571,10 +643,14 @@ namespace battleship{
 		SOL_LUA_STATE.script_file(path + "Models/Maps/" + mapName + "/" + mapName + ".lua");
 		SOL_LUA_STATE.script_file(path + "Models/Maps/" + mapName + "/cells.lua");
 
+		sol::table sizeTable = SOL_LUA_STATE[mapTable]["size"];
+		mapSize = Vector3(sizeTable["x"], sizeTable["y"], sizeTable["z"]);
+
 		preprareScene(false);
 		loadSpawnPoints();
 		loadSkybox();
 		loadCells();
+		calculateRegions();
 		loadTerrainObject(-1);
 
 		sol::optional<sol::table> lightsOpt = SOL_LUA_STATE[mapTable]["lights"];
@@ -582,8 +658,6 @@ namespace battleship{
 		if(lightsOpt != sol::nullopt)
 			loadLights();
 
-		sol::table sizeTable = SOL_LUA_STATE[mapTable]["size"];
-		mapSize = Vector3(sizeTable["x"], sizeTable["y"], sizeTable["z"]);
 		sol::table wbTbl = SOL_LUA_STATE[mapTable]["waterbodies"];
 		int numWaterbodies = wbTbl.size();
 		
