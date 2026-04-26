@@ -84,7 +84,6 @@ namespace battleship{
 		std::vector<int> getSurroundingCells(vb01::Vector3, int);
 		void blockCells(Unit*);
 		void unblockCells(Unit*);
-		bool regionContainsCell(int, int);
 		inline std::pair<Cell::Type, std::vector<Cell*>>& getRegion(int i){return regions[i];}
 		inline int getNumRegions(){return regions.size();}
 		inline Map::Cell getCell(int i){return cells[i];}

@@ -586,9 +586,8 @@ namespace battleship{
 	}
 
 	void Map::calculateRegions(){
-		int nextCellId = 0;
 		bool allCellsInRegions = false;
-		int numSurfaceCells = (int(mapSize.x / CELL_SIZE.x)) * (int(mapSize.z / CELL_SIZE.z));
+		int nextCellId = 0, numSurfaceCells = (int(mapSize.x / CELL_SIZE.x)) * (int(mapSize.z / CELL_SIZE.z));
 
 		while(!allCellsInRegions){
 			vector<Map::Cell*> regionCells;
@@ -628,10 +627,6 @@ namespace battleship{
 				for(int ucId : reg.second[i]->underWaterCellIds)
 					reg.second.push_back(&cells[ucId]);
 		}
-	}
-
-	bool Map::regionContainsCell(int regId, int cellId){
-		return find(regions[regId].second.begin(), regions[regId].second.end(), &cells[cellId]) != regions[regId].second.end();
 	}
 
     void Map::load(string mapName){

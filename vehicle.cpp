@@ -319,7 +319,7 @@ namespace battleship{
 
 	//TODO allow ships to attack land targets and vice versa 
 	//TODO recursively search for vacant dest cell neibourghss 
-	bool Vehicle::adjustDest(Vector3 destPos, int &regionId, int &source, int &dest){
+	bool Vehicle::adjustDest(Vector3 destPos, int &source, int &dest){
 		Map *map = Map::getSingleton();
 		vector<Map::Cell> &cells = map->getCells();
 		source = map->getCellId(pos);
@@ -337,11 +337,14 @@ namespace battleship{
 		if(type != UnitType::HOVER){
 			pair<Map::Cell::Type, vector<Map::Cell*>> srcRegion;
 
-			for(int i = 0; i < map->getNumRegions(); i++)
-				if(map->regionContainsCell(i, source)){
+			for(int i = 0; i < map->getNumRegions(); i++){
+				pair<Map::Cell::Type, vector<Map::Cell*>> region = map->getRegion(i);
+
+				if(find(region.second.begin(), region.second.end(), &cells[source]) != region.second.end()){
 					srcRegion = map->getRegion(i);
-					regionId = i;
+					break;
 				}
+			}
 
 			if(find(srcRegion.second.begin(), srcRegion.second.end(), &cells[dest]) == srcRegion.second.end()){
 				int minDistId = 0;
@@ -459,10 +462,10 @@ namespace battleship{
 		removeAllPathpoints();
 
 		Map *map = Map::getSingleton();
-		vector<Map::Cell> &cells = map->getCells(), regionCells;
-		int regionId = -1, source, dest;
+		vector<Map::Cell> &cells = map->getCells();
+		int source, dest;
 
-		if(!adjustDest(destPos, regionId, source, dest)) return;
+		if(!adjustDest(destPos, source, dest)) return;
 
 		vector<float> heurs;
 		Pathfinder *pf = Pathfinder::getSingleton();

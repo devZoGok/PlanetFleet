@@ -357,7 +357,7 @@ namespace battleship{
 					if(pos.y < waterPos.y && fabs(res[0].pos.x - waterPos.x) < .5 * waterSize.x && fabs(res[0].pos.z - waterPos.z) < .5 * waterSize.y){
 						type = Map::Cell::Type::WATER;
 						pos.y = waterPos.y;
-						waterBodyBedPoints.push_back(pair(numVertCells * j + i, res[0].pos.y));
+						waterBodyBedPoints.push_back(pair(numHorCells * i + j, res[0].pos.y));
 						break;
 					}
 				}

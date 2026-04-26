@@ -92,7 +92,6 @@ namespace battleship{
 					UnitType ut = (UnitType)vehicleType;
 					Map::Cell::Type ct = cells[edgeNode].type;
 					bool ship = (ut == UnitType::UNDERWATER || ut == UnitType::SEA_LEVEL);
-					int weightMult = 1;
 
 					if((ut == UnitType::LAND && ct == Map::Cell::WATER) || (ship && ct == Map::Cell::LAND))
 						continue;
@@ -125,8 +124,8 @@ namespace battleship{
 					}
 					*/
 
-					if(distances[vertStrich] + weightMult * cells[vertStrich].edges[i].weight < distances[edgeNode]){
-						distances[edgeNode] = distances[vertStrich] + weightMult * cells[vertStrich].edges[i].weight;
+					if(distances[vertStrich] + cells[vertStrich].edges[i].weight < distances[edgeNode]){
+						distances[edgeNode] = distances[vertStrich] + cells[vertStrich].edges[i].weight;
 						paths[edgeNode] = paths[vertStrich];
 						paths[edgeNode].push_back(edgeNode);
 					}
