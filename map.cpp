@@ -522,6 +522,7 @@ namespace battleship{
 	}
 
 	//TODO implement toggleable cell rendering
+	//TODO remove srcCellId from the Edge struct
 	void Map::loadCells(){
 		sol::state_view SOL_LUA_VIEW = generateView();
 		sol::table cellsTable = SOL_LUA_VIEW["cells"];
@@ -531,10 +532,13 @@ namespace battleship{
 			sol::table cellTable = cellsTable[i + 1], posTable = cellTable["pos"];
 			int numEdges = cellTable["numEdges"];
 			vector<Edge> edges;
+			int id = -1;
 
 			for(int j = 0; j < numEdges; j++){
 				sol::table edgeTable = cellTable["edges"][j + 1];
 				edges.push_back(Edge(edgeTable["weight"], edgeTable["srcCellId"], edgeTable["destCellId"]));
+
+				if(id == -1) id = edgeTable["srcCellId"];
 			}
 
 			int numUnderWaterCells = cellTable["numUnderWaterCells"];
@@ -556,7 +560,6 @@ namespace battleship{
 			 */
 
 			cells.push_back(Cell(cellPos, cellType, edges, underWaterCellIds));
-
 		}
 	}
 
@@ -626,11 +629,10 @@ namespace battleship{
 					reg.second.push_back(&cells[ucId]);
 		}
 	}
-	/*
-	pair<Map::Cell::Type, vector<Map::Cell&>>& Map::getRegionByCellId(int id){
-		return regions[0];
+
+	bool Map::regionContainsCell(int regId, int cellId){
+		return find(regions[regId].second.begin(), regions[regId].second.end(), &cells[cellId]) != regions[regId].second.end();
 	}
-	*/
 
     void Map::load(string mapName){
 		this->mapName = mapName;

@@ -319,11 +319,11 @@ namespace battleship{
 
 	//TODO allow ships to attack land targets and vice versa 
 	//TODO recursively search for vacant dest cell neibourghss 
-	bool Vehicle::canReachTarget(Vector3 destPos, int &source, int &dest){
+	bool Vehicle::adjustDest(Vector3 destPos, int &regionId, int &source, int &dest){
 		Map *map = Map::getSingleton();
 		vector<Map::Cell> &cells = map->getCells();
-
 		source = map->getCellId(pos);
+
 		bool ship = (type == UnitType::UNDERWATER || type == UnitType::SEA_LEVEL);
 		bool waterVehCanMove = (ship && cells[source].type == Map::Cell::WATER);
 		bool landVehCanMove = (type == UnitType::LAND && cells[source].type == Map::Cell::LAND);
@@ -332,7 +332,30 @@ namespace battleship{
 
 		dest = map->getCellId(destPos);
 
-		if(type != UnitType::UNDERWATER && type == UnitType::SEA_LEVEL && fabs(destPos.y - cells[dest].pos.y) > .1) return false;
+		if(type == UnitType::SEA_LEVEL && fabs(destPos.y - cells[dest].pos.y) > .1) return false;
+
+		if(type != UnitType::HOVER){
+			pair<Map::Cell::Type, vector<Map::Cell*>> srcRegion;
+
+			for(int i = 0; i < map->getNumRegions(); i++)
+				if(map->regionContainsCell(i, source)){
+					srcRegion = map->getRegion(i);
+					regionId = i;
+				}
+
+			if(find(srcRegion.second.begin(), srcRegion.second.end(), &cells[dest]) == srcRegion.second.end()){
+				int minDistId = 0;
+
+				for(int i = 0; i < srcRegion.second.size(); i++){
+					float currDist = cells[dest].pos.getDistanceFrom(srcRegion.second[i]->pos);
+					float minDist = cells[dest].pos.getDistanceFrom(srcRegion.second[minDistId]->pos);
+
+					if(currDist < minDist) minDistId = i;
+				}
+
+				dest = map->getCellId(srcRegion.second[minDistId]->pos);
+			}
+		}
 
 		if(cells[dest].blockedBy){
 			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
@@ -361,6 +384,7 @@ namespace battleship{
 
 			return false;
 		}
+
 		else return true;
 	}
 
@@ -434,10 +458,11 @@ namespace battleship{
 	void Vehicle::preparePathpoints(Order &order, Vector3 destPos, bool appendDestPos){
 		removeAllPathpoints();
 
-		vector<Map::Cell> &cells = Map::getSingleton()->getCells();
-		int source, dest;
+		Map *map = Map::getSingleton();
+		vector<Map::Cell> &cells = map->getCells(), regionCells;
+		int regionId = -1, source, dest;
 
-		if(!canReachTarget(destPos, source, dest)) return;
+		if(!adjustDest(destPos, regionId, source, dest)) return;
 
 		vector<float> heurs;
 		Pathfinder *pf = Pathfinder::getSingleton();

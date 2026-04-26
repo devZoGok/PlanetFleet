@@ -95,7 +95,7 @@ namespace battleship{
 					int weightMult = 1;
 
 					if((ut == UnitType::LAND && ct == Map::Cell::WATER) || (ship && ct == Map::Cell::LAND))
-						weightMult = 10;
+						continue;
 					/*
 					if(vehicleType != -1){
 						UnitType unitType = vehicle->getType();

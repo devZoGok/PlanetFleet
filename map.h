@@ -38,6 +38,7 @@ namespace battleship{
 		struct Cell{
 			enum Type{LAND, WATER};
 		
+			int id;
 			Type type;
 			vb01::Vector3 pos;
 			std::vector<Edge> edges;
@@ -45,7 +46,7 @@ namespace battleship{
 			std::vector<int> underWaterCellIds;
 		
 			Cell(){}
-			Cell(vb01::Vector3 p, Type t, std::vector<Edge> e = std::vector<Edge>{}, std::vector<int> uc = std::vector<int>{}): pos(p), type(t), edges(e), underWaterCellIds(uc){}
+			Cell(vb01::Vector3 p, Type t, std::vector<Edge> e = std::vector<Edge>{}, std::vector<int> uc = std::vector<int>{}) : pos(p), type(t), edges(e), underWaterCellIds(uc){}
 		};
 
 		class Minimap{
@@ -83,7 +84,9 @@ namespace battleship{
 		std::vector<int> getSurroundingCells(vb01::Vector3, int);
 		void blockCells(Unit*);
 		void unblockCells(Unit*);
-		//const std::pair<Cell::Type, std::vector<Cell*>>& getRegionByCellId(int);
+		bool regionContainsCell(int, int);
+		inline std::pair<Cell::Type, std::vector<Cell*>>& getRegion(int i){return regions[i];}
+		inline int getNumRegions(){return regions.size();}
 		inline Map::Cell getCell(int i){return cells[i];}
 		inline std::string getMapName(){return mapName;}
 		inline vb01::Node* getNodeParent(){return terrainNode;}
