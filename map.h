@@ -38,7 +38,6 @@ namespace battleship{
 		struct Cell{
 			enum Type{LAND, WATER};
 		
-			int id;
 			Type type;
 			vb01::Vector3 pos;
 			std::vector<Edge> edges;

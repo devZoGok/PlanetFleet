@@ -18,7 +18,7 @@ namespace battleship{
 			for(int i = 0; i < numCellsOnSide; i++)
 				for(int j = 0; j < numCellsOnSide; j++){
 					vector<Map::Edge> edges = Map::generateAdjacentNodeEdges(numCellsOnSide, i, numCellsOnSide, j, 1000);
-					cells.push_back(Map::Cell(i * numCellsOnSide + j, Vector3(j * cellSize, 0, i * cellSize), Map::Cell::Type::LAND, edges));
+					cells.push_back(Map::Cell(Vector3(j * cellSize, 0, i * cellSize), Map::Cell::Type::LAND, edges));
 				}
 
 			return cells;
@@ -53,13 +53,13 @@ namespace battleship{
 
 		void PathfinderTest::testFindPath(){
 			cells = vector<Map::Cell>{
-				Map::Cell(0, Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 0, 0), Map::Edge(2, 0, 1), Map::Edge(4, 0, 2)}),
-				Map::Cell(1, Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 1, 1), Map::Edge(1, 1, 2), Map::Edge(9, 1, 3), Map::Edge(13, 1, 4)}),
-				Map::Cell(2, Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 2, 2), Map::Edge(2, 2, 1), Map::Edge(4, 2, 4), Map::Edge(5, 2, 5)}),
-				Map::Cell(3, Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 3, 3), Map::Edge(1, 3, 6)}),
-				Map::Cell(4, Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 4, 4), Map::Edge(1, 4, 1), Map::Edge(1, 4, 3), Map::Edge(2, 4, 5), Map::Edge(3, 4, 6)}),
-				Map::Cell(5, Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 5, 5), Map::Edge(9, 5, 4), Map::Edge(2, 5, 6)}),
-				Map::Cell(6, Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 6, 6)})
+				Map::Cell(Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 0, 0), Map::Edge(2, 0, 1), Map::Edge(4, 0, 2)}),
+				Map::Cell(Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 1, 1), Map::Edge(1, 1, 2), Map::Edge(9, 1, 3), Map::Edge(13, 1, 4)}),
+				Map::Cell(Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 2, 2), Map::Edge(2, 2, 1), Map::Edge(4, 2, 4), Map::Edge(5, 2, 5)}),
+				Map::Cell(Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 3, 3), Map::Edge(1, 3, 6)}),
+				Map::Cell(Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 4, 4), Map::Edge(1, 4, 1), Map::Edge(1, 4, 3), Map::Edge(2, 4, 5), Map::Edge(3, 4, 6)}),
+				Map::Cell(Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 5, 5), Map::Edge(9, 5, 4), Map::Edge(2, 5, 6)}),
+				Map::Cell(Vector3::VEC_ZERO, Map::Cell::Type::LAND, vector<Map::Edge>{Map::Edge(0, 6, 6)})
 			};
 
 			int src = 0, dest = cells.size() - 1;

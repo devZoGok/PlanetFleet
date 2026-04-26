@@ -532,13 +532,10 @@ namespace battleship{
 			sol::table cellTable = cellsTable[i + 1], posTable = cellTable["pos"];
 			int numEdges = cellTable["numEdges"];
 			vector<Edge> edges;
-			int id = -1;
 
 			for(int j = 0; j < numEdges; j++){
 				sol::table edgeTable = cellTable["edges"][j + 1];
 				edges.push_back(Edge(edgeTable["weight"], edgeTable["srcCellId"], edgeTable["destCellId"]));
-
-				if(id == -1) id = edgeTable["srcCellId"];
 			}
 
 			int numUnderWaterCells = cellTable["numUnderWaterCells"];
