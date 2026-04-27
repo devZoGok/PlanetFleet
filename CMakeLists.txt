@@ -3,86 +3,162 @@ cmake_minimum_required(VERSION 3.5)
 set(GAME_NAME battleship)
 project(${GAME_NAME})
 
-if(MSVC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std:c++17")
-else()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pedantic")
-endif()
+option(BUILD_GAME_TESTS "Build game unit tests" OFF)
 
-set(CMAKE_CXX_STANDART 17)
-set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
-set(CMAKE_BUILD_TYPE Debug)
-set(BUILD_TESTS OFF)
-set(BUILD_SHARED_LIBS OFF CACHE BOOL FORCED)
-cmake_policy(SET CMP0015 NEW)
+set(STATES
+    Source/Systems/Private/activeGameState.cpp
+    Source/Systems/Private/inGameAppState.cpp
+    Source/Systems/Private/guiAppState.cpp
+    Source/Systems/Private/mapEditorAppState.cpp
+    Source/Systems/Private/loadingAppState.cpp)
 
-set(STATES activeGameState.cpp inGameAppState.cpp guiAppState.cpp mapEditorAppState.cpp loadingAppState.cpp)
+set(CONSOLE
+    Source/Systems/Private/console.cpp
+    Source/Systems/Private/abstractCommand.cpp
+    Source/Systems/Private/addUnitCommand.cpp
+    Source/Systems/Private/addResourceCommand.cpp
+    Source/Systems/Private/addTechnologyCommand.cpp
+    Source/Systems/Private/toggleDebugCommand.cpp)
 
-set(UNIT_BUTTONS unitButton.cpp tradeButton.cpp buildButton.cpp trainButton.cpp researchButton.cpp orderButton.cpp stateToggleButton.cpp)
-set(OPTIONS_BUTTONS optionsButton.cpp tabButton.cpp okButton.cpp defaultsButton.cpp)
-set(TRADING_BUTTONS activeStateBackButton.cpp playerTradeButton.cpp tradingScreenButton.cpp offerButton.cpp resourceAmmountButton.cpp)
-set(MENU_BUTTONS mainMenuButton.cpp singlePlayerButton.cpp exitButton.cpp backButton.cpp playButton.cpp)
-set(MAP_EDITOR_BUTTONS mapEditorButton.cpp newMapButton.cpp loadMapButton.cpp exportButton.cpp)
-set(BUTTONS statsButton.cpp activeStateButton.cpp minimapButton.cpp ${TRADING_BUTTONS} ${OPTIONS_BUTTONS} ${MENU_BUTTONS} ${MAP_EDITOR_BUTTONS} ${UNIT_BUTTONS})
+set(UNIT_BUTTONS
+    Source/UI/Private/unitButton.cpp
+    Source/UI/Private/tradeButton.cpp
+    Source/UI/Private/buildButton.cpp
+    Source/UI/Private/trainButton.cpp
+    Source/UI/Private/researchButton.cpp
+    Source/UI/Private/orderButton.cpp
+    Source/UI/Private/stateToggleButton.cpp)
 
-set(LISTBOXES skyboxTextureListbox.cpp landTextureListbox.cpp gameObjectListbox.cpp mapListbox.cpp)
-set(GUI tooltip.cpp concreteGuiManager.cpp ${BUTTONS} ${LISTBOXES})
+set(OPTIONS_BUTTONS
+    Source/UI/Private/optionsButton.cpp
+    Source/UI/Private/tabButton.cpp
+    Source/UI/Private/okButton.cpp
+    Source/UI/Private/defaultsButton.cpp)
 
-set(CONTROLLERS gameObjectFrameController.cpp cameraController.cpp)
-set(CONSOLE console.cpp abstractCommand.cpp addUnitCommand.cpp addResourceCommand.cpp addTechnologyCommand.cpp toggleDebugCommand.cpp)
-set(CORE gameManager.cpp game.cpp pathfinder.cpp environment.cpp fxManager.cpp defConfigs.cpp player.cpp trader.cpp ${CONSOLE} ${CONTROLLERS})
+set(TRADING_BUTTONS
+    Source/UI/Private/activeStateBackButton.cpp
+    Source/UI/Private/playerTradeButton.cpp
+    Source/UI/Private/tradingScreenButton.cpp
+    Source/UI/Private/offerButton.cpp
+    Source/UI/Private/resourceAmmountButton.cpp)
 
-set(PROJECTILES projectile.cpp missile.cpp cruiseMissile.cpp shell.cpp depthCharge.cpp torpedo.cpp torpedo.h)
-set(VEHICLES vehicle.cpp submarine.cpp engineer.cpp resourceRover.cpp freezer.cpp)
-set(STRUCTURES structure.cpp factory.cpp pointDefense.cpp extractor.cpp researchStruct.cpp iceSheet.cpp)
-set(WEAPONS weapon.cpp)
-set(UNITS unit.cpp ${WEAPONS} ${STRUCTURES} ${VEHICLES})
-set(CONTENT map.cpp gameObject.cpp destructable.cpp gameObjectFrame.h gameObjectFactory.cpp resourceDeposit.cpp ${UNITS} ${PROJECTILES})
+set(MENU_BUTTONS
+    Source/UI/Private/mainMenuButton.cpp
+    Source/UI/Private/singlePlayerButton.cpp
+    Source/UI/Private/exitButton.cpp
+    Source/UI/Private/backButton.cpp
+    Source/UI/Private/playButton.cpp)
 
-set(UTIL util.cpp binds.h)
+set(MAP_EDITOR_BUTTONS
+    Source/UI/Private/mapEditorButton.cpp
+    Source/UI/Private/newMapButton.cpp
+    Source/UI/Private/loadMapButton.cpp
+    Source/UI/Private/exportButton.cpp)
 
-set(GAME_SRC ${STATES} ${GUI} ${CORE} ${CONTENT} ${UTIL})
+set(BUTTONS
+    Source/UI/Private/statsButton.cpp
+    Source/UI/Private/activeStateButton.cpp
+    Source/UI/Private/minimapButton.cpp
+    ${TRADING_BUTTONS} ${OPTIONS_BUTTONS} ${MENU_BUTTONS}
+    ${MAP_EDITOR_BUTTONS} ${UNIT_BUTTONS})
 
-set(SFML_DIR external/gameBase/external/SFML)
-set(VB01_DIR external/vb01)
-set(VB01_GUI_DIR external/vb01Gui)
-set(GAME_BASE_DIR external/gameBase)
+set(LISTBOXES
+    Source/UI/Private/skyboxTextureListbox.cpp
+    Source/UI/Private/landTextureListbox.cpp
+    Source/UI/Private/gameObjectListbox.cpp
+    Source/UI/Private/mapListbox.cpp)
 
-add_executable(${GAME_NAME} main.cpp ${GAME_SRC})
+set(GUI_SRC
+    Source/UI/Private/tooltip.cpp
+    Source/UI/Private/concreteGuiManager.cpp
+    Source/UI/Private/gameObjectFrame.cpp
+    Source/UI/Private/gameObjectFrameController.cpp
+    ${BUTTONS} ${LISTBOXES})
 
-include_directories(external/tinydir)
-include_directories(external/vb01/external/glm)
-include_directories(external/vb01/external/glm/glm)
-include_directories(external/gameBase/external/SFML/include)
+set(AI_SRC
+    Source/AI/Private/pathfinder.cpp
+    Source/AI/Private/cameraController.cpp)
 
-add_subdirectory(${VB01_DIR})
-set(VB01_LIB_DIR ${VB01_DIR}/build)
-target_include_directories(${GAME_NAME} PUBLIC ${VB01_DIR})
-target_link_directories(${GAME_NAME} PUBLIC ${VB01_LIB_DIR})
+set(PROJECTILES
+    Source/Gameplay/Private/projectile.cpp
+    Source/Gameplay/Private/missile.cpp
+    Source/Gameplay/Private/cruiseMissile.cpp
+    Source/Gameplay/Private/shell.cpp
+    Source/Gameplay/Private/depthCharge.cpp
+    Source/Gameplay/Private/torpedo.cpp)
 
-add_subdirectory(${GAME_BASE_DIR})
-set(GAME_BASE_LIB_DIR build/${GAME_BASE_DIR}/src)
-target_include_directories(${GAME_NAME} PUBLIC ${GAME_BASE_DIR})
-target_link_directories(${GAME_NAME} PUBLIC ${GAME_BASE_LIB_DIR})
+set(VEHICLES
+    Source/Gameplay/Private/vehicle.cpp
+    Source/Gameplay/Private/submarine.cpp
+    Source/Gameplay/Private/engineer.cpp
+    Source/Gameplay/Private/resourceRover.cpp
+    Source/Gameplay/Private/freezer.cpp
+    Source/Gameplay/Private/vessel.cpp)
 
-set(DEPS vb01 gameBase)
-target_link_libraries(${GAME_NAME} ${DEPS})
+set(STRUCTURES
+    Source/Gameplay/Private/structure.cpp
+    Source/Gameplay/Private/factory.cpp
+    Source/Gameplay/Private/pointDefense.cpp
+    Source/Gameplay/Private/extractor.cpp
+    Source/Gameplay/Private/researchStruct.cpp
+    Source/Gameplay/Private/iceSheet.cpp)
 
-if(BUILD_TESTS)
-	if(UNIX)
-		include_directories(/usr/include/cppunit)
-		link_directories(/usr/lib)
-	elseif(WIN32)
-		include_directories(C:/Program\ Files\ \(x86\)/cppunit/include)
-		link_directories(C:/Program\ Files\ \(x86\)/cppunit/lib)
-	endif()
-	
-	set(TEST_SRC testMain.cpp pathfinderTest.cpp ${GAME_SRC})
-	set(TEST_NAME battleshipTests)
-	
-	add_executable(${TEST_NAME} ${TEST_SRC})
-	target_include_directories(${TEST_NAME} PUBLIC ${VB01_DIR})
-	target_include_directories(${TEST_NAME} PUBLIC ${VB01_GUI_DIR})
-	target_include_directories(${TEST_NAME} PUBLIC ${GAME_BASE_DIR})
-	target_link_libraries(${TEST_NAME} ${DEPS} cppunit)
+set(GAMEPLAY_SRC
+    Source/Gameplay/Private/game.cpp
+    Source/Gameplay/Private/gameManager.cpp
+    Source/Gameplay/Private/gameObject.cpp
+    Source/Gameplay/Private/gameObjectFactory.cpp
+    Source/Gameplay/Private/player.cpp
+    Source/Gameplay/Private/trader.cpp
+    Source/Gameplay/Private/tradeCenter.cpp
+    Source/Gameplay/Private/environment.cpp
+    Source/Gameplay/Private/map.cpp
+    Source/Gameplay/Private/fxManager.cpp
+    Source/Gameplay/Private/explosion.cpp
+    Source/Gameplay/Private/destructable.cpp
+    Source/Gameplay/Private/resourceDeposit.cpp
+    Source/Gameplay/Private/garrisonable.cpp
+    Source/Gameplay/Private/unit.cpp
+    Source/Gameplay/Private/weapon.cpp
+    ${PROJECTILES} ${VEHICLES} ${STRUCTURES})
+
+set(CORE_SRC
+    Source/Core/Private/util.cpp
+    Source/Core/Private/defConfigs.cpp)
+
+set(GAME_SRC ${STATES} ${CONSOLE} ${GUI_SRC} ${AI_SRC} ${GAMEPLAY_SRC} ${CORE_SRC})
+
+add_executable(${GAME_NAME} Source/Core/Private/main.cpp ${GAME_SRC})
+
+target_include_directories(${GAME_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/Core/Public
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/Systems/Public
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/Gameplay/Public
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/UI/Public
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/AI/Public)
+
+target_link_libraries(${GAME_NAME} PRIVATE Renderer Engine)
+
+if(BUILD_GAME_TESTS)
+    if(UNIX)
+        include_directories(/usr/include/cppunit)
+        link_directories(/usr/lib)
+    elseif(WIN32)
+        include_directories("C:/Program Files (x86)/cppunit/include")
+        link_directories("C:/Program Files (x86)/cppunit/lib")
+    endif()
+
+    set(TEST_SRC
+        Tests/testMain.cpp
+        Tests/pathfinderTest.cpp
+        ${GAME_SRC})
+
+    add_executable(battleshipTests ${TEST_SRC})
+    target_include_directories(battleshipTests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source/Core/Public
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source/Systems/Public
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source/Gameplay/Public
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source/UI/Public
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source/AI/Public)
+    target_link_libraries(battleshipTests PRIVATE Renderer Engine cppunit)
 endif()

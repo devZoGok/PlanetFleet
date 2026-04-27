@@ -1,4 +1,4 @@
-[submodule "gameBase2"]
+[submodule "external/gameBase"]
 	path = external/gameBase
 	url = https://github.com/devZoGok/gameBase
 [submodule "external/vb01"]
