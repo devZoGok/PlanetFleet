@@ -201,10 +201,16 @@ namespace battleship{
 			"multVec", [](Quaternion q, Vector3 v){return q * v;}
 		);
 
+		SOL_LUA_STATE.new_usertype<Map::Edge>(
+			"Edge",
+			"destCellId", &Map::Edge::destCellId
+		);
+
 		SOL_LUA_STATE.new_usertype<Map::Cell>(
 			"Cell",
 			"pos", &Map::Cell::pos,
-			"type", &Map::Cell::type
+			"type", &Map::Cell::type,
+			"edges", &Map::Cell::edges
 		);
 
 		SOL_LUA_STATE.new_usertype<Map>(
@@ -221,6 +227,7 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<Pathfinder>(
 			"Pathfinder",
 			"getSingleton", &Pathfinder::getSingleton,
+			"clampDestToSourceRegion", &Pathfinder::clampDestToSourceRegion,
 			"calcHeuristics", &Pathfinder::calcHeuristics,
 			"findPath", &Pathfinder::findPath
 		);

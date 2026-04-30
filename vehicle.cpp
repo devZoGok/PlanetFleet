@@ -317,100 +317,66 @@ namespace battleship{
 		debugPathPoints.push_back(n);
 	}
 
-	//TODO allow ships to attack land targets and vice versa 
 	//TODO recursively search for vacant dest cell neibourghss 
-	bool Vehicle::adjustDest(Vector3 destPos, int &source, int &dest){
+	void Vehicle::preparePathpoints(Order &order, Vector3 destPos, bool appendDestPos){
+		removeAllPathpoints();
+
 		Map *map = Map::getSingleton();
 		vector<Map::Cell> &cells = map->getCells();
-		source = map->getCellId(pos);
 
+		int source = map->getCellId(pos);
 		bool ship = (type == UnitType::UNDERWATER || type == UnitType::SEA_LEVEL);
 		bool waterVehCanMove = (ship && cells[source].type == Map::Cell::WATER);
 		bool landVehCanMove = (type == UnitType::LAND && cells[source].type == Map::Cell::LAND);
 
-		if(type != UnitType::HOVER && !(waterVehCanMove || landVehCanMove)) return false;
+		if(type != UnitType::HOVER && !(waterVehCanMove || landVehCanMove)) return;
 
-		dest = map->getCellId(destPos);
+		int dest = map->getCellId(destPos);
 
-		if(type == UnitType::SEA_LEVEL && fabs(destPos.y - cells[dest].pos.y) > .1) return false;
+		if(type == UnitType::SEA_LEVEL && fabs(destPos.y - cells[dest].pos.y) > .1) return;
 
-		if(type != UnitType::HOVER){
-			pair<Map::Cell::Type, vector<Map::Cell*>> srcRegion;
+		Pathfinder *pf = Pathfinder::getSingleton();
 
-			for(int i = 0; i < map->getNumRegions(); i++){
-				pair<Map::Cell::Type, vector<Map::Cell*>> region = map->getRegion(i);
-
-				if(find(region.second.begin(), region.second.end(), &cells[source]) != region.second.end()){
-					srcRegion = map->getRegion(i);
-					break;
-				}
-			}
-
-			if(find(srcRegion.second.begin(), srcRegion.second.end(), &cells[dest]) == srcRegion.second.end()){
-				int minDistId = 0;
-
-				for(int i = 0; i < srcRegion.second.size(); i++){
-					float currDist = cells[dest].pos.getDistanceFrom(srcRegion.second[i]->pos);
-					float minDist = cells[dest].pos.getDistanceFrom(srcRegion.second[minDistId]->pos);
-
-					if(currDist < minDist) minDistId = i;
-				}
-
-				dest = map->getCellId(srcRegion.second[minDistId]->pos);
-			}
-		}
+		if(type != UnitType::HOVER)
+			dest = pf->clampDestToSourceRegion(source, dest);
 
 		if(cells[dest].blockedBy){
 			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
 
 			for(int scid : surrCellIds){
+				int altDest = -1;
+
 				if(!cells[scid].blockedBy)
 					switch(type){
 						case UnitType::HOVER:
-							dest = scid;
-							return true;
+							altDest = scid;
+							break;
 						case UnitType::LAND:
-							if(cells[scid].type == Map::Cell::LAND){
-								dest = scid;
-								return true;
-							}
+							if(cells[scid].type == Map::Cell::LAND)
+								altDest = scid;
+								
 							break;
 						case UnitType::SEA_LEVEL:
 						case UnitType::UNDERWATER:
-							if(cells[scid].type == Map::Cell::WATER){
-								dest = scid;
-								return true;
-							}
+							if(cells[scid].type == Map::Cell::WATER)
+								altDest = scid;
+
 							break;
 					}
-			}
 
-			return false;
+				if(altDest != -1){
+					dest = altDest;
+					break;
+				}
+				else return;
+			}
 		}
 
-		else return true;
-	}
+		vector<float> heurs;
+		vector<int> path = pf->findPath(cells, heurs, source, dest, (int)type);
+		Vector3 *truncPoint = nullptr;
 
-	bool Vehicle::truncatePath(Order &order, vector<int> &path, Vector3 destPos, bool appendDestPos){
-		bool pathTruncated = false;
-		bool ship = (type == UnitType::UNDERWATER || type == UnitType::SEA_LEVEL);
-		vector<Map::Cell> &cells = Map::getSingleton()->getCells();
-
-		for(int i = 1; i < path.size(); i++){
-			if((ship && cells[path[i]].type != Map::Cell::WATER) || (order.type != Order::TYPE::GARRISON && type == UnitType::LAND && cells[path[i]].type != Map::Cell::LAND)){
-				path = vector<int>(path.begin(), path.begin() + i);
-				order.targets[0].unit = nullptr;
-				order.targets[0].pos = cells[path[i - 1]].pos;
-				pathTruncated = true;
-				break;
-			}
-			else if(order.type == Order::TYPE::GARRISON && type == UnitType::LAND && cells[path[i]].type != Map::Cell::LAND && path.size() - 1 != i)
-				return false;
-		}
-
-		for(int p : path) addPathpoint(cells[p].pos);
-
-		if(order.targets[0].unit && !pathTruncated){
+		if(order.targets[0].unit){
 			GameObject *targObj = order.targets[0].unit;
 
 			for(int i = path.size() - 1; i >= 0; i--){
@@ -443,35 +409,23 @@ namespace battleship{
 					if(dirAngle <= a1) dist = (.5 * length) / cos(dirAngle);
 					else if(leftAngle <= a2) dist = (.5 * width) / cos(leftAngle);
 
-					addPathpoint(targPos + pointDir.norm() * dist);
-					pathTruncated = true;
+					truncPoint = new Vector3;
+					*truncPoint = (targPos + pointDir.norm() * dist);
 
 					break;
 				}
-				else removePathpoint(pathPoints.size() - 1);
+				else path.pop_back();
 			}
 		}
 
-		if(appendDestPos && !pathTruncated)
+		for(int p : path) addPathpoint(cells[p].pos);
+
+		if(appendDestPos && !truncPoint)
 			addPathpoint(destPos);
-
-		return true;
-	}
-
-	void Vehicle::preparePathpoints(Order &order, Vector3 destPos, bool appendDestPos){
-		removeAllPathpoints();
-
-		Map *map = Map::getSingleton();
-		vector<Map::Cell> &cells = map->getCells();
-		int source, dest;
-
-		if(!adjustDest(destPos, source, dest)) return;
-
-		vector<float> heurs;
-		Pathfinder *pf = Pathfinder::getSingleton();
-		vector<int> path = pf->findPath(cells, heurs, source, dest, (int)type);
-
-		if(path.empty() || !truncatePath(order, path, destPos, appendDestPos)) return;
+		else if(truncPoint){
+			addPathpoint(*truncPoint);
+			delete truncPoint;
+		}
 
 		path.erase(path.begin());
 	}

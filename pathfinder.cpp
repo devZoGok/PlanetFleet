@@ -16,6 +16,36 @@ namespace battleship{
 			return pathfinder;
 		}
 
+		int Pathfinder::clampDestToSourceRegion(int source, int dest){
+			Map *map = Map::getSingleton();
+			vector<Map::Cell> &cells = map->getCells();
+			pair<Map::Cell::Type, vector<Map::Cell*>> srcRegion;
+
+			for(int i = 0; i < map->getNumRegions(); i++){
+				pair<Map::Cell::Type, vector<Map::Cell*>> region = map->getRegion(i);
+
+				if(find(region.second.begin(), region.second.end(), &cells[source]) != region.second.end()){
+					srcRegion = map->getRegion(i);
+					break;
+				}
+			}
+
+			if(find(srcRegion.second.begin(), srcRegion.second.end(), &cells[dest]) == srcRegion.second.end()){
+				int minDistId = 0;
+
+				for(int i = 0; i < srcRegion.second.size(); i++){
+					float currDist = cells[dest].pos.getDistanceFrom(srcRegion.second[i]->pos);
+					float minDist = cells[dest].pos.getDistanceFrom(srcRegion.second[minDistId]->pos);
+
+					if(currDist < minDist) minDistId = i;
+				}
+
+				dest = map->getCellId(srcRegion.second[minDistId]->pos);
+			}
+
+			return dest;
+		}
+
 		vector<float> Pathfinder::calcHeuristics(vector<Map::Cell> &cells, int dest){
 			vector<float> heuristics;
 
