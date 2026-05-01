@@ -13,6 +13,7 @@ namespace battleship{
 	class Pathfinder{
 		public:
 			static Pathfinder* getSingleton();
+			int clampDestToSourceRegion(int, int);
 			std::vector<float> calcHeuristics(std::vector<Map::Cell>&, int);
 			std::vector<int> findPath(std::vector<Map::Cell>&, std::vector<float>&, int, int, int = -1);
 			inline vb01::u32 getImpassibleNodeVal(){return impassibleNodeVal;}

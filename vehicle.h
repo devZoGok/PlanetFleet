@@ -25,7 +25,7 @@ namespace battleship{
 			vb01::s64 lastBuildTime = 0;
 
         	inline int getNextPatrolPointId(int numPoints) {return patrolPointId == numPoints - 1 ? 0 : patrolPointId + 1;}
-			bool canReachTarget(vb01::Vector3, int&, int&);
+			bool adjustDest(vb01::Vector3, int&, int&);
 			bool truncatePath(Order&, std::vector<int>&, vb01::Vector3, bool);
 			void startCurrentOrder();
 			bool validateGarrisonOrder(Order);

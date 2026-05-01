@@ -45,7 +45,7 @@ namespace battleship{
 			std::vector<int> underWaterCellIds;
 		
 			Cell(){}
-			Cell(vb01::Vector3 p, Type t, std::vector<Edge> e = std::vector<Edge>{}, std::vector<int> uc = std::vector<int>{}): pos(p), type(t), edges(e), underWaterCellIds(uc){}
+			Cell(vb01::Vector3 p, Type t, std::vector<Edge> e = std::vector<Edge>{}, std::vector<int> uc = std::vector<int>{}) : pos(p), type(t), edges(e), underWaterCellIds(uc){}
 		};
 
 		class Minimap{
@@ -83,6 +83,8 @@ namespace battleship{
 		std::vector<int> getSurroundingCells(vb01::Vector3, int);
 		void blockCells(Unit*);
 		void unblockCells(Unit*);
+		inline std::pair<Cell::Type, std::vector<Cell*>>& getRegion(int i){return regions[i];}
+		inline int getNumRegions(){return regions.size();}
 		inline Map::Cell getCell(int i){return cells[i];}
 		inline std::string getMapName(){return mapName;}
 		inline vb01::Node* getNodeParent(){return terrainNode;}
@@ -107,6 +109,7 @@ namespace battleship{
 		std::vector<Cell> cells;
 		float baseHeight;
 		std::vector<vb01::Node*> lights;
+		std::vector<std::pair<Cell::Type, std::vector<Cell*>>> regions;
 
         Map(){}
 		void preprareScene(bool);
@@ -116,6 +119,8 @@ namespace battleship{
 		void loadCells();
 		void loadPlayerGameObjects(Player*, sol::table);
 		void loadTerrainObject(int);
+		void fillRegion(std::vector<Cell*>&, int);
+		void calculateRegions();
 		void unloadTerrainObjects();
 		void unloadCells();
 		void unloadLights();
