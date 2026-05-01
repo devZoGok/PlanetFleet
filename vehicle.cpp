@@ -342,11 +342,10 @@ namespace battleship{
 
 		if(cells[dest].blockedBy){
 			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
+			int altDest = -1;
 
 			for(int scid : surrCellIds){
-				int altDest = -1;
-
-				if(!cells[scid].blockedBy)
+				if(!cells[scid].blockedBy){
 					switch(type){
 						case UnitType::HOVER:
 							altDest = scid;
@@ -354,7 +353,7 @@ namespace battleship{
 						case UnitType::LAND:
 							if(cells[scid].type == Map::Cell::LAND)
 								altDest = scid;
-								
+
 							break;
 						case UnitType::SEA_LEVEL:
 						case UnitType::UNDERWATER:
@@ -364,12 +363,14 @@ namespace battleship{
 							break;
 					}
 
-				if(altDest != -1){
-					dest = altDest;
-					break;
+					if(altDest != -1){
+						dest = altDest;
+						break;
+					}
 				}
-				else return;
 			}
+
+			if(altDest == -1) return;
 		}
 
 		vector<float> heurs;

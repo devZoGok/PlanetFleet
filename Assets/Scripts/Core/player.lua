@@ -148,7 +148,7 @@ function Player:landRouteToSpawnpoint_(mapPoint)
 
 		disembarkCellId = nil
 		navalSupportCellId = nil
-		backwClampedDest = pf:clampDestToSourceRegion(dest, source)
+		backwClampedDest = pf:clampDestToSourceRegion(dest, embarkCellId)
 		disembarkCellId = backwClampedDest
 
 		for i = 1, #cells[disembarkCellId + 1].edges do
