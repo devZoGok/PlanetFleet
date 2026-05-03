@@ -11,11 +11,11 @@ function generateFactionMusic(factionId)
 	factionTracks = {}
 
 	if factionId == 0 then 
-		factionTracks = americanTracks
-	elseif factionId == 1 then 
-		factionTracks = europeanTracks
-	elseif factionId == 2 then 
 		factionTracks = asianTracks
+	elseif factionId == 1 then 
+		factionTracks = americanTracks
+	elseif factionId == 2 then 
+		factionTracks = europeanTracks
 	end
 
 	return {
@@ -104,17 +104,6 @@ gui = {
 		pos = {x = 0, y = 2 * s, z = 0},
 		size = {x = s, y = s},
 		imagePath = resIconBasePath .. 'research.png',
-	},
-	{
-		guiType = GuiType.TEXT,
-		name = 'depth',
-		text = '',
-		pos = {x = 0, y = 400, z = 0},
-		scale = {x = 0, y = 1},
-		font = 'batang.ttf',
-		fontFirstChar = 0,
-		fontLastChar = 256,
-		color = {x = 1, y = 1, z = 1, w = 1}
 	},
 	{
 		guiType = GuiType.BUTTON,

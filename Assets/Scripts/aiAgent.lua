@@ -9,7 +9,7 @@ function executeBtNode(agent, btNode)
 		if btNode.children[i].type == BTNodeType.FUNCTION then
 			func = btNode.children[i].func
 			args = btNode.children[i].args
-			res = agent[func](agent, args)
+			res = func(agent, args)
 		else
 			res = executeBtNode(agent, btNode.children[i])
 		end
