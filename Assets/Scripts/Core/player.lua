@@ -126,41 +126,33 @@ function Player:landRouteToSpawnpoint_(mapPoint)
 	source = map:getCellId(map:getSpawnPoint(self:getSpawnPointId()), false)
 
 	pf = Pathfinder.getSingleton()
-	forwClampedDest = pf:clampDestToSourceRegion(source, dest)
+	cells = map:getCells()
+	heurs = pf:calcHeuristics(cells, dest)
+	path = pf:findPath(cells, heurs, source, dest, UnitType.HOVER)
 
-	if dest ~= forwClampedDest then
-		cells = map:getCells()
+	embarkCellId = nil
+	disembarkCellId = nil
+	navalSupportCellId = nil
+	navalRallyCellId = nil
 
-		embarkCellId = nil
-		navalRallyCellId = nil
-		embarkCellId = forwClampedDest
-
-		for i = 1, #cells[embarkCellId + 1].edges do
-			destCellId = cells[embarkCellId + 1].edges[i].destCellId
-
-			if cells[destCellId + 1].type == 1 then
-				if not self.navalFactoryCellId then self.navalFactoryCellId = destCellId end
-
-				navalRallyCellId = destCellId
-				break
-			end
+	for i = 1, #path do
+		if map:getCell(path[i]).type == 1 then
+			navalRallyCellId = path[i]
+			embarkCellId = path[i - 1]
+			if not self.navalFactoryCellId then self.navalFactoryCellId = path[i] end
+			break;
 		end
+	end
 
-		disembarkCellId = nil
-		navalSupportCellId = nil
-		backwClampedDest = pf:clampDestToSourceRegion(dest, embarkCellId)
-		disembarkCellId = backwClampedDest
-
-		for i = 1, #cells[disembarkCellId + 1].edges do
-			destCellId = cells[disembarkCellId + 1].edges[i].destCellId
-
-			if cells[destCellId + 1].type == 1 then
-				navalSupportCellId = destCellId
-				break
-			end
+	for i = #path, 1, -1 do
+		if map:getCell(path[i]).type == 1 then
+			navalSupportCellId = path[i]
+			disembarkCellId = path[i + 1]
+			break;
 		end
-		
-		
+	end
+
+	if embarkCellId or disembarkCellId then
 		return {
 			reachable = false, 
 			embarkCellId = embarkCellId, 
@@ -168,9 +160,7 @@ function Player:landRouteToSpawnpoint_(mapPoint)
 			navalSupportCellId = navalSupportCellId, 
 			disembarkCellId = disembarkCellId
 		}
-	else
-		return {reachable = true}
-	end
+	else return {reachable = true} end
 end
 
 function Player:landRouteToSpawnpoint(arguments)
