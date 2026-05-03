@@ -464,6 +464,24 @@ namespace battleship{
 				int buildStatus = unitTable["buildStatus"].get_or(0);
 				player->addUnit(GameObjectFactory::createUnit(player, id, pos, rot, buildStatus));
 			}
+
+			if(numUnits == 0){
+				int engiId;
+
+				switch(player->getFaction()){
+					case 0:
+						engiId = 10;
+						break;
+					case 1:
+						engiId = 12;
+						break;
+					case 2:
+						engiId = 14;
+						break;
+				}
+
+				player->addUnit(GameObjectFactory::createUnit(player, engiId, getSpawnPoint(player->getSpawnPointId()), Quaternion::QUAT_W));
+			}
 		}
 	}
 

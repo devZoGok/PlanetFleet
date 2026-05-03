@@ -13,14 +13,15 @@ metadata = {
 		{
 			resourceDeposits = {},
 			units = {
-				{id = UnitId.ACS_CYBORG_ENGINEER, pos = {x = -180.000000, y = 0.000000, z = 140.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
-				{id = UnitId.AINC_LAND_FACTORY, pos = {x = -200.000000, y = 0.000000, z = 140.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
-				{id = UnitId.AINC_TANK, pos = {x = -0.000000, y = 0.000000, z = 0.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
-				{id = UnitId.AINC_MECH, pos = {x = -30.000000, y = 0.000000, z = 0.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
-				{id = UnitId.AINC_MECH, pos = {x = -60.000000, y = 0.000000, z = 0.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
-				{id = UnitId.AINC_MECH, pos = {x = -90.000000, y = 0.000000, z = 0.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
-				{id = UnitId.AINC_MECH, pos = {x = -120.000000, y = 0.000000, z = 0.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
-				{id = UnitId.AINC_MECH, pos = {x = -150.000000, y = 0.000000, z = 0.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
+				{id = UnitId.ACS_LAND_FACTORY, pos = {x = -0.000000, y = 0.000000, z = 0.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
+				{id = UnitId.AINC_LAND_FACTORY, pos = {x = -40.000000, y = 0.000000, z = 0.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
+				{id = UnitId.ER_LAND_FACTORY, pos = {x = -80.000000, y = 0.000000, z = 0.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
+				{id = UnitId.ACS_MECH, pos = {x = -0.000000, y = 0.000000, z = 40.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
+				{id = UnitId.AINC_MECH, pos = {x = -40.000000, y = 0.000000, z = 40.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
+				{id = UnitId.ER_MECH, pos = {x = -80.000000, y = 0.000000, z = 40.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
+				--{id = UnitId.AINC_MECH, pos = {x = -90.000000, y = 0.000000, z = 0.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
+				--{id = UnitId.AINC_MECH, pos = {x = -120.000000, y = 0.000000, z = 0.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
+				--{id = UnitId.AINC_MECH, pos = {x = -150.000000, y = 0.000000, z = 0.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
 			}
 		},
 		{
@@ -31,7 +32,7 @@ metadata = {
 				--{id = UnitId.TRADE_CENTER, pos = {x = 130.000000, y = 0.000000, z = 10.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
 				--{id = UnitId.LAB, pos = {x = 100.000000, y = 0.000000, z = 20.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
 				--{id = UnitId.ACS_REFINERY, pos = {x = 100.000000, y = 0.000000, z = 50.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
-				{id = UnitId.ACS_CYBORG_ENGINEER, pos = {x = 150.000000, y = 0.000000, z = -120.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
+				{id = UnitId.ER_CYBORG_ENGINEER, pos = {x = 150.000000, y = 0.000000, z = -120.000000}, rot = {w = 1.000000, x = 0.000000, y = 0.000000, z = 0.000000}, buildStatus = 100},
 			}
 		},
 		{resourceDeposits = {},units = {}},
