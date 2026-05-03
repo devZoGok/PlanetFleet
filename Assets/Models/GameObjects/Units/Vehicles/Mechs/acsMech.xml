@@ -1,4 +1,5 @@
 <model>
+  <node name="turret" px="0.0" py="4.0" pz="-0.0" rw="1.0" rx="0.0" ry="0.0" rz="0.0" sx="1.0" sy="1.0" sz="1.0"/>
   <node name="WarRobotTemplate" px="0.0" py="0.0" pz="-0.0" rw="1.0" rx="0.0" ry="0.0" rz="0.0" sx="1.0" sy="1.0" sz="1.0">
     <mesh name="WarRobotTemplateWarRobotTemplate" num_vertex_pos="248" num_faces="446" num_vertex_groups="0" num_shape_keys="0">
       <vertdata px="0.7378405928611755" py="5.257974624633789" pz="-1.1475341320037842" nx="0.9317941665649414" ny="-0.11999237537384033" nz="0.34258049726486206" />

@@ -237,7 +237,7 @@ function Player:findSuitableSpot(buildingId, idealPos, radius)
 				structFrame:destroy()
 				return point
 			elseif structFrame.status == GameObjectFrameStatus.BLOCKED_BY_FOG_OF_WAR then
-				engis = self:getUnitsByClass(UnitClass.CYBORG_ENGINEER, -1)
+				engis = self:getUnitsByClass(UnitClass.ROBO_ENGINEER, -1)
 
 				for i = 1, #engis do
 					if engis[i]:getNumOrders() > 0 and engis[i]:getOrder(0).targets[1].pos:getDistanceFrom(point) < engis[i]:getLineOfSight() then
@@ -279,7 +279,7 @@ function Player:buildStructure(engineer, buildingId, buildPos, buildAngle)
 end
 
 function Player:findIdleEngineer()
-	engineers = self:getUnitsByClass(UnitClass.CYBORG_ENGINEER, -1)
+	engineers = self:getUnitsByClass(UnitClass.ROBO_ENGINEER, -1)
 
 	for i = 1, #engineers do
 		if engineers[i]:getNumOrders() == 0 then return engineers[i] end
