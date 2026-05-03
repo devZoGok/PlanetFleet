@@ -123,7 +123,7 @@ namespace battleship{
 				}
 
 				if(!u->isVehicle() && ((Structure*)u)->isComplete()){
-					structBuilt = false;
+					structBuilt = true;
 					break;
 				}
 			}

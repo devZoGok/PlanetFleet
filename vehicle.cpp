@@ -276,7 +276,7 @@ namespace battleship{
 	void Vehicle::navigateToTarget(float minDist){
 		if(!pursuingTarget){
 			Vector3 targPos = (orders[0].targets[0].unit ? orders[0].targets[0].unit->getPos() : orders[0].targets[0].pos);
-			preparePathpoints(orders[0], targPos);
+			preparePathpoints(orders[0], targPos, true);
 			pursuingTarget = true;
 
 			if(orders[0].type == Order::TYPE::GARRISON) addPathpoint(targPos);
@@ -340,7 +340,7 @@ namespace battleship{
 		if(type != UnitType::HOVER)
 			dest = pf->clampDestToSourceRegion(source, dest);
 
-		if(cells[dest].blockedBy){
+		if(cells[dest].blockedBy && cells[dest].blockedBy != this){
 			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
 			int altDest = -1;
 
@@ -461,6 +461,7 @@ namespace battleship{
 		Order::Target target = order.targets[0];
 		Vector3 targVec = (target.unit ? target.unit->getPos() : target.pos) - pos;
 		float distToTarg = targVec.getLength();
+		float angleToTarg = dirVec.getAngleBetween(targVec.norm());
 
 		vector<Weapon*> attackWeapons = getWeaponsByOrder(Order::TYPE::ATTACK);
 		Weapon *weapon = attackWeapons[0];
@@ -470,9 +471,18 @@ namespace battleship{
 				weapon = w;
 
 		float minDist = weapon->getMaxRange();
+		float minAngle = weapon->getMaxFireAngle();
 
 		if(order.playerAssigned || (!order.playerAssigned && state == Unit::State::CHASE)){
-			if(distToTarg > minDist)
+			bool horizontal = false;
+
+			for(const Weapon::Component &comp : weapon->getComponents())
+				if(!comp.vertical){
+					horizontal = true;
+					break;
+				}
+
+			if(distToTarg > minDist || (!horizontal && angleToTarg > minAngle))
 				navigateToTarget(.5 * Map::getSingleton()->getCellSize().x);
 			else
 				pursuingTarget = false;
