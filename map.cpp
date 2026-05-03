@@ -464,24 +464,6 @@ namespace battleship{
 				int buildStatus = unitTable["buildStatus"].get_or(0);
 				player->addUnit(GameObjectFactory::createUnit(player, id, pos, rot, buildStatus));
 			}
-
-			if(numUnits == 0){
-				int engiId;
-
-				switch(player->getFaction()){
-					case 0:
-						engiId = 10;
-						break;
-					case 1:
-						engiId = 12;
-						break;
-					case 2:
-						engiId = 14;
-						break;
-				}
-
-				player->addUnit(GameObjectFactory::createUnit(player, engiId, getSpawnPoint(player->getSpawnPointId()), Quaternion::QUAT_W));
-			}
 		}
 	}
 
@@ -494,6 +476,27 @@ namespace battleship{
 		for(int i = 0; i < choosablePlayers.size(); i++){
 			sol::table playerTbl = SOL_LUA_VIEW[mapTable]["choosablePlayers"][i + 1];
 			loadPlayerGameObjects(choosablePlayers[i], playerTbl);
+			sol::table unitsTbl = playerTbl["units"];
+			int numUnits = unitsTbl.size();
+
+			if(numUnits == 0){
+				int engiId;
+
+				switch(choosablePlayers[i]->getFaction()){
+					case 0:
+						engiId = 9;
+						break;
+					case 1:
+						engiId = 11;
+						break;
+					case 2:
+						engiId = 13;
+						break;
+				}
+
+				Vector3 sp = getSpawnPoint(choosablePlayers[i]->getSpawnPointId());
+				choosablePlayers[i]->addUnit(GameObjectFactory::createUnit(choosablePlayers[i], engiId, sp, Quaternion::QUAT_W));
+			}
 		}
 
 		sol::table civPlayerTbl = SOL_LUA_VIEW[mapTable]["civilianPlayer"];
