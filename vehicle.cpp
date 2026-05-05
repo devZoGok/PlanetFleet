@@ -57,8 +57,8 @@ namespace battleship{
 
 		removeAllPathpoints();
 
-		Vector3 targPos = (orders[0].targets[0].unit ? orders[0].targets[0].unit->getPos() : orders[0].targets[0].pos);
-		preparePathpoints(orders[0], targPos);
+		if(!orders[0].targets[0].unit)
+			preparePathpoints(orders[0], orders[0].targets[0].pos);
 	}
 
 	bool Vehicle::validateGarrisonOrder(Order order){
@@ -263,6 +263,7 @@ namespace battleship{
 	}
 
 	void Vehicle::enterGarrisonable(){
+		player->deselectUnit(this);
 		Unit *targUnit = (Unit*)orders[0].targets[0].unit; 
 		targUnit->updateGarrison(this, true);
 
@@ -278,8 +279,6 @@ namespace battleship{
 			Vector3 targPos = (orders[0].targets[0].unit ? orders[0].targets[0].unit->getPos() : orders[0].targets[0].pos);
 			preparePathpoints(orders[0], targPos, true);
 			pursuingTarget = true;
-
-			if(orders[0].type == Order::TYPE::GARRISON) addPathpoint(targPos);
 		}
 
 		navigate(minDist);
@@ -291,8 +290,7 @@ namespace battleship{
 
 		if(distToGarrisonable > garrisonDist)
 			navigateToTarget(garrisonDist);
-		else
-			enterGarrisonable();
+		else enterGarrisonable();
 	}
 
 	void Vehicle::patrol(Order order){
@@ -331,16 +329,20 @@ namespace battleship{
 
 		if(type != UnitType::HOVER && !(waterVehCanMove || landVehCanMove)) return;
 
-		int dest = map->getCellId(destPos);
+		int origDest = map->getCellId(destPos), dest = origDest;
 
-		if(type == UnitType::SEA_LEVEL && fabs(destPos.y - cells[dest].pos.y) > .1) return;
+		if(type == UnitType::SEA_LEVEL && fabs(destPos.y - cells[origDest].pos.y) > .1) return;
 
 		Pathfinder *pf = Pathfinder::getSingleton();
 
 		if(type != UnitType::HOVER)
-			dest = pf->clampDestToSourceRegion(source, dest);
+			dest = pf->clampDestToSourceRegion(source, origDest);
 
-		if(cells[dest].blockedBy && cells[dest].blockedBy != this){
+		GameObject *targObj = order.targets[0].unit;
+		Unit *blockingUnit = cells[dest].blockedBy;
+		bool garrisonOrder = (order.type == Order::TYPE::GARRISON);
+
+		if(blockingUnit && blockingUnit != this && (!garrisonOrder || (garrisonOrder && blockingUnit != (Unit*)targObj))){
 			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
 			int altDest = -1;
 
@@ -377,9 +379,7 @@ namespace battleship{
 		vector<int> path = pf->findPath(cells, heurs, source, dest, (int)type);
 		Vector3 *truncPoint = nullptr;
 
-		if(order.targets[0].unit){
-			GameObject *targObj = order.targets[0].unit;
-
+		if(targObj && origDest == dest && !garrisonOrder)
 			for(int i = path.size() - 1; i >= 0; i--){
 				Vector3 targPos = targObj->getPos();
 				Vector3 pointDir = cells[path[i]].pos - targPos;
@@ -417,11 +417,10 @@ namespace battleship{
 				}
 				else path.pop_back();
 			}
-		}
 
 		for(int p : path) addPathpoint(cells[p].pos);
 
-		if(appendDestPos && !truncPoint)
+		if(appendDestPos && !truncPoint && origDest == dest)
 			addPathpoint(destPos);
 		else if(truncPoint){
 			addPathpoint(*truncPoint);
