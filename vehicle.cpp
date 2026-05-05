@@ -59,6 +59,8 @@ namespace battleship{
 
 		if(!orders[0].targets[0].unit)
 			preparePathpoints(orders[0], orders[0].targets[0].pos);
+		else if(orders[0].type == Order::TYPE::BUILD)
+			preparePathpoints(orders[0], orders[0].targets[0].unit->getPos());
 	}
 
 	bool Vehicle::validateGarrisonOrder(Order order){
@@ -341,8 +343,9 @@ namespace battleship{
 		GameObject *targObj = order.targets[0].unit;
 		Unit *blockingUnit = cells[dest].blockedBy;
 		bool garrisonOrder = (order.type == Order::TYPE::GARRISON);
+		bool buildOrder = (order.type == Order::TYPE::BUILD);
 
-		if(blockingUnit && blockingUnit != this && (!garrisonOrder || (garrisonOrder && blockingUnit != (Unit*)targObj))){
+		if(blockingUnit && blockingUnit != this && !buildOrder && (!garrisonOrder || (garrisonOrder && blockingUnit != (Unit*)targObj))){
 			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
 			int altDest = -1;
 
