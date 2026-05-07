@@ -723,7 +723,7 @@ units = {
 		cost = 500,
 		size = {x = 2.43, y = 2.43, z = 2.47},
 		hitboxOffset = {x = 0, y = 1.21, z = 0},
-		lineOfSight = 500,
+		lineOfSight = 150,
 		name = 'Engineer',
 		basePath = PATH .. vehiclePrefix .. 'Engineers/',
 		albedoPath = 'engineer.jpg',
@@ -948,10 +948,13 @@ units = {
 		weapons = {
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
+				rateOfFire = 300, 
 				damage = 10, 
-				maxRange = 50,
-				nodes = {{name = 'turret', rotationSpeed = .05, vertical = false}},
+				maxRange = 75,
+				nodes = {
+					{name = 'turret', rotationSpeed = .05, vertical = false},
+					{name = 'mantle', rotationSpeed = .05, angleConstraints = {min = -.105, max = 0}, vertical = true}
+				},
 				fireFx = {
 					{
 						vfx = true,
@@ -960,9 +963,9 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						pos = {x = 2.23, y = 4.16, z = 23},
+						pos = {x = 2.26, y = 0, z = 11.7},
 						rot = {w = 1, x = 0, y = 0, z = 0},
-						parent = 'turret'
+						parent = 'mantle'
 						--scale = .5
 					},
 					{
@@ -972,9 +975,9 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						pos = {x = -2.23, y = 4.16, z = 23},
+						pos = {x = -2.26, y = 0, z = 11.7},
 						rot = {w = 1, x = 0, y = 0, z = 0},
-						parent = 'turret'
+						parent = 'mantle'
 						--scale = .5
 					},
 					{
@@ -1036,10 +1039,13 @@ units = {
 		weapons = {
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
+				rateOfFire = 300, 
 				damage = 10, 
-				maxRange = 50,
-				nodes = {{name = 'turret', rotationSpeed = .05, vertical = false}},
+				maxRange = 75,
+				nodes = {
+					{name = 'turret', rotationSpeed = .05, vertical = false},
+					{name = 'mantle', rotationSpeed = .05, angleConstraints = {min = -.174, max = 0}, vertical = true}
+				},
 				fireFx = {
 					{
 						vfx = true,
@@ -1048,9 +1054,9 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						pos = {x = 0, y = 4.4, z = 15.6},
+						pos = {x = 0, y = 0, z = 15.6},
 						rot = {w = 1, x = 0, y = 0, z = 0},
-						parent = 'turret'
+						parent = 'mantle'
 						--scale = .5
 					},
 					{
@@ -1112,10 +1118,13 @@ units = {
 		weapons = {
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
+				rateOfFire = 300, 
 				damage = 10, 
-				maxRange = 50,
-				nodes = {{name = 'turret', rotationSpeed = .05, vertical = false}},
+				maxRange = 75,
+				nodes = {
+					{name = 'turret', rotationSpeed = .05, vertical = false},
+					{name = 'mantle', rotationSpeed = .05, angleConstraints = {min = -.262, max = 0}, vertical = true}
+				},
 				fireFx = {
 					{
 						vfx = true,
@@ -1124,9 +1133,9 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						pos = {x = 0, y = 13, z = 12},
+						pos = {x = 0, y = 0, z = 11},
 						rot = {w = 1, x = 0, y = 0, z = 0},
-						parent = 'turret'
+						parent = 'mantle'
 						--scale = .5
 					},
 					{
@@ -1321,7 +1330,7 @@ units = {
 				maxRange = 50,
 				nodes = {
 					{name = 'RearTurret', rotationSpeed = .05, angleConstraints = {min = -2.53, max = 2.53}, vertical = false},
-					{name = 'FrontTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.174, max = .174}, vertical = true}
+					{name = 'RearTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.174, max = .174}, vertical = true}
 				},
 				fireFx = {
 					{

@@ -1,5 +1,5 @@
 <model>
-  <node name="turret" px="0.0" py="4.0" pz="-0.0" rw="1.0" rx="0.0" ry="0.0" rz="0.0" sx="1.0" sy="1.0" sz="1.0"/>
+  <node name="turret" px="0.0" py="3.5" pz="-0.0" rw="1.0" rx="0.0" ry="0.0" rz="0.0" sx="1.0" sy="1.0" sz="1.0"/>
   <node name="MechAM" px="0.0" py="0.0" pz="-0.0" rw="1.0" rx="0.0" ry="0.0" rz="0.0" sx="1.0" sy="1.0" sz="1.0">
     <mesh name="MechAMMesh" num_vertex_pos="2967" num_faces="5842" num_vertex_groups="0" num_shape_keys="0">
       <vertdata px="-1.1444093388490728e-06" py="6.228968620300293" pz="-0.520443320274353" nx="-2.2832049580756575e-05" ny="-0.9999580979347229" nz="-0.00915344525128603" />
