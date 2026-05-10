@@ -57,10 +57,8 @@ namespace battleship{
 
 		removeAllPathpoints();
 
-		if(!orders[0].targets[0].unit)
-			preparePathpoints(orders[0], orders[0].targets[0].pos);
-		else if(orders[0].type == Order::TYPE::BUILD)
-			preparePathpoints(orders[0], orders[0].targets[0].unit->getPos());
+		Vector3 targPos = (orders[0].targets[0].unit ? orders[0].targets[0].unit->getPos() : orders[0].targets[0].pos);
+		preparePathpoints(orders[0], targPos);
 	}
 
 	bool Vehicle::validateGarrisonOrder(Order order){
@@ -105,6 +103,7 @@ namespace battleship{
         maxTurnAngle =  unitTable["maxTurnAngle"]; maxTurnAngle += game->calcAbilFromTech(Ability::Type::MAX_TURN_ANGLE, currTechs, (int)GameObject::type, id);
         speed = unitTable["speed"]; speed += game->calcAbilFromTech(Ability::Type::SPEED, currTechs, (int)GameObject::type, id);
 		anglePrecision = unitTable["anglePrecision"];
+		destinationOffset = unitTable["destinationOffset"];
 		garrisonCategory = unitTable["garrisonCategory"];
 	}
 
@@ -344,8 +343,9 @@ namespace battleship{
 		Unit *blockingUnit = cells[dest].blockedBy;
 		bool garrisonOrder = (order.type == Order::TYPE::GARRISON);
 		bool buildOrder = (order.type == Order::TYPE::BUILD);
+		bool resourceOrder = (order.type == Order::TYPE::LOAD || order.type == Order::TYPE::UNLOAD || order.type == Order::TYPE::SUPPLY);
 
-		if(blockingUnit && blockingUnit != this && !buildOrder && (!garrisonOrder || (garrisonOrder && blockingUnit != (Unit*)targObj))){
+		if(blockingUnit && blockingUnit != this && !resourceOrder && !buildOrder && (!garrisonOrder || (garrisonOrder && blockingUnit != (Unit*)targObj))){
 			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
 			int altDest = -1;
 
@@ -496,8 +496,10 @@ namespace battleship{
 	}
 
 	void Vehicle::build(Order order){
-		if(pathPoints.empty()){
-			Structure *structure = (Structure*)order.targets[0].unit;
+		Structure *structure = (Structure*)order.targets[0].unit;
+		float offset = .5 * Map::getSingleton()->getCellSize().x;
+
+		if(pathPoints.empty() && closeEnough(structure, pos, offset)){
 			sol::table targTable = generateView()["units"][structure->getId()];
 			int costRate = (int)targTable["cost"] / 100, buildRate = (int)targTable["buildTime"] / 100;
 
@@ -511,11 +513,20 @@ namespace battleship{
 				player->incStructuresBuilt();
 			}
 		}
-		else navigate(0.5 * Map::getSingleton()->getCellSize().x);
+		else navigate(offset);
 	}
 
 	void Vehicle::select(){
 		if(!garrisonable)
 			Unit::select();
 	}
+
+	bool Vehicle::closeEnough(GameObject *obj, Vector3 pos, float eps){
+		Vector3 neVec = pos - obj->getPos();
+		float angle = obj->getDirVec().getAngleBetween(neVec.norm());
+	
+		if(angle > PI / 2) angle = PI - angle;
+	
+		return cos(angle) * neVec.getLength() < .5 * obj->getLength() + eps;
+	};
 }
