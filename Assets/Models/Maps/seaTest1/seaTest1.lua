@@ -48,7 +48,7 @@ metadata = {
 
 	},
 	skybox = "TestSkybox",
-	terrain = {model = "W3.xml", albedo = "W3.jpg"},
+	terrain = {model = "seaTest1.xml", albedo = "seaTest1.jpg"},
 	waterbodies = {
 		{pos = {x = 0.000000, y = 12.000000, z = 0.000000},				size = {x = 1000.000000, y = 1000.000000}, albedo = "water.png"},	}
 }
