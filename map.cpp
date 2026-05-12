@@ -501,8 +501,6 @@ namespace battleship{
 
 		sol::table civPlayerTbl = SOL_LUA_VIEW[mapTable]["civilianPlayer"];
 		loadPlayerGameObjects(game->getCivilianPlayer(), civPlayerTbl);
-
-		Minimap::getSingleton()->load();
 	}
 
 	void Map::preprareScene(bool empty){
@@ -678,6 +676,8 @@ namespace battleship{
 		
 		for(int i = 0; i < numWaterbodies; i++)
 			loadTerrainObject(i);
+
+		Minimap::getSingleton()->load();
     }
 
 	void Map::create(string mapName, Vector3 mapSize){
