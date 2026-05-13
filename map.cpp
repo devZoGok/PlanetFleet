@@ -43,16 +43,34 @@ namespace battleship{
 	}
 
 	Map::Minimap::Minimap(){
-		sol::state_view SOL_STATE_VIEW = generateView();
-		SOL_STATE_VIEW.script_file(GameManager::getSingleton()->getPath() + "Scripts/Gui/activeGameState.lua");
+		Vector3 mapSize = Map::getSingleton()->getMapSize();
+		float ratio = mapSize.x / mapSize.z;
 
-		string refIconFile = SOL_STATE_VIEW["refIcon"];
+		sol::state_view SOL_LUA_VIEW = generateView();
+		SOL_LUA_VIEW.script_file(GameManager::getSingleton()->getPath() + "Scripts/Gui/activeGameState.lua");
+		sol::table sizeTbl = SOL_LUA_VIEW["minimapSize"];
+		float initSizeX = sizeTbl["x"], initSizeY = sizeTbl["y"];
+
+		if(ratio < 1){
+			float x = initSizeX * ratio;
+			SOL_LUA_VIEW["_minimapPos"]["x"] = .5 * (initSizeX - x) ;
+			SOL_LUA_VIEW["_minimapSize"]["x"] = x;
+			SOL_LUA_VIEW["_minimapSize"]["y"] = initSizeY;
+		}
+		else{
+			float y = initSizeY / ratio;
+			SOL_LUA_VIEW["_minimapPos"]["y"] = .5 * (initSizeY - y);
+			SOL_LUA_VIEW["_minimapSize"]["x"] = initSizeX;
+			SOL_LUA_VIEW["_minimapSize"]["y"] = y;
+		}
+
+		string refIconFile = SOL_LUA_VIEW["refIcon"];
 		string basePath = GameManager::getSingleton()->getPath() + "Textures/Icons/Minimap/";
 
 		for(ResourceDeposit *rd : Game::getSingleton()->getCivilianPlayer()->getResourceDeposits())
 			depositIcons.push_back(initIcon(rd->getPos(), basePath + refIconFile));
 
-		string camIconFile = SOL_STATE_VIEW["eyeIcon"];
+		string camIconFile = SOL_LUA_VIEW["eyeIcon"];
 		camIcon = initIcon(Root::getSingleton()->getCamera()->getPosition(), basePath + camIconFile);
 	}
 

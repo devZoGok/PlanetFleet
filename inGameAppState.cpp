@@ -62,6 +62,7 @@ namespace battleship{
 
 		Map *map = Map::getSingleton();
 		map->load(mapName);
+		Map::Minimap::getSingleton()->load();
 
 		Camera *cam = Root::getSingleton()->getCamera();
 		cam->setPosition(Map::getSingleton()->getSpawnPoint(playerId) + Vector3(1, 1, 1) * configData::CAMERA_DISTANCE);

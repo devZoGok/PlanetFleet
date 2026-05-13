@@ -123,29 +123,6 @@ namespace battleship{
 		vector<Button*> buttons = guiButtons;
 		buttons.insert(buttons.end(), unitButtons.begin(), unitButtons.end());
 
-		Vector3 mapSize = Map::getSingleton()->getMapSize();
-		float ratio = mapSize.x / mapSize.z;
-
-		sol::state_view SOL_LUA_VIEW = generateView();
-		SOL_LUA_VIEW.script_file(GameManager::getSingleton()->getPath() + "Scripts/Gui/activeGameState.lua");
-		sol::table sizeTbl = SOL_LUA_VIEW["minimapSize"];
-		float initSizeX = sizeTbl["x"], initSizeY = sizeTbl["y"];
-
-		if(ratio < 1){
-			float x = initSizeX * ratio;
-			SOL_LUA_VIEW["_minimapPos"]["x"] = .5 * (initSizeX - x) ;
-			SOL_LUA_VIEW["_minimapSize"]["x"] = x;
-			SOL_LUA_VIEW["_minimapSize"]["y"] = initSizeY;
-		}
-		else{
-			float y = initSizeY / ratio;
-			SOL_LUA_VIEW["_minimapPos"]["y"] = .5 * (initSizeY - y);
-			SOL_LUA_VIEW["_minimapSize"]["x"] = initSizeX;
-			SOL_LUA_VIEW["_minimapSize"]["y"] = y;
-		}
-
-		Map::Minimap::getSingleton()->load();
-
 		ConcreteGuiManager::getSingleton()->readLuaScreenScript(
 				"activeGameState.lua",
 				buttons,
