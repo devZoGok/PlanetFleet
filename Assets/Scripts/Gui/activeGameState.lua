@@ -29,7 +29,7 @@ end
 eyeIcon = 'eye.png'
 refIcon = 'refineds.png'
 minimapSize = {x = 200, y = 200}
-minimapPos = {x = 0, y = res.y - minimapSize.y, z = .9}
+minimapPos = {x = 0, y = res.y - minimapSize.y, z = .85}
 
 resTextScale = {x = .5, y = .5}
 resIconBasePath = 'Icons/Resources/'

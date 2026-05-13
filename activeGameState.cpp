@@ -144,6 +144,8 @@ namespace battleship{
 			SOL_LUA_VIEW["_minimapSize"]["y"] = y;
 		}
 
+		Map::Minimap::getSingleton()->load();
+
 		ConcreteGuiManager::getSingleton()->readLuaScreenScript(
 				"activeGameState.lua",
 				buttons,

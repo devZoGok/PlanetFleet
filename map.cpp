@@ -82,9 +82,13 @@ namespace battleship{
 		mat->addTexUniform("diffuseMap", tex, false);
 
 		sol::state_view SOL_LUA_VIEW = generateView();
-		sol::table posTbl = SOL_LUA_VIEW["minimapPos"], sizeTbl = SOL_LUA_VIEW["minimapSize"];
-		Vector2 minimapSize = Vector2(sizeTbl["x"], sizeTbl["y"]);
-		Vector3 minimapPos = Vector3(posTbl["x"], posTbl["y"], posTbl["z"]);
+		sol::table posTbl = SOL_LUA_VIEW["minimapPos"],
+		   	_posTbl = SOL_LUA_VIEW["_minimapPos"],
+			sizeTbl = SOL_LUA_VIEW["minimapSize"],
+			_sizeTbl = SOL_LUA_VIEW["_minimapSize"];
+
+		Vector2 minimapSize = Vector2((float)_sizeTbl["x"], (float)_sizeTbl["y"]);
+		Vector3 minimapPos = Vector3((float)_posTbl["x"], (float)posTbl["y"] + (float)_posTbl["y"], (float)posTbl["z"]);
 
 		Vector3 mapSize = Map::getSingleton()->getMapSize();
 		Vector2 iconPos = Vector2(
@@ -95,9 +99,8 @@ namespace battleship{
 		Quad *quad = new Quad(iconSize, false);
 		quad->setMaterial(mat);
 
-		Node *node = new Node(minimapPos + Vector3(iconPos.x, iconPos.y, .1) - .5 * iconSize);
+		Node *node = new Node(minimapPos + Vector3(iconPos.x, iconPos.y, .05) - .5 * iconSize);
 		node->attachMesh(quad);
-		node->setVisible(false);
 		root->getGuiNode()->attachChild(node);
 
 		return node;
@@ -187,7 +190,7 @@ namespace battleship{
 			minimapSize.y * (camPos.z + .5 * mapSize.z) / mapSize.z 
 		);
 
-		camIcon->setPosition(minimapButton->getPos() + Vector3(iconPos.x, iconPos.y, .1));
+		camIcon->setPosition(minimapButton->getPos() + Vector3(iconPos.x, iconPos.y, .06));
 	}
 
 	void Map::Minimap::update(){
@@ -677,7 +680,7 @@ namespace battleship{
 		for(int i = 0; i < numWaterbodies; i++)
 			loadTerrainObject(i);
 
-		Minimap::getSingleton()->load();
+		loadPlayersGameObjects();
     }
 
 	void Map::create(string mapName, Vector3 mapSize){

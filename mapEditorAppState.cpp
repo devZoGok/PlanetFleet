@@ -63,13 +63,12 @@ namespace battleship{
 			generatePlane(size);
 		}
 		else{
-			map->load(name);
-			int numPlayers = map->getNumSpawnPoints();
+			int numPlayers = Map::getSingleton()->getNumMapSpawnPoints(name);
 
 			for(int i = 0; i < numPlayers; i++)
-				game->addPlayer(new Player(0, 0, 0, Vector3(1, 1, 1)));
+				game->addPlayer(new Player(0, 0, 0, Vector3(1, float(i > 0), float(i > 1)), false, i));
 
-			map->loadPlayersGameObjects();
+			map->load(name);
 
 			MeshData meshData = map->getNodeParent()->getChild(0)->getMesh(0)->getMeshBase();
 			int minId = 0, numVerts = 3 * meshData.numTris;
