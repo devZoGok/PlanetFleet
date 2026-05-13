@@ -63,16 +63,25 @@ namespace battleship{
 			generatePlane(size);
 		}
 		else{
-			map->load(name);
-
-			int numPlayers = map->getNumSpawnPoints();
-			int numVerts = 3 * map->getNodeParent()->getChild(0)->getMesh(0)->getMeshBase().numTris;
-			oldLandmassVertHeights = new float[numVerts];
+			int numPlayers = Map::getSingleton()->getNumMapSpawnPoints(name);
 
 			for(int i = 0; i < numPlayers; i++)
-				game->addPlayer(new Player(0, 0, 0, Vector3(1, 1, 1)));
+				game->addPlayer(new Player(0, 0, 0, Vector3(1, float(i > 0), float(i > 1)), false, i));
 
-			map->loadPlayersGameObjects();
+			map->load(name);
+
+			MeshData meshData = map->getNodeParent()->getChild(0)->getMesh(0)->getMeshBase();
+			int minId = 0, numVerts = 3 * meshData.numTris;
+			oldLandmassVertHeights = new float[numVerts];
+
+			for(int i = 0; i < numVerts; i++){
+				oldLandmassVertHeights[i] = meshData.vertices[i].pos->y;
+
+				if(oldLandmassVertHeights[i] < oldLandmassVertHeights[minId])
+					minId = i;
+			}
+
+			map->setBaseHeight(oldLandmassVertHeights[minId]);
 		}
 	}
 
@@ -412,16 +421,16 @@ namespace battleship{
 		Vector3 mapSize = map->getMapSize(), cellSize = map->getCellSize();
 		int width = int(mapSize.x / cellSize.x);
 		int height = int(mapSize.z / cellSize.z);
-		int numChannels = 3;
+		int cellId = 0, numChannels = 3;
 		int size = width * height * numChannels;
-		int cellId = 0;
 		float baseHeight = map->getBaseHeight();
 
 		u8 *imgData = new u8[size];
 
 		for(u8 *p = imgData; p != imgData + size; p+= numChannels, cellId++){
 			float min = .6, max = 1.;
-			float heightFactor = min + (max - min) * (cells[cellId].pos.y - baseHeight) / mapSize.y;
+			float bottomCellHeight = cells[cellId].pos.y - map->getCellSize().y * cells[cellId].underWaterCellIds.size();
+			float heightFactor = min + (max - min) * (bottomCellHeight - baseHeight) / mapSize.y;
 			Vector3 color = (cells[cellId].type == Map::Cell::Type::WATER ? Vector3::VEC_K : Vector3::VEC_J);
 
 			*p = color.x * heightFactor * 255.f;

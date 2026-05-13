@@ -43,16 +43,34 @@ namespace battleship{
 	}
 
 	Map::Minimap::Minimap(){
-		sol::state_view SOL_STATE_VIEW = generateView();
-		SOL_STATE_VIEW.script_file(GameManager::getSingleton()->getPath() + "Scripts/Gui/activeGameState.lua");
+		Vector3 mapSize = Map::getSingleton()->getMapSize();
+		float ratio = mapSize.x / mapSize.z;
 
-		string refIconFile = SOL_STATE_VIEW["refIcon"];
+		sol::state_view SOL_LUA_VIEW = generateView();
+		SOL_LUA_VIEW.script_file(GameManager::getSingleton()->getPath() + "Scripts/Gui/activeGameState.lua");
+		sol::table sizeTbl = SOL_LUA_VIEW["minimapSize"];
+		float initSizeX = sizeTbl["x"], initSizeY = sizeTbl["y"];
+
+		if(ratio < 1){
+			float x = initSizeX * ratio;
+			SOL_LUA_VIEW["_minimapPos"]["x"] = .5 * (initSizeX - x) ;
+			SOL_LUA_VIEW["_minimapSize"]["x"] = x;
+			SOL_LUA_VIEW["_minimapSize"]["y"] = initSizeY;
+		}
+		else{
+			float y = initSizeY / ratio;
+			SOL_LUA_VIEW["_minimapPos"]["y"] = .5 * (initSizeY - y);
+			SOL_LUA_VIEW["_minimapSize"]["x"] = initSizeX;
+			SOL_LUA_VIEW["_minimapSize"]["y"] = y;
+		}
+
+		string refIconFile = SOL_LUA_VIEW["refIcon"];
 		string basePath = GameManager::getSingleton()->getPath() + "Textures/Icons/Minimap/";
 
 		for(ResourceDeposit *rd : Game::getSingleton()->getCivilianPlayer()->getResourceDeposits())
 			depositIcons.push_back(initIcon(rd->getPos(), basePath + refIconFile));
 
-		string camIconFile = SOL_STATE_VIEW["eyeIcon"];
+		string camIconFile = SOL_LUA_VIEW["eyeIcon"];
 		camIcon = initIcon(Root::getSingleton()->getCamera()->getPosition(), basePath + camIconFile);
 	}
 
@@ -82,9 +100,13 @@ namespace battleship{
 		mat->addTexUniform("diffuseMap", tex, false);
 
 		sol::state_view SOL_LUA_VIEW = generateView();
-		sol::table posTbl = SOL_LUA_VIEW["minimapPos"], sizeTbl = SOL_LUA_VIEW["minimapSize"];
-		Vector2 minimapSize = Vector2(sizeTbl["x"], sizeTbl["y"]);
-		Vector3 minimapPos = Vector3(posTbl["x"], posTbl["y"], posTbl["z"]);
+		sol::table posTbl = SOL_LUA_VIEW["minimapPos"],
+		   	_posTbl = SOL_LUA_VIEW["_minimapPos"],
+			sizeTbl = SOL_LUA_VIEW["minimapSize"],
+			_sizeTbl = SOL_LUA_VIEW["_minimapSize"];
+
+		Vector2 minimapSize = Vector2((float)_sizeTbl["x"], (float)_sizeTbl["y"]);
+		Vector3 minimapPos = Vector3((float)_posTbl["x"], (float)posTbl["y"] + (float)_posTbl["y"], (float)posTbl["z"]);
 
 		Vector3 mapSize = Map::getSingleton()->getMapSize();
 		Vector2 iconPos = Vector2(
@@ -95,9 +117,8 @@ namespace battleship{
 		Quad *quad = new Quad(iconSize, false);
 		quad->setMaterial(mat);
 
-		Node *node = new Node(minimapPos + Vector3(iconPos.x, iconPos.y, .1) - .5 * iconSize);
+		Node *node = new Node(minimapPos + Vector3(iconPos.x, iconPos.y, .05) - .5 * iconSize);
 		node->attachMesh(quad);
-		node->setVisible(false);
 		root->getGuiNode()->attachChild(node);
 
 		return node;
@@ -187,7 +208,7 @@ namespace battleship{
 			minimapSize.y * (camPos.z + .5 * mapSize.z) / mapSize.z 
 		);
 
-		camIcon->setPosition(minimapButton->getPos() + Vector3(iconPos.x, iconPos.y, .1));
+		camIcon->setPosition(minimapButton->getPos() + Vector3(iconPos.x, iconPos.y, .06));
 	}
 
 	void Map::Minimap::update(){
@@ -476,12 +497,31 @@ namespace battleship{
 		for(int i = 0; i < choosablePlayers.size(); i++){
 			sol::table playerTbl = SOL_LUA_VIEW[mapTable]["choosablePlayers"][i + 1];
 			loadPlayerGameObjects(choosablePlayers[i], playerTbl);
+			sol::table unitsTbl = playerTbl["units"];
+			int numUnits = unitsTbl.size();
+
+			if(numUnits == 0){
+				int engiId;
+
+				switch(choosablePlayers[i]->getFaction()){
+					case 0:
+						engiId = 9;
+						break;
+					case 1:
+						engiId = 11;
+						break;
+					case 2:
+						engiId = 13;
+						break;
+				}
+
+				Vector3 sp = getSpawnPoint(choosablePlayers[i]->getSpawnPointId());
+				choosablePlayers[i]->addUnit(GameObjectFactory::createUnit(choosablePlayers[i], engiId, sp, Quaternion::QUAT_W));
+			}
 		}
 
 		sol::table civPlayerTbl = SOL_LUA_VIEW[mapTable]["civilianPlayer"];
 		loadPlayerGameObjects(game->getCivilianPlayer(), civPlayerTbl);
-
-		Minimap::getSingleton()->load();
 	}
 
 	void Map::preprareScene(bool empty){
@@ -657,6 +697,8 @@ namespace battleship{
 		
 		for(int i = 0; i < numWaterbodies; i++)
 			loadTerrainObject(i);
+
+		loadPlayersGameObjects();
     }
 
 	void Map::create(string mapName, Vector3 mapSize){
