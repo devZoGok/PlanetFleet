@@ -345,7 +345,7 @@ namespace battleship{
 		bool buildOrder = (order.type == Order::TYPE::BUILD);
 		bool resourceOrder = (order.type == Order::TYPE::LOAD || order.type == Order::TYPE::UNLOAD || order.type == Order::TYPE::SUPPLY);
 
-		if(blockingUnit && blockingUnit != this && !resourceOrder && !buildOrder && (!garrisonOrder || (garrisonOrder && blockingUnit != (Unit*)targObj))){
+		if(blockingUnit && blockingUnit != this && !resourceOrder && !buildOrder && !garrisonOrder){
 			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
 			int altDest = -1;
 

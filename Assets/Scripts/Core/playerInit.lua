@@ -21,17 +21,32 @@ for i = 1, #game.cpuPlayers do
 					{
 						type = BTNodeType.SEQUENCE, 
 						children = {
-							{type = BTNodeType.FUNCTION, func = player.buildExtractors},
 							{
 								type = BTNodeType.FUNCTION, 
 								func = player.buildTaskForces, 
 								args = {
 									factoryClass = UnitClass.LAND_FACTORY,
-									taskForceData = {{class = UnitClass.RESOURCE_ROVER, numUnits = 4}}
+									taskForceData = {{class = UnitClass.RESOURCE_ROVER, numUnits = 1}}
 								}
 							},
+							{type = BTNodeType.FUNCTION, func = player.buildExtractors, args = {numWaitExtractors = 1}},
 						}
 					}
+				}
+			},
+			{type = BTNodeType.FUNCTION, func = player.startHarvesting},
+			{
+				type = BTNodeType.PARALLEL,
+				children = {
+					{type = BTNodeType.FUNCTION, func = player.buildExtractors},
+					{
+						type = BTNodeType.FUNCTION, 
+						func = player.buildTaskForces, 
+						args = {
+							factoryClass = UnitClass.LAND_FACTORY,
+							taskForceData = {{class = UnitClass.RESOURCE_ROVER, numUnits = 3}}
+						}
+					},
 				}
 			},
 			{type = BTNodeType.FUNCTION, func = player.startHarvesting},

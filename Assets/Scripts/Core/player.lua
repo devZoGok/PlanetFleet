@@ -395,6 +395,13 @@ end
 
 function Player:buildExtractors(arguments)
 	extractors = self:getUnitsByClass(UnitClass.EXTRACTOR, -1)
+
+	if arguments and arguments.numWaitExtractors and #extractors >= arguments.numWaitExtractors then
+		for i = 1, arguments.numWaitExtractors do
+			if not extractors[i]:toStructure():isComplete() then return BTNodeResult.RUNNING end
+		end
+	end
+
 	visibleDeposits = self:getVisibleDeposits()
 	depId = nil
 
