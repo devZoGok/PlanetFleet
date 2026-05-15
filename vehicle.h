@@ -41,6 +41,7 @@ namespace battleship{
 		protected:
 			std::vector<vb01::Vector3> pathPoints;
 			bool pursuingTarget = false;
+			float destinationOffset;
 
 			void arrivedAtPathpoint(bool, float = 0);
 			void moveByTerrainQuads(vb01::Vector3, float);
@@ -53,6 +54,7 @@ namespace battleship{
 			void garrison(Order);
 			void patrol(Order);
 			virtual void initProperties();
+			bool closeEnough(GameObject *obj, vb01::Vector3 pos, float = 0);
 	};
 }
 

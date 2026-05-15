@@ -1,6 +1,4 @@
 game = {cpuPlayers = {}}
-_minimapPos = {x = 0, y = 0}
-_minimapSize = {x = 0, y = 0}
 GameObjectFrameStatus = {
 	PLACEABLE = 0, 
 	BLOCKED_BY_FOG_OF_WAR = 1,

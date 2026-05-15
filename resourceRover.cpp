@@ -112,16 +112,7 @@ namespace battleship{
 		nearestExtractor = (Extractor*)getClosestUnit(extractors);
 		nearestRefinery = getClosestUnit(refineries);
 
-		auto closeEnough = [](GameObject *obj, Vector3 pos){
-			Vector3 neVec = pos - obj->getPos();
-			float angle = obj->getDirVec().getAngleBetween(neVec.norm());
-
-			if(angle > PI / 2) angle = PI - angle;
-
-			return cos(angle) * neVec.getLength() < .5 * obj->getLength();
-		};
-
-		if(nearestExtractor && closeEnough(nearestExtractor, pos)){
+		if(nearestExtractor && closeEnough(nearestExtractor, pos, destinationOffset)){
 			ResourceDeposit *deposit = nearestExtractor->getDeposit();
 
 			if(canLoad() && deposit->getAmmount() > 0){
@@ -144,7 +135,7 @@ namespace battleship{
 			else removeOrder(0);
 		}
 
-		if(nearestRefinery && closeEnough(nearestRefinery, pos)){
+		if(nearestRefinery && closeEnough(nearestRefinery, pos, destinationOffset)){
 			if(canUnload((int)ResourceType::REFINEDS)){
 				cargo[(int)ResourceType::REFINEDS] -= loadSpeed;
 				player->updateResource(ResourceType::REFINEDS, loadSpeed, true);
@@ -158,7 +149,7 @@ namespace battleship{
 	}
 
 	void ResourceRover::handleResources(Order order){
-		if(!pathPoints.empty()) navigate(.01);
+		if(!pathPoints.empty()) navigate(destinationOffset);
 		else if(order.type == Order::TYPE::SUPPLY)
 			collectRefineds(order);
 		else

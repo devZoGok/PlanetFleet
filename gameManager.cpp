@@ -260,6 +260,8 @@ namespace battleship{
 		for(string f : configData::scripts)
 			SOL_LUA_STATE.script_file(path + f);
 
+		SOL_LUA_STATE.script_file(path + "Scripts/Gui/_minimap.lua");
+
 		sol::table resTable = SOL_LUA_STATE["graphics"]["resolution"]; 
 		width = resTable["x"];
 		height = resTable["y"];

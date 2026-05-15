@@ -129,8 +129,10 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100,
-				maxRange = 14,
+				maxRange = 40,
 				damage = 50,
+				maxFireAngle = .1,
+				nodes = {{name = 'turret', rotationSpeed = 0, angleConstraints = {min = -1.5, max = 1.5}, vertical = true}},
 				fireFx = {
 					{
 						vfx = true,
@@ -191,7 +193,7 @@ units = {
 		selectionSfx = PATH .. 'Sounds/Units/WarMechs/selection.ogg',
 		speed = .4,
 		destinationOffset = .1,
-		anglePrecision = .1,
+		anglePrecision = .01,
 		maxTurnAngle = .1,
 		garrisonCategory = 1,
 		deathFx = {explosionVfx, explosionSfx},
@@ -201,9 +203,10 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100,
-				maxRange = 14,
+				maxRange = 40,
 				damage = 50,
-				maxFireAngle = .15,
+				maxFireAngle = .1,
+				nodes = {{name = 'turret', rotationSpeed = 1, angleConstraints = {min = -1.5, max = 1.5}, vertical = true}},
 				fireFx = {
 					{
 						vfx = true,
@@ -248,6 +251,7 @@ units = {
 		unitClass = UnitClass.MECH,
 		unitType = UnitType.LAND,
 		armor = {ArmorType.MECHANIC},
+		alignToSurface = true,
 		maxUnevenness = .5,
 		isVehicle = true,
 		health = 500,
@@ -264,7 +268,7 @@ units = {
 		selectionSfx = PATH .. 'Sounds/Units/WarMechs/selection.ogg',
 		speed = .3,
 		destinationOffset = .1,
-		anglePrecision = .01,
+		anglePrecision = .1,
 		maxTurnAngle = .1,
 		garrisonCategory = 1,
 		deathFx = {explosionVfx, explosionSfx},
@@ -273,9 +277,11 @@ units = {
 		weapons = {
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 100,
-				maxRange = 14,
+				rateOfFire = 250,
+				maxRange = 40,
 				damage = 50,
+				maxFireAngle = .1,
+				nodes = {{name = 'turret', rotationSpeed = 1, angleConstraints = {min = -1.5, max = 1.5}, vertical = true}},
 				fireFx = {
 					{
 						vfx = true,
@@ -320,6 +326,7 @@ units = {
 		unitClass = UnitClass.MECH,
 		unitType = UnitType.LAND,
 		armor = {ArmorType.MECHANIC},
+		alignToSurface = true,
 		maxUnevenness = .5,
 		isVehicle = true,
 		health = 500,
@@ -334,7 +341,7 @@ units = {
 		albedoPath = 'mech.jpg',
 		colorNodes = {'stripes'},
 		selectionSfx = PATH .. 'Sounds/Units/WarMechs/selection.ogg',
-		speed = .3,
+		speed = .4,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -350,7 +357,7 @@ units = {
 				maxRange = 50,
 				maxFireAngle = .1,
 				nodes = {{name = 'TankASHead', rotationSpeed = .05, vertical = false}, {name = 'barell', rotationSpeed = .05, angleConstraints = {min = 0, max = .349}, vertical = true}},
-				projectile = {id = ProjectileId.HE_SHELL, parent = 'barell', pos = {x = 0, y = .49, z = 8.35}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.TANK_SHELL, parent = 'barell', pos = {x = 0, y = .49, z = 8.35}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = false,
@@ -385,14 +392,14 @@ units = {
 		cost = 500,
 		size = {x = 11.505, y = 10.3979, z = 17.1902},
 		hitboxOffset = {x = 0, y = 5.46, z = .86},
-		lineOfSight = 25,
+		lineOfSight = 75,
 		name = 'Tank',
 		basePath = PATH .. vehiclePrefix .. 'Tanks/',
 		meshPath = 'acsTank.xml',
 		albedoPath = 'tank.jpg',
 		colorNodes = {'TankASHead'},
 		selectionSfx = PATH .. 'Sounds/Units/Tanks/selection.ogg',
-		speed = 5,
+		speed = .5,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -405,10 +412,10 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				damage = 200, 
-				maxRange = 250,
+				maxRange = 50,
 				maxFireAngle = .1,
 				nodes = {{name = 'TankGun_AM', rotationSpeed = .05, vertical = false}, {name = 'barell', rotationSpeed = .05, angleConstraints = {min = -.2, max = .74}, vertical = true}},
-				projectile = {id = ProjectileId.HE_SHELL, parent = 'barell', pos = {x = 0.06, y = .19, z = 9.18}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.TANK_SHELL, parent = 'barell', pos = {x = 0.06, y = .19, z = 9.18}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = false,
@@ -443,7 +450,7 @@ units = {
 		cost = 500,
 		size = {x = 13.6, y = 6.79, z = 21.8},
 		hitboxOffset = {x = 0, y = 3.31, z = 0},
-		lineOfSight = 25,
+		lineOfSight = 75,
 		name = 'Tank',
 		basePath = PATH .. vehiclePrefix .. 'Tanks/',
 		meshPath = 'aincTank.xml',
@@ -465,8 +472,11 @@ units = {
 				damage = 200, 
 				maxRange = 50,
 				maxFireAngle = .1,
-				nodes = {{name = 'turret', rotationSpeed = .05, vertical = false}},
-				projectile = {id = ProjectileId.HE_SHELL, parent = 'turret', pos = {x = 0, y = .67, z = 5}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				nodes = {
+					{name = 'turret', rotationSpeed = .05, vertical = false}, 
+					{name = 'GunHead', rotationSpeed = .05, angleConstraints = {min = -.174, max = 0}, vertical = true}
+				},
+				projectile = {id = ProjectileId.TANK_SHELL, parent = 'turret', pos = {x = 0, y = .67, z = 5}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = false,
@@ -491,7 +501,7 @@ units = {
 			}
 		},
 		unitClass = UnitClass.TANK,
-		unitType = UnitType.LAND,
+		unitType = UnitType.HOVER,
 		armor = {ArmorType.STEEL},
 		maxUnevenness = .5,
 		isVehicle = true,
@@ -501,7 +511,7 @@ units = {
 		cost = 500,
 		size = {x = 7.2, y = 10.3, z = 15},
 		hitboxOffset = {x = 0, y = 5.27, z = .26},
-		lineOfSight = 25,
+		lineOfSight = 75,
 		name = 'Tank',
 		basePath = PATH .. vehiclePrefix .. 'Tanks/',
 		meshPath = 'erTank.xml',
@@ -527,7 +537,7 @@ units = {
 					{name = 'Asia_Mech.001', rotationSpeed = .05, vertical = false},
 					{name = 'Asia_Mech.002', rotationSpeed = .05, angleConstraints = {min = -.348, max = .785}, vertical = true}
 				},
-				projectile = {id = ProjectileId.HE_SHELL, parent = 'Asia_Mech.002', pos = {x = 0., y = 0., z = 5.91}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.TANK_SHELL, parent = 'Asia_Mech.002', pos = {x = 0., y = 0., z = 5.91}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = true,
@@ -560,7 +570,7 @@ units = {
 		cost = 500,
 		size = {x = 9.99, y = 15.4, z = 14.},
 		hitboxOffset = {x = 0, y = 7.69, z = .71},
-		lineOfSight = 30,
+		lineOfSight = 90,
 		name = 'Artillery',
 		basePath = PATH .. vehiclePrefix .. 'Artillery/',
 		meshPath = 'acsArtillery.xml',
@@ -586,7 +596,7 @@ units = {
 					{name = 'turret', rotationSpeed = .05, vertical = false},
 					{name = 'barrel', rotationSpeed = .05, angleConstraints = {min = -.139, max = .279}, vertical = true}
 				},
-				projectile = {id = ProjectileId.HE_SHELL, parent = 'barrel', pos = {x = 0., y = 0, z = 9.14}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.TANK_SHELL, parent = 'barrel', pos = {x = 0., y = 0, z = 9.14}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = true,
@@ -612,14 +622,13 @@ units = {
 		unitType = UnitType.LAND,
 		armor = {ArmorType.MECHANIC},
 		maxUnevenness = .5,
-		alignToSurface = true,
 		isVehicle = true,
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
 		size = {x = 10.4, y = 14, z = 12.9},
 		hitboxOffset = {x = 0, y = 7, z = 1.3},
-		lineOfSight = 30,
+		lineOfSight = 90,
 		name = 'Artillery',
 		basePath = PATH .. vehiclePrefix .. 'Artillery/',
 		meshPath = 'aincArtillery.xml',
@@ -714,7 +723,7 @@ units = {
 		cost = 500,
 		size = {x = 2.43, y = 2.43, z = 2.47},
 		hitboxOffset = {x = 0, y = 1.21, z = 0},
-		lineOfSight = 500,
+		lineOfSight = 150,
 		name = 'Engineer',
 		basePath = PATH .. vehiclePrefix .. 'Engineers/',
 		albedoPath = 'engineer.jpg',
@@ -748,7 +757,7 @@ units = {
 		},
 		abilityButtons = {{buttonType = ButtonType.ORDER, name = 'Hack', orderType = OrderType.HACK}},
 		unitClass = UnitClass.CYBORG_ENGINEER,
-		unitType = UnitType.HOVER,
+		unitType = UnitType.LAND,
 		armor = {ArmorType.MECHANIC},
 		maxUnevenness = .5,
 		isVehicle = true,
@@ -759,7 +768,7 @@ units = {
 		cost = 500,
 		size = {x = 4.95, y = 6.59, z = 4.11},
 		hitboxOffset = {x = .178, y = 3.27, z = 0},
-		lineOfSight = 150,
+		lineOfSight = 1500,
 		name = 'Engineer',
 		basePath = PATH .. vehiclePrefix .. 'Engineers/',
 		albedoPath = 'engineer.jpg',
@@ -769,7 +778,7 @@ units = {
 		speed = 1,
 		destinationOffset = .1,
 		anglePrecision = .1,
-		maxTurnAngle = .1,
+		maxTurnAngle = .3,
 		garrisonCategory = 3,
 		deathFx = {explosionVfx, explosionSfx},
 	},
@@ -829,7 +838,7 @@ units = {
 		},
 		abilityButtons = {{buttonType = ButtonType.ORDER, name = 'Hack', orderType = OrderType.HACK}},
 		unitClass = UnitClass.CYBORG_ENGINEER,
-		unitType = UnitType.HOVER,
+		unitType = UnitType.LAND,
 		armor = {ArmorType.MECHANIC},
 		maxUnevenness = .5,
 		isVehicle = true,
@@ -910,7 +919,7 @@ units = {
 		},
 		abilityButtons = {{buttonType = ButtonType.ORDER, name = 'Hack', orderType = OrderType.HACK}},
 		unitClass = UnitClass.CYBORG_ENGINEER,
-		unitType = UnitType.HOVER,
+		unitType = UnitType.LAND,
 		armor = {ArmorType.MECHANIC},
 		maxUnevenness = .5,
 		isVehicle = true,
@@ -939,10 +948,13 @@ units = {
 		weapons = {
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
+				rateOfFire = 300, 
 				damage = 10, 
-				maxRange = 50,
-				nodes = {{name = 'turret', rotationSpeed = .05, vertical = false}},
+				maxRange = 75,
+				nodes = {
+					{name = 'turret', rotationSpeed = .05, vertical = false},
+					{name = 'mantle', rotationSpeed = .05, angleConstraints = {min = -.105, max = 0}, vertical = true}
+				},
 				fireFx = {
 					{
 						vfx = true,
@@ -951,9 +963,9 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						pos = {x = 2.23, y = 4.16, z = 23},
+						pos = {x = 2.26, y = 0, z = 11.7},
 						rot = {w = 1, x = 0, y = 0, z = 0},
-						parent = 'turret'
+						parent = 'mantle'
 						--scale = .5
 					},
 					{
@@ -963,9 +975,9 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						pos = {x = -2.23, y = 4.16, z = 23},
+						pos = {x = -2.26, y = 0, z = 11.7},
 						rot = {w = 1, x = 0, y = 0, z = 0},
-						parent = 'turret'
+						parent = 'mantle'
 						--scale = .5
 					},
 					{
@@ -1027,10 +1039,13 @@ units = {
 		weapons = {
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
+				rateOfFire = 300, 
 				damage = 10, 
-				maxRange = 50,
-				nodes = {{name = 'turret', rotationSpeed = .05, vertical = false}},
+				maxRange = 75,
+				nodes = {
+					{name = 'turret', rotationSpeed = .05, vertical = false},
+					{name = 'mantle', rotationSpeed = .05, angleConstraints = {min = -.174, max = 0}, vertical = true}
+				},
 				fireFx = {
 					{
 						vfx = true,
@@ -1039,9 +1054,9 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						pos = {x = 0, y = 4.4, z = 15.6},
+						pos = {x = 0, y = 0, z = 15.6},
 						rot = {w = 1, x = 0, y = 0, z = 0},
-						parent = 'turret'
+						parent = 'mantle'
 						--scale = .5
 					},
 					{
@@ -1092,7 +1107,7 @@ units = {
 		meshPath = 'aincTransport.xml',
 		albedoPath = 'transport.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Transports/selection.ogg',
-		speed = .1,
+		speed = .6,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -1103,10 +1118,13 @@ units = {
 		weapons = {
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
+				rateOfFire = 300, 
 				damage = 10, 
-				maxRange = 50,
-				nodes = {{name = 'turret', rotationSpeed = .05, vertical = false}},
+				maxRange = 75,
+				nodes = {
+					{name = 'turret', rotationSpeed = .05, vertical = false},
+					{name = 'mantle', rotationSpeed = .05, angleConstraints = {min = -.262, max = 0}, vertical = true}
+				},
 				fireFx = {
 					{
 						vfx = true,
@@ -1115,9 +1133,9 @@ units = {
 							path = PATH .. vfxPrefix .. 'muzzleFlash.xml',
 							color = {x = 1, y = 1, z = 0, a = 1},
 						},
-						pos = {x = 0, y = 13, z = 12},
+						pos = {x = 0, y = 0, z = 11},
 						rot = {w = 1, x = 0, y = 0, z = 0},
-						parent = 'turret'
+						parent = 'mantle'
 						--scale = .5
 					},
 					{
@@ -1168,7 +1186,7 @@ units = {
 		meshPath = 'erTransport.xml',
 		albedoPath = 'transport.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Transports/selection.ogg',
-		speed = .1,
+		speed = .6,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -1203,8 +1221,8 @@ units = {
 		meshPath = 'acsCargoShip.xml',
 		albedoPath = 'cargoship.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cargoships/selection.ogg',
-		speed = .3,
-		destinationOffset = .1,
+		speed = .45,
+		destinationOffset = 1.25,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
 		garrisonCategory = 3,
@@ -1239,7 +1257,7 @@ units = {
 		albedoPath = 'cargoship.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cargoships/selection.ogg',
 		speed = .3,
-		destinationOffset = .1,
+		destinationOffset = 1.25,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
 		garrisonCategory = 3,
@@ -1273,8 +1291,8 @@ units = {
 		meshPath = 'erCargoShip.xml',
 		albedoPath = 'cargoship.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cargoships/selection.ogg',
-		speed = .3,
-		destinationOffset = .1,
+		speed = .45,
+		destinationOffset = 1.25,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
 		garrisonCategory = 3,
@@ -1284,8 +1302,8 @@ units = {
 		weapons = {
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
+				rateOfFire = 1500, 
+				damage = 80, 
 				maxRange = 50,
 				nodes = {
 					{name = 'FrontTurret', rotationSpeed = .05, angleConstraints = {min = -2.53, max = 2.53}, vertical = false},
@@ -1307,12 +1325,12 @@ units = {
 			},
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
+				rateOfFire = 1500, 
+				damage = 80, 
 				maxRange = 50,
 				nodes = {
 					{name = 'RearTurret', rotationSpeed = .05, angleConstraints = {min = -2.53, max = 2.53}, vertical = false},
-					{name = 'FrontTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.174, max = .174}, vertical = true}
+					{name = 'RearTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.174, max = .174}, vertical = true}
 				},
 				fireFx = {
 					{
@@ -1391,8 +1409,8 @@ units = {
 		weapons = {
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
+				rateOfFire = 1500, 
+				damage = 70, 
 				maxRange = 50,
 				nodes = {{name = 'frontTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44}, vertical = false}},
 				fireFx = {
@@ -1411,8 +1429,8 @@ units = {
 			},
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
+				rateOfFire = 1500, 
+				damage = 70, 
 				maxRange = 50,
 				nodes = {{name = 'rearTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44}, vertical = false}},
 				fireFx = {
@@ -1492,7 +1510,7 @@ units = {
 		meshPath = 'mediumAssaultCruiser.xml',
 		albedoPath = 'cruiser.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		speed = .1,
+		speed = .45,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -1503,8 +1521,8 @@ units = {
 		weapons = {
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
+				rateOfFire = 1400, 
+				damage = 60, 
 				maxRange = 50,
 				nodes = {
 					{name = 'frontTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44}, vertical = false},
@@ -1526,8 +1544,8 @@ units = {
 			},
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
+				rateOfFire = 1400, 
+				damage = 60, 
 				maxRange = 50,
 				nodes = {
 					{name = 'rearTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44}, vertical = false},
@@ -1602,10 +1620,10 @@ units = {
 		meshPath = 'lightAssaultCruiser.xml',
 		albedoPath = 'cruiser.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		speed = .1,
+		speed = .5,
 		destinationOffset = .1,
 		anglePrecision = .1,
-		maxTurnAngle = .1,
+		maxTurnAngle = .05,
 		garrisonCategory = 3,
 		deathFx = {explosionVfx, explosionSfx},
 	},
@@ -1704,7 +1722,6 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 2000, 
-				damage = 10, 
 				maxRange = 100,
 				targetUnits = {UnitType.UNDERWATER},
 				targetProjectiles = {},
@@ -1717,14 +1734,13 @@ units = {
 			},
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
+				rateOfFire = 1500, 
 				maxRange = 50,
 				nodes = {
 					{name = 'frontTurret', rotationSpeed = .05, angleConstraints = {min = -2.26, max = 2.26}, vertical = false},
 					{name = 'frontTurretBarrels', rotationSpeed = .05, angleConstraints = {min = -.1395, max = .348}, vertical = true}
 				},
-				projectile = {id = ProjectileId.HE_SHELL, parent = 'frontTurret', pos = {x = 0.52, y = .83, z = 4.16}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.ANTI_SUB_CRUISER_SHELL, parent = 'frontTurret', pos = {x = 0.52, y = .83, z = 4.16}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = false,
@@ -1747,14 +1763,13 @@ units = {
 			},
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
+				rateOfFire = 1500, 
 				maxRange = 50,
 				nodes = {
 					{name = 'middleTurret', rotationSpeed = .05, vertical = false},
 					{name = 'middleTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.0872, max = .209}, vertical = true}
 				},
-				projectile = {id = ProjectileId.HE_SHELL, parent = 'middleTurret', pos = {x = 0, y = 1.8, z = 7.45}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.ANTI_SUB_CRUISER_SHELL, parent = 'middleTurret', pos = {x = 0, y = 1.8, z = 7.45}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = false,
@@ -1777,14 +1792,13 @@ units = {
 			},
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
+				rateOfFire = 1500, 
 				maxRange = 50,
 				nodes = {
 					{name = 'rearTurret', rotationSpeed = .05, angleConstraints = {min = -2.79, max = 2.79}, vertical = false},
 					{name = 'rearTurretBarrel', rotationSpeed = .05, angleConstraints = {min = -.0872, max = .209}, vertical = true}
 				},
-				projectile = {id = ProjectileId.HE_SHELL, parent = 'rearTurret', pos = {x = 0, y = 1.8, z = 7.45}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.ANTI_SUB_CRUISER_SHELL, parent = 'rearTurret', pos = {x = 0, y = 1.8, z = 7.45}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = false,
@@ -1822,7 +1836,7 @@ units = {
 		meshPath = 'aincAntiSubCruiser.xml',
 		albedoPath = 'cruiser.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		speed = .3,
+		speed = .6,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -1834,7 +1848,6 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 2000, 
-				damage = 10, 
 				maxRange = 100,
 				targetUnits = {UnitType.UNDERWATER},
 				targetProjectiles = {},
@@ -1847,14 +1860,13 @@ units = {
 			},
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
+				rateOfFire = 2000, 
 				maxRange = 50,
 				nodes = {
 					{name = 'frontLowerTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44} , vertical = false},
 					{name = 'frontLowerTurretBarrels', rotationSpeed = .05, angleConstraints = {min = 0, max = .785}, vertical = true},
 				},
-				projectile = {id = ProjectileId.HE_SHELL, parent = 'frontLowerTurret', pos = {x = .42, y = 1.68, z = 4.14}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.ANTI_SUB_CRUISER_SHELL, parent = 'frontLowerTurret', pos = {x = .42, y = 1.68, z = 4.14}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = false,
@@ -1877,14 +1889,13 @@ units = {
 			},
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
+				rateOfFire = 2000, 
 				maxRange = 50,
 				nodes = {
 					{name = 'frontUpperTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44} , vertical = false},
 					{name = 'frontUpperTurretBarrels', rotationSpeed = .05, angleConstraints = {min = 0, max = .785}, vertical = true},
 				},
-				projectile = {id = ProjectileId.HE_SHELL, parent = 'frontUpperTurret', pos = {x = .42, y = 1.68, z = 4.14}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.ANTI_SUB_CRUISER_SHELL, parent = 'frontUpperTurret', pos = {x = .42, y = 1.68, z = 4.14}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = false,
@@ -1907,14 +1918,13 @@ units = {
 			},
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
+				rateOfFire = 2000, 
 				maxRange = 50,
 				nodes = {
 					{name = 'rearLowerTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44} , vertical = false},
 					{name = 'rearLowerTurretBarrels', rotationSpeed = .05, angleConstraints = {min = 0, max = .785}, vertical = true},
 				},
-				projectile = {id = ProjectileId.HE_SHELL, parent = 'rearLowerTurret', pos = {x = .42, y = 1.68, z = 4.14}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.ANTI_SUB_CRUISER_SHELL, parent = 'rearLowerTurret', pos = {x = .42, y = 1.68, z = 4.14}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = false,
@@ -1937,14 +1947,13 @@ units = {
 			},
 			{
 				orderType = OrderType.ATTACK,
-				rateOfFire = 200, 
-				damage = 10, 
+				rateOfFire = 2000, 
 				maxRange = 50,
 				nodes = {
 					{name = 'rearUpperTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44} , vertical = false},
 					{name = 'rearUpperTurretBarrels', rotationSpeed = .05, angleConstraints = {min = 0, max = .785}, vertical = true},
 				},
-				projectile = {id = ProjectileId.HE_SHELL, parent = 'rearUpperTurret', pos = {x = .42, y = 5.82, z = 11.4}, rot = {w = 1, x = 0, y = 0, z = 0}},
+				projectile = {id = ProjectileId.ANTI_SUB_CRUISER_SHELL, parent = 'rearUpperTurret', pos = {x = .42, y = 5.82, z = 11.4}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				fireFx = {
 					{
 						vfx = false,
@@ -1982,7 +1991,7 @@ units = {
 		meshPath = 'erAntiSubCruiser.xml',
 		albedoPath = 'cruiser.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Cruisers/selection.ogg',
-		speed = .3,
+		speed = .6,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -2034,10 +2043,10 @@ units = {
 		albedoPath = 'submarine.jpg',
 		colorNodes = {'Cube.001'},
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		speed = .3,
+		speed = .4,
 		destinationOffset = .1,
 		anglePrecision = .1,
-		maxTurnAngle = .1,
+		maxTurnAngle = .125,
 		garrisonCategory = 3,
 		deathFx = {explosionVfx, explosionSfx},
 	},
@@ -2054,7 +2063,7 @@ units = {
 					}
 				},
 				damage = 200, 
-				maxRange = 20, 
+				maxRange = 200, 
 				projectile = {id = ProjectileId.TORPEDO, pos = {x = 0, y = -.27, z = 4.6}, rot = {w = 1, x = 0, y = 0, z = 0}}
 			},
 			{
@@ -2086,10 +2095,10 @@ units = {
 		albedoPath = 'submarine.jpg',
 		colorNodes = {'Cube.001'},
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		speed = .1,
+		speed = .4,
 		destinationOffset = .1,
 		anglePrecision = .1,
-		maxTurnAngle = .1,
+		maxTurnAngle = .125,
 		garrisonCategory = 3,
 		deathFx = {explosionVfx, explosionSfx},
 	},
@@ -2106,7 +2115,7 @@ units = {
 					}
 				},
 				damage = 200, 
-				maxRange = 20, 
+				maxRange = 200, 
 				projectile = {id = ProjectileId.TORPEDO, pos = {x = 0, y = -.27, z = 4.6}, rot = {w = 1, x = 0, y = 0, z = 0}}
 			},
 			{
@@ -2138,10 +2147,10 @@ units = {
 		albedoPath = 'submarine.jpg',
 		colorNodes = {'Sphere.001'},
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		speed = .1,
+		speed = .4,
 		destinationOffset = .1,
 		anglePrecision = .1,
-		maxTurnAngle = .1,
+		maxTurnAngle = .125,
 		garrisonCategory = 3,
 		deathFx = {explosionVfx, explosionSfx},
 	},
@@ -2177,10 +2186,10 @@ units = {
 		meshPath = 'acsSubmarine.xml',
 		albedoPath = 'submarine.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		speed = .2,
+		speed = .5,
 		destinationOffset = .1,
 		anglePrecision = .1,
-		maxTurnAngle = .1,
+		maxTurnAngle = .15,
 		garrisonCategory = 3,
 		deathFx = {explosionVfx, explosionSfx},
 	},
@@ -2190,7 +2199,7 @@ units = {
 				orderType = OrderType.ATTACK,
 				projectile = {id = ProjectileId.TORPEDO, pos = {x = 0, y = -.27, z = 4.6}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				damage = 200, 
-				maxRange = 20, 
+				maxRange = 200, 
 				rateOfFire = 500, 
 				fireFx = {
 					{
@@ -2216,10 +2225,10 @@ units = {
 		meshPath = 'aincSubmarine.xml',
 		albedoPath = 'submarine.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		speed = .1,
+		speed = .6,
 		destinationOffset = .1,
 		anglePrecision = .1,
-		maxTurnAngle = .1,
+		maxTurnAngle = .15,
 		garrisonCategory = 3,
 		deathFx = {explosionVfx, explosionSfx},
 	},
@@ -2229,7 +2238,7 @@ units = {
 				orderType = OrderType.ATTACK,
 				projectile = {id = ProjectileId.TORPEDO, pos = {x = 0, y = -.27, z = 4.6}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				damage = 200, 
-				maxRange = 20, 
+				maxRange = 200, 
 				rateOfFire = 500, 
 				fireFx = {
 					{
@@ -2255,10 +2264,10 @@ units = {
 		meshPath = 'erSubmarine.xml',
 		albedoPath = 'submarine.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		speed = .1,
+		speed = .5,
 		destinationOffset = .1,
 		anglePrecision = .1,
-		maxTurnAngle = .1,
+		maxTurnAngle = .15,
 		garrisonCategory = 3,
 		deathFx = {explosionVfx, explosionSfx},
 	},
@@ -2278,7 +2287,7 @@ units = {
 		meshPath = 'acsIcebreaker.xml',
 		albedoPath = 'icebreaker.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		speed = .1,
+		speed = .4,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -2301,7 +2310,7 @@ units = {
 		meshPath = 'aincIcebreaker.xml',
 		albedoPath = 'icebreaker.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		speed = .1,
+		speed = .4,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -2324,7 +2333,7 @@ units = {
 		meshPath = 'erIcebreaker.xml',
 		albedoPath = 'icebreaker.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		speed = .1,
+		speed = .4,
 		destinationOffset = .1,
 		anglePrecision = .1,
 		maxTurnAngle = .1,
@@ -2337,7 +2346,7 @@ units = {
 				type = WeaponClass.FREEZE,
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100,
-				maxRange = 30,
+				maxRange = 500,
 				damage = 0,
 				nodes = {
 					{name = 'turret', rotationSpeed = .05, vertical = false},
@@ -2371,10 +2380,10 @@ units = {
 		meshPath = 'freezer.xml',
 		albedoPath = 'freezer.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		speed = .3,
+		speed = .7,
 		destinationOffset = .1,
 		anglePrecision = .1,
-		maxTurnAngle = .1,
+		maxTurnAngle = .15,
 		garrisonCategory = 3,
 		deathFx = {explosionVfx, explosionSfx},
 	},
@@ -2412,10 +2421,10 @@ units = {
 		meshPath = 'empShip.xml',
 		albedoPath = 'empShip.jpg',
 		selectionSfx = PATH .. 'Sounds/Units/Submarines/selection.ogg',
-		speed = .1,
+		speed = 1.5,
 		destinationOffset = .1,
 		anglePrecision = .1,
-		maxTurnAngle = .1,
+		maxTurnAngle = .2,
 		garrisonCategory = 3,
 		deathFx = {explosionVfx, explosionSfx},
 	},

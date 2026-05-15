@@ -26,7 +26,7 @@ namespace battleship{
 		name("pl"), 
 		trader(new Trader())
 	{
-		resources[0] = 30000;
+		resources[0] = 10000;
 
 		colorMaterial = new Material(Root::getSingleton()->getLibPath() + "texture");
 		colorMaterial->addBoolUniform("lightingEnabled", false);
@@ -123,7 +123,7 @@ namespace battleship{
 				}
 
 				if(!u->isVehicle() && ((Structure*)u)->isComplete()){
-					structBuilt = false;
+					structBuilt = true;
 					break;
 				}
 			}

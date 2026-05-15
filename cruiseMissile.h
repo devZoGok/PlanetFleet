@@ -13,7 +13,9 @@ namespace battleship{
 			enum class FlightStage{ASCENT, CRUISE, DESCENT};
 			FlightStage flightStage;
 			vb01::Vector3 targetPoint;
+			float minHeight, minDist;
 
+			void initProperties();
 			void pitch(float, vb01::Vector3);
 			void cruise();
 	};

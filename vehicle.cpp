@@ -103,6 +103,7 @@ namespace battleship{
         maxTurnAngle =  unitTable["maxTurnAngle"]; maxTurnAngle += game->calcAbilFromTech(Ability::Type::MAX_TURN_ANGLE, currTechs, (int)GameObject::type, id);
         speed = unitTable["speed"]; speed += game->calcAbilFromTech(Ability::Type::SPEED, currTechs, (int)GameObject::type, id);
 		anglePrecision = unitTable["anglePrecision"];
+		destinationOffset = unitTable["destinationOffset"];
 		garrisonCategory = unitTable["garrisonCategory"];
 	}
 
@@ -263,6 +264,7 @@ namespace battleship{
 	}
 
 	void Vehicle::enterGarrisonable(){
+		player->deselectUnit(this);
 		Unit *targUnit = (Unit*)orders[0].targets[0].unit; 
 		targUnit->updateGarrison(this, true);
 
@@ -276,10 +278,8 @@ namespace battleship{
 	void Vehicle::navigateToTarget(float minDist){
 		if(!pursuingTarget){
 			Vector3 targPos = (orders[0].targets[0].unit ? orders[0].targets[0].unit->getPos() : orders[0].targets[0].pos);
-			preparePathpoints(orders[0], targPos);
+			preparePathpoints(orders[0], targPos, true);
 			pursuingTarget = true;
-
-			if(orders[0].type == Order::TYPE::GARRISON) addPathpoint(targPos);
 		}
 
 		navigate(minDist);
@@ -291,8 +291,7 @@ namespace battleship{
 
 		if(distToGarrisonable > garrisonDist)
 			navigateToTarget(garrisonDist);
-		else
-			enterGarrisonable();
+		else enterGarrisonable();
 	}
 
 	void Vehicle::patrol(Order order){
@@ -331,16 +330,22 @@ namespace battleship{
 
 		if(type != UnitType::HOVER && !(waterVehCanMove || landVehCanMove)) return;
 
-		int dest = map->getCellId(destPos);
+		int origDest = map->getCellId(destPos), dest = origDest;
 
-		if(type == UnitType::SEA_LEVEL && fabs(destPos.y - cells[dest].pos.y) > .1) return;
+		if(type == UnitType::SEA_LEVEL && fabs(destPos.y - cells[origDest].pos.y) > .1) return;
 
 		Pathfinder *pf = Pathfinder::getSingleton();
 
 		if(type != UnitType::HOVER)
-			dest = pf->clampDestToSourceRegion(source, dest);
+			dest = pf->clampDestToSourceRegion(source, origDest);
 
-		if(cells[dest].blockedBy){
+		GameObject *targObj = order.targets[0].unit;
+		Unit *blockingUnit = cells[dest].blockedBy;
+		bool garrisonOrder = (order.type == Order::TYPE::GARRISON);
+		bool buildOrder = (order.type == Order::TYPE::BUILD);
+		bool resourceOrder = (order.type == Order::TYPE::LOAD || order.type == Order::TYPE::UNLOAD || order.type == Order::TYPE::SUPPLY);
+
+		if(blockingUnit && blockingUnit != this && !resourceOrder && !buildOrder && !garrisonOrder){
 			vector<int> surrCellIds = map->getSurroundingCells(cells[dest].pos, 1);
 			int altDest = -1;
 
@@ -377,9 +382,7 @@ namespace battleship{
 		vector<int> path = pf->findPath(cells, heurs, source, dest, (int)type);
 		Vector3 *truncPoint = nullptr;
 
-		if(order.targets[0].unit){
-			GameObject *targObj = order.targets[0].unit;
-
+		if(targObj && origDest == dest && !garrisonOrder)
 			for(int i = path.size() - 1; i >= 0; i--){
 				Vector3 targPos = targObj->getPos();
 				Vector3 pointDir = cells[path[i]].pos - targPos;
@@ -417,11 +420,10 @@ namespace battleship{
 				}
 				else path.pop_back();
 			}
-		}
 
 		for(int p : path) addPathpoint(cells[p].pos);
 
-		if(appendDestPos && !truncPoint)
+		if(appendDestPos && !truncPoint && origDest == dest)
 			addPathpoint(destPos);
 		else if(truncPoint){
 			addPathpoint(*truncPoint);
@@ -461,6 +463,7 @@ namespace battleship{
 		Order::Target target = order.targets[0];
 		Vector3 targVec = (target.unit ? target.unit->getPos() : target.pos) - pos;
 		float distToTarg = targVec.getLength();
+		float angleToTarg = dirVec.getAngleBetween(targVec.norm());
 
 		vector<Weapon*> attackWeapons = getWeaponsByOrder(Order::TYPE::ATTACK);
 		Weapon *weapon = attackWeapons[0];
@@ -470,9 +473,18 @@ namespace battleship{
 				weapon = w;
 
 		float minDist = weapon->getMaxRange();
+		float minAngle = weapon->getMaxFireAngle();
 
 		if(order.playerAssigned || (!order.playerAssigned && state == Unit::State::CHASE)){
-			if(distToTarg > minDist)
+			bool horizontal = false;
+
+			for(const Weapon::Component &comp : weapon->getComponents())
+				if(!comp.vertical){
+					horizontal = true;
+					break;
+				}
+
+			if(distToTarg > minDist || (!horizontal && angleToTarg > minAngle))
 				navigateToTarget(.5 * Map::getSingleton()->getCellSize().x);
 			else
 				pursuingTarget = false;
@@ -484,8 +496,10 @@ namespace battleship{
 	}
 
 	void Vehicle::build(Order order){
-		if(pathPoints.empty()){
-			Structure *structure = (Structure*)order.targets[0].unit;
+		Structure *structure = (Structure*)order.targets[0].unit;
+		float offset = .5 * Map::getSingleton()->getCellSize().x;
+
+		if(pathPoints.empty() && closeEnough(structure, pos, offset)){
 			sol::table targTable = generateView()["units"][structure->getId()];
 			int costRate = (int)targTable["cost"] / 100, buildRate = (int)targTable["buildTime"] / 100;
 
@@ -499,11 +513,20 @@ namespace battleship{
 				player->incStructuresBuilt();
 			}
 		}
-		else navigate(0.5 * Map::getSingleton()->getCellSize().x);
+		else navigate(offset);
 	}
 
 	void Vehicle::select(){
 		if(!garrisonable)
 			Unit::select();
 	}
+
+	bool Vehicle::closeEnough(GameObject *obj, Vector3 pos, float eps){
+		Vector3 neVec = pos - obj->getPos();
+		float angle = obj->getDirVec().getAngleBetween(neVec.norm());
+	
+		if(angle > PI / 2) angle = PI - angle;
+	
+		return cos(angle) * neVec.getLength() < .5 * obj->getLength() + eps;
+	};
 }
