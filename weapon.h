@@ -41,11 +41,13 @@ namespace battleship{
 			virtual void fire(Order);
 			void trackTarget(vb01::Vector3);
 			bool canAttackTarget(int, int);
+			inline const std::vector<Component>& getComponents(){return components;}
 			inline int getProjectileId(){return projId;}
 			inline int getRateOfFire(){return rateOfFire;}
 			inline int getDamage(){return damage;}
 			inline int getMinRange(){return minRange;}
 			inline int getMaxRange(){return maxRange;}
+			inline float getMaxFireAngle(){return maxFireAngle;}
 			inline Unit* getUnit(){return unit;}
 			inline Type getType(){return type;}
 			inline Order::TYPE getOrderType(){return orderType;}

@@ -29,7 +29,7 @@ namespace battleship{
 
 		if(builder->getBuildableUnit(slotId).buildable){
 			GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
-			ufCtr->addGameObjectFrame(GameObjectFrame(builder->getBuildableUnit(slotId).id, GameObject::Type::UNIT));
+			ufCtr->addGameObjectFrame(GameObjectFrame(builder->getBuildableUnit(slotId).id, GameObject::Type::UNIT, player));
 			ufCtr->setPlacingOnSurface(true);
 			activeState->setBuildableStructSelected(true);
 		}

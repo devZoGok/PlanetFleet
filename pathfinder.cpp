@@ -16,41 +16,94 @@ namespace battleship{
 			return pathfinder;
 		}
 
-		vector<int> Pathfinder::findPath(vector<Map::Cell> &cells, vector<float> &heuristics, int source, int dest, Vehicle *vehicle){
+		int Pathfinder::clampDestToSourceRegion(int source, int dest){
+			Map *map = Map::getSingleton();
+			vector<Map::Cell> &cells = map->getCells();
+			pair<Map::Cell::Type, vector<Map::Cell*>> srcRegion;
+
+			for(int i = 0; i < map->getNumRegions(); i++){
+				pair<Map::Cell::Type, vector<Map::Cell*>> region = map->getRegion(i);
+
+				if(find(region.second.begin(), region.second.end(), &cells[source]) != region.second.end()){
+					srcRegion = map->getRegion(i);
+					break;
+				}
+			}
+
+			if(find(srcRegion.second.begin(), srcRegion.second.end(), &cells[dest]) == srcRegion.second.end()){
+				int minDistId = 0;
+
+				for(int i = 0; i < srcRegion.second.size(); i++){
+					float currDist = cells[dest].pos.getDistanceFrom(srcRegion.second[i]->pos);
+					float minDist = cells[dest].pos.getDistanceFrom(srcRegion.second[minDistId]->pos);
+
+					if(currDist < minDist) minDistId = i;
+				}
+
+				dest = map->getCellId(srcRegion.second[minDistId]->pos);
+			}
+
+			return dest;
+		}
+
+		vector<float> Pathfinder::calcHeuristics(vector<Map::Cell> &cells, int dest){
+			vector<float> heuristics;
+
+			for(Map::Cell &cell : cells)
+				heuristics.push_back(145 * (cells[dest].pos.getDistanceFrom(cell.pos)));
+
+			return heuristics;
+		}
+
+		vector<int> Pathfinder::findPath(vector<Map::Cell> &cells, vector<float> &heuristics, int source, int dest, int vehicleType){
+			if(heuristics.empty() || (heuristics.size() == 1 && heuristics[0] == 0.0))
+				heuristics = calcHeuristics(cells, dest);
+
+			bool useHeur = !heuristics.empty();
+
 			const int size = cells.size();
 			u32 *distances = new u32[size];
 			vector<int> *paths = new vector<int>[size];
-			paths[source].push_back(source);
-
 			vector<pair<int, bool>> cellsByCheck;
-
-			vector<bool> cellChecked;
+			vector<bool> posMinCellChecked;
+			vector<int> possibleMinCells = vector<int>{source};
 
 			for(int i = 0; i < size; i++){
 				cellsByCheck.push_back(pair(i, false));
-				distances[i] = (i == source ? 0 : impassibleNodeVal);
-				cellChecked.push_back(false);
+				distances[i] = impassibleNodeVal;
+				posMinCellChecked.push_back(false);
 			}
 
-			bool useHeur = !heuristics.empty();
-			vector<int> possibleMinCells = vector<int>{source};
-			cellChecked[source] = true;
+			paths[source].push_back(source);
+			distances[source] = 0;
+			posMinCellChecked[source] = true;
+
+			int lastVertStrich = -1;
 
 			while(!cellsByCheck[dest].second){
-				int vertStrich = possibleMinCells[0], vsId = 0;
+				int posMinCellId = 0, vertStrich = possibleMinCells[posMinCellId];
 
 				for(int i = 0; i < possibleMinCells.size(); i++){
 					float sum1 = distances[possibleMinCells[i]] + (useHeur ? heuristics[possibleMinCells[i]] : 0); 
-					float sum2 = distances[possibleMinCells[vsId]] + (useHeur ? heuristics[possibleMinCells[vsId]] : 0); 
+					float sum2 = distances[possibleMinCells[posMinCellId]] + (useHeur ? heuristics[possibleMinCells[posMinCellId]] : 0); 
 
 					if(sum1 < sum2 || (useHeur && sum1 == sum2 && heuristics[i] < heuristics[vertStrich])){
+						posMinCellId = i;
 						vertStrich = possibleMinCells[i];
-						vsId = i;
 					}
 				}
 
-				cellChecked[possibleMinCells[vsId]] = false;
-				possibleMinCells.erase(possibleMinCells.begin() + vsId);
+				if(distances[vertStrich] == impassibleNodeVal){
+					vector<int> path = paths[lastVertStrich];
+
+					delete[] paths;
+					delete[] distances;
+
+					return path;
+				}
+
+				posMinCellChecked[possibleMinCells[posMinCellId]] = false;
+				possibleMinCells.erase(possibleMinCells.begin() + posMinCellId);
 
 				cellsByCheck[vertStrich].second = true;
 
@@ -61,14 +114,19 @@ namespace battleship{
 
 					if(cellsByCheck[edgeNode].second) continue;
 
-					if(!cellChecked[edgeNode]){
-						cellChecked[edgeNode] = true;
+					if(!posMinCellChecked[edgeNode]){
+						posMinCellChecked[edgeNode] = true;
 						possibleMinCells.push_back(edgeNode);
 					}
 
-					bool canMoveToStrichCell = true;
+					UnitType ut = (UnitType)vehicleType;
+					Map::Cell::Type ct = cells[edgeNode].type;
+					bool ship = (ut == UnitType::UNDERWATER || ut == UnitType::SEA_LEVEL);
 
-					if(vehicle){
+					if((ut == UnitType::LAND && ct == Map::Cell::WATER) || (ship && ct == Map::Cell::LAND))
+						continue;
+					/*
+					if(vehicleType != -1){
 						UnitType unitType = vehicle->getType();
 						bool ship = (unitType == UnitType::UNDERWATER || unitType == UnitType::SEA_LEVEL);
 						Unit *blockingUnit = cells[vertStrich].blockedBy;
@@ -94,6 +152,7 @@ namespace battleship{
 							continue;
 						}
 					}
+					*/
 
 					if(distances[vertStrich] + cells[vertStrich].edges[i].weight < distances[edgeNode]){
 						distances[edgeNode] = distances[vertStrich] + cells[vertStrich].edges[i].weight;
@@ -101,6 +160,8 @@ namespace battleship{
 						paths[edgeNode].push_back(edgeNode);
 					}
 				}
+
+				lastVertStrich = vertStrich;
 			}
 
 			vector<int> path = paths[dest];

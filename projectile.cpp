@@ -122,7 +122,7 @@ namespace battleship{
 			cellId = cells[cellId].underWaterCellIds[numUnderwaterCells - 1];
 		}
 
-		if((pos + dirVec * rayLength).y <= cells[cellId].pos.y + .5 * map->getCellSize().y)
+		if((pos + dirVec * rayLength).y <= cells[cellId].pos.y)
 			detonate();
 	}
 

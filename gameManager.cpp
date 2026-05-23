@@ -8,16 +8,20 @@
 #include <root.h>
 
 #include "gameManager.h"
+#include "gameObjectFrameController.h"
 #include "gameObjectFactory.h"
 #include "map.h"
 #include "game.h"
 #include "guiAppState.h"
 #include "defConfigs.h"
 #include "player.h"
+#include "extractor.h"
 #include "factory.h"
+#include "vehicle.h"
 #include "engineer.h"
 #include "destructable.h"
 #include "pointDefense.h"
+#include "pathfinder.h"
 #include "resourceDeposit.h"
 
 using namespace std;
@@ -56,23 +60,42 @@ namespace battleship{
 			"createResourceDeposit", &GameObjectFactory::createResourceDeposit
 		);
 
+		SOL_LUA_STATE.new_usertype<Unit::GarrisonSlot>(
+			"GarrisonSlot",
+			"vehicle", &Unit::GarrisonSlot::vehicle,
+			"category", &Unit::GarrisonSlot::category
+		);
+
 		SOL_LUA_STATE.new_usertype<Unit>(
 			"Unit", sol::constructors<Unit(Player*, int, Vector3, Quaternion)>(),
 			"setState", &Unit::setState,
 			"getDestructable", &Unit::getDestructable,
+			"getGarrisonSlots", &Unit::getGarrisonSlots,
+			"getNumFreeGarrisonSlots", &Unit::getNumFreeGarrisonSlots,
+			"getNumGarrisonSlots", &Unit::getNumGarrisonSlots,
+			"isGarrisonEmpty", &Unit::isGarrisonEmpty,
 			"getOrder", &Unit::getOrder,
 			"getNumOrders", &Unit::getNumOrders,
+			"getDirVec", &GameObject::getDirVec,
+			"getLeftVec", &GameObject::getLeftVec,
 			"getPos", &GameObject::getPos,
 			"getUnitClass", &Unit::getUnitClass,
 			"getLineOfSight", &Unit::getLineOfSight,
-			"toEngineer", &Unit::toEngineer,
-			"toPointDefense", &Unit::toPointDefense,
-			"toStructure", &Unit::toStructure,
-			"toFactory", &Unit::toFactory,
-			"toGameObject", &Unit::toGameObject,
 			"getBuildableUnit", &Unit::getBuildableUnit,
 			"getBuildableUnits", &Unit::getBuildableUnits,
-			"getNumBuildableUnits", &Unit::getNumBuildableUnits
+			"getNumBuildableUnits", &Unit::getNumBuildableUnits,
+			"toGameObject", [](Unit *u){return (GameObject*)u;},
+			"toVehicle", [](Unit *u){return (Vehicle*)u;},
+			"toEngineer", [](Unit *u){return (Engineer*)u;},
+			"toStructure", [](Unit *u){return (Structure*)u;},
+			"toFactory", [](Unit *u){return (Factory*)u;},
+			"toExtractor", [](Unit *u){return (Extractor*)u;},
+			"toPointDefense", [](Unit *u){return (PointDefense*)u;}
+		);
+
+		SOL_LUA_STATE.new_usertype<Vehicle>(
+			"Engineer", sol::constructors<Vehicle(Player*, int, Vector3, Quaternion, Unit::State)>(),
+			"getGarrisonable", &Vehicle::getGarrisonable
 		);
 
 		SOL_LUA_STATE.new_usertype<Engineer>(
@@ -85,6 +108,7 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<Structure>(
 			"Structure", sol::constructors<Structure(Player*, int, Vector3, Quaternion, int)>(),
 			"getPos", &GameObject::getPos,
+			"isComplete", &Structure::isComplete,
 			"getBuildStatus", &Structure::getBuildStatus
 		);
 
@@ -99,16 +123,21 @@ namespace battleship{
 			"getBuildableUnit", &Unit::getBuildableUnit,
 			"getBuildableUnits", &Unit::getBuildableUnits,
 			"getNumBuildableUnits", &Unit::getNumBuildableUnits,
+			"getDirVec", &GameObject::getDirVec,
+			"getLeftVec", &GameObject::getLeftVec,
 			"getPos", &GameObject::getPos,
 			"appendToQueue", &Factory::appendToQueue,
 			"getBuildStatus", &Structure::getBuildStatus,
 			"getNumQueueUnitsById", &Factory::getNumQueueUnitsById,
+			"getRallyPoint", &Factory::getRallyPoint,
+			"setRallyPoint", &Factory::setRallyPoint,
 			"getQueue", &Factory::getQueue
 		);
 
 		SOL_LUA_STATE.new_usertype<Player>(
 			"Player", sol::constructors<Player(int, int, int, Vector3, bool, int, string)>(),
 			"getSelectedUnits", &Player::getSelectedUnits,
+			"haltUnits", &Player::haltUnits,
 			"addUnit", &Player::addUnit,
 			"getUnit", &Player::getUnit,
 			"getNumUnits", &Player::getNumUnits,
@@ -120,13 +149,24 @@ namespace battleship{
 			"getFaction", &Player::getFaction,
 			"getTeam", &Player::getTeam,
 			"getUnits", &Player::getUnits,
+			"getHostileUnits", &Player::getHostileUnits,
+			"getFriendlyUnits", &Player::getFriendlyUnits,
 			"getUnitsById", &Player::getUnitsById,
-			"getUnitsByClass", &Player::getUnitsByClass
+			"getUnitsByClass", &Player::getUnitsByClass,
+			"isObjectVisible", &Player::isObjectVisible
+		);
+
+		SOL_LUA_STATE.new_usertype<Extractor>(
+			"Extractor", sol::constructors<Extractor(Player*, int, Vector3, Quaternion, int, ResourceDeposit*, Unit::State)>(),
+			"getDeposit", &Extractor::getDeposit
 		);
 
 		SOL_LUA_STATE.new_usertype<ResourceDeposit>(
 			"ResourceDeposit", sol::constructors<ResourceDeposit(Player*, int, Vector3, Quaternion, int)>(),
-			"getPos", &GameObject::getPos
+			"getExtractor", &ResourceDeposit::getExtractor,
+			"getAmmount", &ResourceDeposit::getAmmount,
+			"getPos", &GameObject::getPos,
+			"toGameObject", [](ResourceDeposit *rd){return (GameObject*)rd;}
 		);
 
 		SOL_LUA_STATE.new_usertype<Game>(
@@ -143,6 +183,7 @@ namespace battleship{
 			"norm", &Vector3::norm,
 			"getAngleBetween", &Vector3::getAngleBetween,
 			"getDistanceFrom", &Vector3::getDistanceFrom,
+			"neg", [](Vector3 v){return -v;},
 			"add", [](Vector3 v1, Vector3 v2){return v1 + v2;},
 			"subtr", [](Vector3 v1, Vector3 v2){return v1 - v2;},
 			"mult", [](Vector3 v1, float s){return v1 * s;},
@@ -155,14 +196,58 @@ namespace battleship{
 			"x", &Quaternion::x,
 			"y", &Quaternion::y,
 			"z", &Quaternion::z,
+			"getAngle", &Quaternion::getAngle,
+			"getAxis", &Quaternion::getAxis,
 			"multVec", [](Quaternion q, Vector3 v){return q * v;}
+		);
+
+		SOL_LUA_STATE.new_usertype<Map::Edge>(
+			"Edge",
+			"destCellId", &Map::Edge::destCellId
+		);
+
+		SOL_LUA_STATE.new_usertype<Map::Cell>(
+			"Cell",
+			"pos", &Map::Cell::pos,
+			"type", &Map::Cell::type,
+			"edges", &Map::Cell::edges
 		);
 
 		SOL_LUA_STATE.new_usertype<Map>(
 			"Map",
 			"getSingleton", &Map::getSingleton,
+			"getCell", &Map::getCell,
+			"getCells", &Map::getCells,
+			"getCellId", &Map::getCellId,
+			"getMapSize", &Map::getMapSize,
 			"getSpawnPoint", &Map::getSpawnPoint,
 			"getNumSpawnPoints", &Map::getNumSpawnPoints
+		);
+
+		SOL_LUA_STATE.new_usertype<Pathfinder>(
+			"Pathfinder",
+			"getSingleton", &Pathfinder::getSingleton,
+			"clampDestToSourceRegion", &Pathfinder::clampDestToSourceRegion,
+			"calcHeuristics", &Pathfinder::calcHeuristics,
+			"findPath", &Pathfinder::findPath
+		);
+
+		SOL_LUA_STATE.new_usertype<GameObjectFrame>(
+			"GameObjectFrame", sol::constructors<GameObjectFrame(int, GameObject::Type, Player*, Unit*, Vector3, Quaternion)>(),
+			"getOriginalUnit", &GameObjectFrame::getOriginalUnit,
+			"destroy", &GameObjectFrame::destroy,
+			"placeAt", &GameObjectFrame::placeAt,
+			"getDirVec", &GameObjectFrame::getDirVec,
+			"getLeftVec", &GameObjectFrame::getLeftVec,
+			"getLength", &GameObjectFrame::getLength,
+			"getWidth", &GameObjectFrame::getWidth,
+			"status", &GameObjectFrame::status
+		);
+
+		SOL_LUA_STATE.new_usertype<GameObjectFrameController>(
+			"GameObjectFrameController",
+			"getSingleton", &GameObjectFrameController::getSingleton,
+			"checkPlacement", &GameObjectFrameController::checkPlacement
 		);
 	}
 
@@ -174,6 +259,8 @@ namespace battleship{
 
 		for(string f : configData::scripts)
 			SOL_LUA_STATE.script_file(path + f);
+
+		SOL_LUA_STATE.script_file(path + "Scripts/Gui/_minimap.lua");
 
 		sol::table resTable = SOL_LUA_STATE["graphics"]["resolution"]; 
 		width = resTable["x"];

@@ -11,11 +11,11 @@ function generateFactionMusic(factionId)
 	factionTracks = {}
 
 	if factionId == 0 then 
-		factionTracks = americanTracks
-	elseif factionId == 1 then 
-		factionTracks = europeanTracks
-	elseif factionId == 2 then 
 		factionTracks = asianTracks
+	elseif factionId == 1 then 
+		factionTracks = americanTracks
+	elseif factionId == 2 then 
+		factionTracks = europeanTracks
 	end
 
 	return {
@@ -29,7 +29,7 @@ end
 eyeIcon = 'eye.png'
 refIcon = 'refineds.png'
 minimapSize = {x = 200, y = 200}
-minimapPos = {x = 0, y = res.y - minimapSize.y, z = .9}
+minimapPos = {x = 0, y = res.y - minimapSize.y, z = .85}
 
 resTextScale = {x = .5, y = .5}
 resIconBasePath = 'Icons/Resources/'
@@ -44,11 +44,17 @@ noHackTex = 'noHack.png'
 
 gui = {
 	{
+		guiType = GuiType.GUI_RECTANGLE,
+		pos = {x = minimapPos.x, y = minimapPos.y, z = .8},
+		size = minimapSize,
+		color = {x = .5, y = .5, z = .5, w = .6}
+	},
+	{
 		guiType = GuiType.BUTTON,
 		buttonType = ButtonType.MINIMAP,
 		name = 'minimap',
-		pos = minimapPos,
-		size = minimapSize,
+		pos = {x = _minimapPos.x, y = minimapPos.y + _minimapPos.y, z = minimapPos.z},
+		size = {x = _minimapSize.x, y = _minimapSize.y},
 		color = {x = .5, y = .5, z = .5, w = 1}
 	},
 	{
@@ -106,17 +112,6 @@ gui = {
 		imagePath = resIconBasePath .. 'research.png',
 	},
 	{
-		guiType = GuiType.TEXT,
-		name = 'depth',
-		text = '',
-		pos = {x = 0, y = 400, z = 0},
-		scale = {x = 0, y = 1},
-		font = 'batang.ttf',
-		fontFirstChar = 0,
-		fontLastChar = 256,
-		color = {x = 1, y = 1, z = 1, w = 1}
-	},
-	{
 		guiType = GuiType.BUTTON,
 		buttonType = ButtonType.PLAYER_TRADE,
 		name = 'Trade',
@@ -127,8 +122,10 @@ gui = {
 	},
 	{
 		guiType = GuiType.GUI_RECTANGLE,
-		pos = {x = minimapPos.x, y = res.y - .75 * sz, z = 0},
+		pos = {x = minimapSize.x, y = res.y - .75 * sz, z = 0},
 		size = {x = res.x - minimapPos.x, y = sz * .75},
 		color = {x = .6, y = .6, z = .6, w = .4}
 	},
+	--[[
+	]]--
 }

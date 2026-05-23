@@ -12,6 +12,7 @@
 namespace battleship{
 	using namespace std;
 	using namespace vb01;
+	using namespace gameBase;
 
 	CruiseMissile::CruiseMissile(Unit *unit, int id, Vector3 tp, Vector3 pos, Quaternion rot) : 
 		Projectile(unit, id, pos, rot), 
@@ -19,6 +20,8 @@ namespace battleship{
 		flightStage(FlightStage::ASCENT)
 	{
 		destructable = new Destructable(this);
+
+		initProperties();
 
 		Vector3 unitDir = unit->getDirVec(); 
 		Vector3 leftDir = unit->getLeftVec();
@@ -31,8 +34,13 @@ namespace battleship{
 
 	CruiseMissile::~CruiseMissile(){delete destructable;}
 
+	void CruiseMissile::initProperties(){
+		sol::table projTable = generateView()[GameObject::getGameObjTableName()][id + 1];
+		minHeight = (float)projTable["minHeight"];
+		minDist = (float)projTable["minDist"];
+	}
+
 	void CruiseMissile::pitch(float rotAngle, Vector3 compVec){
-		float minHeight = 20;
 		float angleToCompVec = Projectile::dirVec.getAngleBetween(compVec);
 		float angle = (angleToCompVec > rotAngle ? rotAngle : angleToCompVec);
 
@@ -49,7 +57,6 @@ namespace battleship{
 	}
 
 	void CruiseMissile::cruise(){
-		float minDist = 6;
 		float initDist = Vector3(targetPoint.x, initPos.y, targetPoint.z).getDistanceFrom(initPos);
 		
 		if(Projectile::pos.getDistanceFrom(Vector3(targetPoint.x, Projectile::pos.y, targetPoint.z)) < minDist)

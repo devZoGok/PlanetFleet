@@ -252,7 +252,7 @@ namespace battleship{
 					orderPossible = (roverSelected && transferResource);
 				}
 				else if(cursorState == CursorState::HACK)
-					orderPossible = (!ownGameObj && gameObjUnit && mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::ENGINEER);
+					orderPossible = (!ownGameObj && gameObjUnit && mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::CYBORG_ENGINEER);
 				else if(controlPressed)
 					cursorState = CursorState::ATTACK;
 				else
@@ -285,7 +285,6 @@ namespace battleship{
 
     void ActiveGameState::update() {
 		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
-		guiManager->getText("depth")->setText(L"Depth: " + to_wstring(depth));
 		guiManager->getText("refineds")->setText(to_wstring(mainPlayer->getResource(ResourceType::REFINEDS)));
 		guiManager->getText("wealth")->setText(to_wstring(mainPlayer->getResource(ResourceType::WEALTH)));
 		guiManager->getText("research")->setText(to_wstring(mainPlayer->getResource(ResourceType::RESEARCH)));
@@ -312,7 +311,7 @@ namespace battleship{
 
 			if(!buildableStructSelected)
 				for(int i = 0; i < selectedUnits.size(); i++)
-					fc->addGameObjectFrame(GameObjectFrame(selectedUnits[i]->getId(), GameObject::Type::UNIT, selectedUnits[i], targets[0].pos));
+					fc->addGameObjectFrame(GameObjectFrame(selectedUnits[i]->getId(), GameObject::Type::UNIT, mainPlayer, selectedUnits[i], targets[0].pos));
 
 			selectingDestOrient = true;
 			fc->setRotating(true);
@@ -477,73 +476,20 @@ namespace battleship{
 		return (numAboveEdges > 0 && numBelowEdges > 0);
 	}
 
-	//TODO fix fog of war for hostile units
     void ActiveGameState::renderUnits() {
-		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
-		vector<Listbox*> listboxes{};
-		vector<Checkbox*> checkboxes{};
-		vector<Slider*> sliders{};
-		vector<Textbox*> textboxes{};
-		vector<Node*> guiRects = guiManager->getGuiRectangles();
-		vector<Text*> texts{
-			guiManager->getText("depth"),
-			guiManager->getText("refineds"),
-			guiManager->getText("wealth"),
-			guiManager->getText("research")
-		};
+		vector<Unit*> friendlyUnits = mainPlayer->getFriendlyUnits();
+		Game *game = Game::getSingleton();
 
-		vector<Unit*> units;
+        for (Player *p : game->getPlayers(true)){
+			vector<Unit*> units = p->getUnits();
 
-        for (Player *p : Game::getSingleton()->getPlayers(true))
-            for (Unit *u : p->getUnits())
-                units.push_back(u);
-
-		vector<Unit*> selUnits = mainPlayer->getSelectedUnits();
-
-        for (Unit *u : units) {
-			if(u->isVehicle() && ((Vehicle*)u)->getGarrisonable()) continue;
-
-			Node *model = u->getModel();
-
-            if (u->getPlayer()->getTeam() == mainPlayer->getTeam()){
-				if(!u->getLosLightNode()) u->initLosLight();
-
-				model->setVisible(true);
-            }
-			else{
-				if(u->getLosLightNode()) u->destroyLosLight();
-
-				model->setVisible(false);
-
-            	for (int i = 0; i < units.size(); i++)
-					if(units[i]->getPlayer() == mainPlayer){
-            			Vector3 obsUnitPos = units[i]->getPos();
-            			obsUnitPos.y = 0;
-
-						Vector3 compUnitPos = u->getPos();
-						compUnitPos.y = 0;
-						float dist = compUnitPos.getDistanceFrom(obsUnitPos);
-
-						if(dist <= units[i]->getLineOfSight()){
-							model->setVisible(true);
-							break;
-						}
-					}
+			for (Unit *u : units) {
+				if(u->isVehicle() && ((Vehicle*)u)->getGarrisonable()) continue;
+			
+				bool unitVisible = (game->isDebug() || mainPlayer->isObjectVisible((GameObject*)u, friendlyUnits));
+				u->getModel()->setVisible(unitVisible);
 			}
-        }
-    }
-
-	//TODO improve this for greater accuracy
-    bool ActiveGameState::isInLineOfSight(Vector3 center, float radius, Unit *u) {
-        bool inside = false;
-
-        for (int i = 0; i < 4 && !inside; i++)
-            if (center.getDistanceFrom(u->getCorner(i)) <= radius){
-                inside = true;
-				break;
-			}
-
-        return inside;
+		}
     }
 
     void ActiveGameState::updateDragBox() {
@@ -723,7 +669,8 @@ namespace battleship{
 							Order::TYPE type;
 
 							switch(selectedUnits[0]->getUnitClass()){
-								case UnitClass::ENGINEER:
+								case UnitClass::ROBO_ENGINEER:
+								case UnitClass::CYBORG_ENGINEER:
 								case UnitClass::FREEZER:
 									type = Order::TYPE::BUILD;
 									break;
@@ -736,11 +683,10 @@ namespace battleship{
 							for(int i = 0; i < ufCtr->getNumGameObjectFrames(); i++){
 								GameObjectFrame gmObjFr = ufCtr->getGameObjectFrame(i);
 
-								if(gmObjFr.status == GameObjectFrame::NOT_PLACEABLE) continue;
+								if(gmObjFr.status == GameObjectFrame::BLOCKED_BY_DIFF_TERR) continue;
 
 								Unit *buildStruct = GameObjectFactory::createUnit(mainPlayer, gmObjFr.getId(), gmObjFr.getPos(), gmObjFr.getRot());
 								issueOrder(type, vector<Order::Target>{Order::Target(buildStruct, gmObjFr.getPos())}, shiftPressed);
-								mainPlayer->addUnit(buildStruct);
 							}
 
 							buildableStructSelected = false;
@@ -806,9 +752,7 @@ namespace battleship{
 					CameraController::getSingleton()->setLookingAround(isPressed);
                 break;
 			case Bind::HALT: 
-				if(isPressed)
-            		for (Unit *u : mainPlayer->getSelectedUnits())
-                    	u->halt();
+				if(isPressed) mainPlayer->haltUnits();
                 break;
 				//TODO reimplement submarine diving mechanic
 			case Bind::LEFT_CONTROL:

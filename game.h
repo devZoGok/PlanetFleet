@@ -20,13 +20,14 @@ namespace battleship{
 		public:
 			static Game* getSingleton();
 			void update();
-			void updateLuaPlayers(bool);
+			void initLuaPlayers();
 			void togglePause();
 			void removeAllElements();
 			void initTechnologies();
 			float calcAbilFromTech(Ability::Type, std::vector<int>, int, int);
 			bool isUnitUnlocked(std::vector<int>, int);
 			std::vector<Player*> getPlayers(bool = false);
+			std::vector<Player*> getCpuPlayers();
 			inline void setDebug(bool d){this->debug = d;}
 			inline void addPlayer(Player *pl){players.push_back(pl);}
 			inline bool isDebug(){return debug;}

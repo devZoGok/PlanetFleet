@@ -25,6 +25,8 @@ namespace battleship{
 			vb01::s64 lastBuildTime = 0;
 
         	inline int getNextPatrolPointId(int numPoints) {return patrolPointId == numPoints - 1 ? 0 : patrolPointId + 1;}
+			bool adjustDest(vb01::Vector3, int&, int&);
+			bool truncatePath(Order&, std::vector<int>&, vb01::Vector3, bool);
 			void startCurrentOrder();
 			bool validateGarrisonOrder(Order);
 			void enterGarrisonable();
@@ -39,6 +41,7 @@ namespace battleship{
 		protected:
 			std::vector<vb01::Vector3> pathPoints;
 			bool pursuingTarget = false;
+			float destinationOffset;
 
 			void arrivedAtPathpoint(bool, float = 0);
 			void moveByTerrainQuads(vb01::Vector3, float);
@@ -51,6 +54,7 @@ namespace battleship{
 			void garrison(Order);
 			void patrol(Order);
 			virtual void initProperties();
+			bool closeEnough(GameObject *obj, vb01::Vector3 pos, float = 0);
 	};
 }
 

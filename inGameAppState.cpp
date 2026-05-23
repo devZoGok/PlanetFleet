@@ -62,7 +62,7 @@ namespace battleship{
 
 		Map *map = Map::getSingleton();
 		map->load(mapName);
-		map->loadPlayersGameObjects();
+		Map::Minimap::getSingleton()->load();
 
 		Camera *cam = Root::getSingleton()->getCamera();
 		cam->setPosition(Map::getSingleton()->getSpawnPoint(playerId) + Vector3(1, 1, 1) * configData::CAMERA_DISTANCE);
@@ -74,8 +74,8 @@ namespace battleship{
         activeState = new ActiveGameState(guiState, playerId);
         stateManager->attachAppState(activeState);
 
-		Game::getSingleton()->updateLuaPlayers(true);
-		Map::Minimap::getSingleton()->updateImage();
+		Game::getSingleton()->initLuaPlayers();
+		//Map::Minimap::getSingleton()->updateImage();
     }
 
     void InGameAppState::onDettached() {

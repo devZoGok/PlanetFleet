@@ -1,4 +1,5 @@
 <model>
+  <node name="turret" px="0.0" py="4.0" pz="-0.0" rw="1.0" rx="0.0" ry="0.0" rz="0.0" sx="1.0" sy="1.0" sz="1.0"/>
   <node name="Ball-Deploy" px="1.529024729052253e-07" py="0.0" pz="-0.17927397787570953" rw="1.0" rx="0.0" ry="0.0" rz="0.0" sx="1.0" sy="1.0" sz="1.0">
     <mesh name="Ball-DeployMesh" num_vertex_pos="2766" num_faces="5428" num_vertex_groups="0" num_shape_keys="0">
       <vertdata px="-0.8366935849189758" py="4.260567665100098" pz="1.7702429294586182" nx="0.9396857619285583" ny="-0.0038162698037922382" nz="-0.34201779961586" />

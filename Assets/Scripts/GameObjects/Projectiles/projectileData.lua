@@ -1,4 +1,4 @@
-ProjectileId = {HE_SHELL = 0, EMP_SHELL = 1, CRUISE_MISSILE = 2, MISSILE = 3, TORPEDO = 4, DEPTH_CHARGE = 5}
+ProjectileId = {TANK_SHELL = 0, ANTI_SUB_CRUISER_SHELL = 1, EMP_SHELL = 2, CRUISE_MISSILE = 3, MISSILE = 4, TORPEDO = 5, DEPTH_CHARGE = 6}
 ProjectileClass = {SHELL = 0, CRUISE_MISSILE = 1, MISSILE = 2, TORPEDO = 3, DEPTH_CHARGE = 4}
 G = 9.8
 
@@ -41,6 +41,19 @@ projectiles = {
 		size = {x = 1, y = 1, z = 1},
 		speed = 5,
 		rotAngle = .1,
+		explosion = {detonation = Detonation.EXPLOSION, damage = 100, radius = 20, fx = {explosionVfx, explosionSfx}},
+		directHitDamage = 80,
+		rayLength = 1,
+		name = "Shell",
+	    basePath = PATH .. "Models/GameObjects/Projectiles/Shells/",
+		meshPath = "shell.xml",
+		albedoPath = 'shell.jpg'
+	},
+	{
+		projectileClass = ProjectileClass.SHELL,
+		size = {x = 1, y = 1, z = 1},
+		speed = 5,
+		rotAngle = .1,
 		explosion = {detonation = Detonation.EMP, damage = 0, radius = 20, fx = {explosionVfx, explosionSfx}},
 		directHitDamage = 0,
 		rayLength = 1,
@@ -51,9 +64,11 @@ projectiles = {
 	},
 	{
 		projectileClass = ProjectileClass.CRUISE_MISSILE,
+		minDist = 6,
+		minHeight = 50,
 		health = 75,
 		size = {x = 6, y = 13.5, z = 2.54},
-		speed = .5,
+		speed = 1.5,
 		rotAngle = .1,
 		explosion = {detonation = Detonation.EXPLOSION, damage = 100, radius = 20, fx = {explosionVfx, explosionSfx}},
 		directHitDamage = 450,
@@ -71,7 +86,7 @@ projectiles = {
 		rotAngle = .1,
 		explosion = {detonation = Detonation.EXPLOSION, damage = 70, radius = 12, fx = {explosionVfx, explosionSfx}},
 		directHitDamage = 250,
-		rayLength = 3,
+		rayLength = 1.8,
 		name = "Missile",
 	    basePath = PATH .. "Models/GameObjects/Projectiles/Missiles/",
 		meshPath = "missile.xml",

@@ -43,16 +43,34 @@ namespace battleship{
 	}
 
 	Map::Minimap::Minimap(){
-		sol::state_view SOL_STATE_VIEW = generateView();
-		SOL_STATE_VIEW.script_file(GameManager::getSingleton()->getPath() + "Scripts/Gui/activeGameState.lua");
+		Vector3 mapSize = Map::getSingleton()->getMapSize();
+		float ratio = mapSize.x / mapSize.z;
 
-		string refIconFile = SOL_STATE_VIEW["refIcon"];
+		sol::state_view SOL_LUA_VIEW = generateView();
+		SOL_LUA_VIEW.script_file(GameManager::getSingleton()->getPath() + "Scripts/Gui/activeGameState.lua");
+		sol::table sizeTbl = SOL_LUA_VIEW["minimapSize"];
+		float initSizeX = sizeTbl["x"], initSizeY = sizeTbl["y"];
+
+		if(ratio < 1){
+			float x = initSizeX * ratio;
+			SOL_LUA_VIEW["_minimapPos"]["x"] = .5 * (initSizeX - x) ;
+			SOL_LUA_VIEW["_minimapSize"]["x"] = x;
+			SOL_LUA_VIEW["_minimapSize"]["y"] = initSizeY;
+		}
+		else{
+			float y = initSizeY / ratio;
+			SOL_LUA_VIEW["_minimapPos"]["y"] = .5 * (initSizeY - y);
+			SOL_LUA_VIEW["_minimapSize"]["x"] = initSizeX;
+			SOL_LUA_VIEW["_minimapSize"]["y"] = y;
+		}
+
+		string refIconFile = SOL_LUA_VIEW["refIcon"];
 		string basePath = GameManager::getSingleton()->getPath() + "Textures/Icons/Minimap/";
 
 		for(ResourceDeposit *rd : Game::getSingleton()->getCivilianPlayer()->getResourceDeposits())
 			depositIcons.push_back(initIcon(rd->getPos(), basePath + refIconFile));
 
-		string camIconFile = SOL_STATE_VIEW["eyeIcon"];
+		string camIconFile = SOL_LUA_VIEW["eyeIcon"];
 		camIcon = initIcon(Root::getSingleton()->getCamera()->getPosition(), basePath + camIconFile);
 	}
 
@@ -82,9 +100,13 @@ namespace battleship{
 		mat->addTexUniform("diffuseMap", tex, false);
 
 		sol::state_view SOL_LUA_VIEW = generateView();
-		sol::table posTbl = SOL_LUA_VIEW["minimapPos"], sizeTbl = SOL_LUA_VIEW["minimapSize"];
-		Vector2 minimapSize = Vector2(sizeTbl["x"], sizeTbl["y"]);
-		Vector3 minimapPos = Vector3(posTbl["x"], posTbl["y"], posTbl["z"]);
+		sol::table posTbl = SOL_LUA_VIEW["minimapPos"],
+		   	_posTbl = SOL_LUA_VIEW["_minimapPos"],
+			sizeTbl = SOL_LUA_VIEW["minimapSize"],
+			_sizeTbl = SOL_LUA_VIEW["_minimapSize"];
+
+		Vector2 minimapSize = Vector2((float)_sizeTbl["x"], (float)_sizeTbl["y"]);
+		Vector3 minimapPos = Vector3((float)_posTbl["x"], (float)posTbl["y"] + (float)_posTbl["y"], (float)posTbl["z"]);
 
 		Vector3 mapSize = Map::getSingleton()->getMapSize();
 		Vector2 iconPos = Vector2(
@@ -95,9 +117,8 @@ namespace battleship{
 		Quad *quad = new Quad(iconSize, false);
 		quad->setMaterial(mat);
 
-		Node *node = new Node(minimapPos + Vector3(iconPos.x, iconPos.y, .1) - .5 * iconSize);
+		Node *node = new Node(minimapPos + Vector3(iconPos.x, iconPos.y, .05) - .5 * iconSize);
 		node->attachMesh(quad);
-		node->setVisible(false);
 		root->getGuiNode()->attachChild(node);
 
 		return node;
@@ -187,7 +208,7 @@ namespace battleship{
 			minimapSize.y * (camPos.z + .5 * mapSize.z) / mapSize.z 
 		);
 
-		camIcon->setPosition(minimapButton->getPos() + Vector3(iconPos.x, iconPos.y, .1));
+		camIcon->setPosition(minimapButton->getPos() + Vector3(iconPos.x, iconPos.y, .06));
 	}
 
 	void Map::Minimap::update(){
@@ -221,39 +242,38 @@ namespace battleship{
 	}
 
 	Map* Map::getSingleton(){
-		if(!map)
-			map = new Map;
+		if(!map) map = new Map;
 
 		return map;
 	}
 
 	vector<Map::Edge> Map::generateAdjacentNodeEdges(int numVertCells, int i, int numHorCells, int j, int weight){
 		vector<Map::Edge> edges;
-		bool up = (i > 0), right = (j < numHorCells - 1), down = (i < numVertCells - 1), left = (j > 0);
+		bool checkUp = (i > 0), checkRight = (j < numHorCells - 1), checkDown = (i < numVertCells - 1), checkLeft = (j > 0);
 
-		if(left)
-			edges.push_back(Map::Edge(weight, numVertCells * i + j, numVertCells * i + j - 1));
+		if(checkLeft)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * i + j - 1));
 
-		if(right)
-			edges.push_back(Map::Edge(weight, numVertCells * i + j, numVertCells * i + j + 1));
+		if(checkRight)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * i + j + 1));
 
-		if(up)
-			edges.push_back(Map::Edge(weight, numVertCells * i + j, numVertCells * (i - 1) + j));
+		if(checkUp)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * (i - 1) + j));
 
-		if(down)
-			edges.push_back(Map::Edge(weight, numVertCells * i + j, numVertCells * (i + 1) + j));
+		if(checkDown)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * (i + 1) + j));
 
-		if(up && left)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numVertCells * i + j, numVertCells * (i - 1) + j - 1));
+		if(checkUp && checkLeft)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i - 1) + j - 1));
 
-		if(up && right)
-			edges.push_back(Map::Edge((sqrt(2 * weight * weight)), numVertCells * i + j, numVertCells * (i - 1) + j + 1));
+		if(checkUp && checkRight)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i - 1) + j + 1));
 
-		if(down && left)
-			edges.push_back(Map::Edge((sqrt(2 * weight * weight)), numVertCells * i + j, numVertCells * (i + 1) + j - 1));
+		if(checkDown && checkLeft)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i + 1) + j - 1));
 
-		if(down && right)
-			edges.push_back(Map::Edge((sqrt(2 * weight * weight)), numVertCells * i + j, numVertCells * (i + 1) + j + 1));
+		if(checkDown && checkRight)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i + 1) + j + 1));
 
 		return edges;
 	}
@@ -371,7 +391,7 @@ namespace battleship{
 		if(name != "")
 			generateView().script_file(GameManager::getSingleton()->getPath() + "Models/Maps/" + name + "/" + name + ".lua");
 
-		sol::table spawnPointsTbl = generateView()["map"]["spawnPoints"];
+		sol::table spawnPointsTbl = generateView()["metadata"]["spawnPoints"];
 		return spawnPointsTbl.size();
 	}
 
@@ -384,8 +404,8 @@ namespace battleship{
 
 		vector<int> cellIds;
 
-		for(int i = vertId - numRings; i <= vertId + numRings; i++)
-			for(int j = horId - numRings; j <= horId + numRings; j++)
+		for(int i = max(vertId - numRings, 0); i <= min(vertId + numRings, numVertCells - 1); i++)
+			for(int j = max(horId - numRings, 0); j <= min(horId + numRings, numHorCells - 1); j++)
 				cellIds.push_back(numHorCells * i + j);
 
 		return cellIds;
@@ -477,12 +497,31 @@ namespace battleship{
 		for(int i = 0; i < choosablePlayers.size(); i++){
 			sol::table playerTbl = SOL_LUA_VIEW[mapTable]["choosablePlayers"][i + 1];
 			loadPlayerGameObjects(choosablePlayers[i], playerTbl);
+			sol::table unitsTbl = playerTbl["units"];
+			int numUnits = unitsTbl.size();
+
+			if(numUnits == 0){
+				int engiId;
+
+				switch(choosablePlayers[i]->getFaction()){
+					case 0:
+						engiId = 9;
+						break;
+					case 1:
+						engiId = 11;
+						break;
+					case 2:
+						engiId = 13;
+						break;
+				}
+
+				Vector3 sp = getSpawnPoint(choosablePlayers[i]->getSpawnPointId());
+				choosablePlayers[i]->addUnit(GameObjectFactory::createUnit(choosablePlayers[i], engiId, sp, Quaternion::QUAT_W));
+			}
 		}
 
 		sol::table civPlayerTbl = SOL_LUA_VIEW[mapTable]["civilianPlayer"];
 		loadPlayerGameObjects(game->getCivilianPlayer(), civPlayerTbl);
-
-		Minimap::getSingleton()->load();
 	}
 
 	void Map::preprareScene(bool empty){
@@ -523,9 +562,10 @@ namespace battleship{
 	}
 
 	//TODO implement toggleable cell rendering
+	//TODO remove srcCellId from the Edge struct
 	void Map::loadCells(){
 		sol::state_view SOL_LUA_VIEW = generateView();
-		sol::table cellsTable = SOL_LUA_VIEW[mapTable]["cells"];
+		sol::table cellsTable = SOL_LUA_VIEW["cells"];
 		int numCells = cellsTable.size();
 
 		for(int i = 0; i < numCells; i++){
@@ -557,7 +597,72 @@ namespace battleship{
 			 */
 
 			cells.push_back(Cell(cellPos, cellType, edges, underWaterCellIds));
+		}
+	}
 
+	void Map::fillRegion(vector<Map::Cell*>& regionCells, int cellId){
+		Map::Cell::Type type = cells[cellId].type;
+
+		if(find(regionCells.begin(), regionCells.end(), &cells[cellId]) == regionCells.end())
+			regionCells.push_back(&cells[cellId]);
+
+		for(int i = 0; i < cells[cellId].edges.size(); i++){
+			int adjCellId = cells[cellId].edges[i].destCellId;
+			bool underwaterWaterCell = (
+					find(cells[cellId].underWaterCellIds.begin(), cells[cellId].underWaterCellIds.end(), adjCellId) 
+					!= 
+					cells[cellId].underWaterCellIds.end()
+			);
+
+			if(underwaterWaterCell || cells[adjCellId].type != type) continue;
+
+			bool adjCellInRegion = (find(regionCells.begin(), regionCells.end(), &cells[adjCellId]) == regionCells.end());
+
+			if(adjCellInRegion) fillRegion(regionCells, adjCellId);
+		}
+	}
+
+	void Map::calculateRegions(){
+		bool allCellsInRegions = false;
+		int nextCellId = 0, numSurfaceCells = (int(mapSize.x / CELL_SIZE.x)) * (int(mapSize.z / CELL_SIZE.z));
+
+		while(!allCellsInRegions){
+			vector<Map::Cell*> regionCells;
+			fillRegion(regionCells, nextCellId);
+			regions.push_back(make_pair(cells[nextCellId].type, regionCells));
+
+			int sumCellsInRegions = 0;
+
+			for(int i = 0; i < regions.size(); i++)
+				sumCellsInRegions += regions[i].second.size();
+
+			allCellsInRegions = (sumCellsInRegions == numSurfaceCells);
+
+			if(!allCellsInRegions)
+				for(int i = 0; i < cells.size(); i++){
+					bool inRegion = false;
+
+					for(int j = 0; j < regions.size(); j++)
+						if(find(regions[j].second.begin(), regions[j].second.end(), &cells[i]) != regions[j].second.end()){
+							inRegion = true;
+							break;
+						}
+
+					if(!inRegion){
+						nextCellId = i;
+						break;
+					}
+				}
+		}
+
+		for(pair<Map::Cell::Type, vector<Cell*>>& reg : regions){
+			if(reg.first != Cell::Type::WATER) continue;
+
+			int oldNumCells = reg.second.size();
+
+			for(int i = 0; i < oldNumCells; i++)
+				for(int ucId : reg.second[i]->underWaterCellIds)
+					reg.second.push_back(&cells[ucId]);
 		}
 	}
 
@@ -570,11 +675,16 @@ namespace battleship{
 
 		sol::state_view SOL_LUA_STATE = generateView();
 		SOL_LUA_STATE.script_file(path + "Models/Maps/" + mapName + "/" + mapName + ".lua");
+		SOL_LUA_STATE.script_file(path + "Models/Maps/" + mapName + "/cells.lua");
+
+		sol::table sizeTable = SOL_LUA_STATE[mapTable]["size"];
+		mapSize = Vector3(sizeTable["x"], sizeTable["y"], sizeTable["z"]);
 
 		preprareScene(false);
 		loadSpawnPoints();
 		loadSkybox();
 		loadCells();
+		calculateRegions();
 		loadTerrainObject(-1);
 
 		sol::optional<sol::table> lightsOpt = SOL_LUA_STATE[mapTable]["lights"];
@@ -582,13 +692,13 @@ namespace battleship{
 		if(lightsOpt != sol::nullopt)
 			loadLights();
 
-		sol::table sizeTable = SOL_LUA_STATE[mapTable]["size"];
-		mapSize = Vector3(sizeTable["x"], sizeTable["y"], sizeTable["z"]);
 		sol::table wbTbl = SOL_LUA_STATE[mapTable]["waterbodies"];
 		int numWaterbodies = wbTbl.size();
 		
 		for(int i = 0; i < numWaterbodies; i++)
 			loadTerrainObject(i);
+
+		loadPlayersGameObjects();
     }
 
 	void Map::create(string mapName, Vector3 mapSize){
@@ -747,9 +857,8 @@ namespace battleship{
 					return cellId;
 			}
 
-			return cellId;
-		}
-		else
 			return surfaceCellId;
+		}
+		else return surfaceCellId;
 	}
 }
