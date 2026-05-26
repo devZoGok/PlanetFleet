@@ -36,6 +36,9 @@ namespace battleship{
 		Unit::update();
 
 		if(garrisonable) model->setVisible(false);
+
+		for(Node *n : debugPathPoints)
+			n->setVisible(Game::getSingleton()->isDebug());
 	}
 
 	void Vehicle::halt(){
@@ -311,7 +314,6 @@ namespace battleship{
 
 		Node *n = new Node(pointPos);
 		n->attachMesh(b);
-		n->setVisible(Game::getSingleton()->isDebug());
 		Root::getSingleton()->getRootNode()->attachChild(n);
 		debugPathPoints.push_back(n);
 	}
