@@ -40,6 +40,8 @@ namespace battleship{
 		upVec = model->getGlobalAxis(1);
 		dirVec = model->getGlobalAxis(2);
 		screenPos = spaceToScreen(pos);
+
+		if(hitbox) hitbox->setVisible(Game::getSingleton()->isDebug());
 	}
 
     void GameObject::placeAt(Vector3 p) {
@@ -71,7 +73,6 @@ namespace battleship{
 
 		hitbox = new Node(Vector3(offsetPosTable["x"], offsetPosTable["y"], offsetPosTable["z"]));
 		hitbox->attachMesh(box);
-		hitbox->setVisible(Game::getSingleton()->isDebug());
 		model->attachChild(hitbox);
 	}
 
