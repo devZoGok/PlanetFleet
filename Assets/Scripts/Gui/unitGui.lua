@@ -93,6 +93,7 @@ function generateGui(unitId)
 				buttonType = (mainUnit.isVehicle and ButtonType.BUILD or ButtonType.TRAIN),
 				factoryId = (isFactory and unitId or nil),
 				engineerId = (isEng and unitId or nil),
+				imagePath = buildUnit.iconPath,
 				slotId = (ButtonType.BUILD and i - 1 or nil)
 			}
 			gui[#gui + 1] = generateButton(#gui, buttonData)
