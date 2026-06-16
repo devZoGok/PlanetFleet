@@ -111,12 +111,18 @@ namespace battleship{
 	}
 
 	void Player::issueOrder(Order::TYPE type, Vector3 destDir, vector<Order::Target> targets, bool append){
+		if(type != Order::TYPE::EJECT && targets.empty()) return;
+
 		vector<Unit*> selectedUnits = getSelectedUnits();
+		Vector3 mapSize = Map::getSingleton()->getMapSize();
 
         for (Unit *u : selectedUnits) {
 			bool targetingSelf = false, structBuilt = true;
 
 			for(Order::Target &targ : targets){
+				targ.pos.x = clamp(targ.pos.x, -.5f * mapSize.x, .5f * mapSize.x);
+				targ.pos.z = clamp(targ.pos.z, -.5f * mapSize.z, .5f * mapSize.z);
+
 				if(targ.unit && targ.unit == u){
 					targetingSelf = true;
 					break;

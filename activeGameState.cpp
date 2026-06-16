@@ -183,7 +183,7 @@ namespace battleship{
 			int unloadFlag = (int)shiftPressed;
 
 			if(!forceCursorState){
-				if(gameObjUnit && gameObjTransport){
+				if(gameObjUnit && ownGameObj && gameObjTransport){
 					orderPossible = (ownGameObj && canGarrison);
 					cursorState = CursorState::GARRISON;
 				}
@@ -289,6 +289,8 @@ namespace battleship{
 		guiManager->getText("wealth")->setText(to_wstring(mainPlayer->getResource(ResourceType::WEALTH)));
 		guiManager->getText("research")->setText(to_wstring(mainPlayer->getResource(ResourceType::RESEARCH)));
 
+		updateGameObjHoveredOn();
+
 		updateCursor();
 		Vector2 cursorPos = getCursorPos();
 
@@ -301,15 +303,13 @@ namespace battleship{
 
 		dragboxNode->setVisible(isSelectionBox);
 
-		updateGameObjHoveredOn();
-
 		vector<Unit*> selectedUnits = mainPlayer->getSelectedUnits();
 		GameObjectFrameController *fc = GameObjectFrameController::getSingleton();
 
 		if(!selectingDestOrient && orderMouseClicked && !selectedUnits.empty() && getTime() - lastOrderMouseClicked > 100){
 			if(targets.empty()) castRayToTerrain();
 
-			if(!buildableStructSelected)
+			if(!(buildableStructSelected || targets.empty()))
 				for(int i = 0; i < selectedUnits.size(); i++)
 					fc->addGameObjectFrame(GameObjectFrame(selectedUnits[i]->getId(), GameObject::Type::UNIT, mainPlayer, selectedUnits[i], targets[0].pos));
 
@@ -361,6 +361,9 @@ namespace battleship{
 			for(Unit *u : units)
 				gameObjs.push_back((GameObject*)u);
 		}
+
+		if(gameObjHoveredOn && find(gameObjs.begin(), gameObjs.end(), gameObjHoveredOn) == gameObjs.end())
+			gameObjHoveredOn = nullptr;
 
 		for(GameObject *gameObj : gameObjs)
 			if(isGameObjSelectable(gameObj, false)){
@@ -524,9 +527,10 @@ namespace battleship{
     void ActiveGameState::issueOrder(Order::TYPE type, vector<Order::Target> targets, bool addOrder) {
 		depth = 1;
 		Vector3 destDir =  Vector3::VEC_ZERO;
+		GameObjectFrameController *frameCtrl = GameObjectFrameController::getSingleton();
 		
-		if(selectingDestOrient){
-			GameObjectFrame &objFrame = GameObjectFrameController::getSingleton()->getGameObjectFrame(0);
+		if(selectingDestOrient && frameCtrl->getNumGameObjectFrames() > 0){
+			GameObjectFrame &objFrame = frameCtrl->getGameObjectFrame(0);
 			destDir = objFrame.getDirVec();
 			targets[0].pos = objFrame.getPos();
 		}
