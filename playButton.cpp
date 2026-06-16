@@ -36,15 +36,21 @@ namespace battleship{
 		int selectedMap = mapListbox->getSelectedOption();
 		string mapName = wstringToString(mapListbox->getContents()[selectedMap]);
 		int numPlayers = Map::getSingleton()->getNumMapSpawnPoints(mapName);
+		const int MAIN_PLAYER_ID = (int)generateView()["MAIN_PLAYER_ID"];
 	
 		for(int i = 0; i < numPlayers; i++){
-			int factionChoice = factionsListboxes[i]->getSelectedOption();
+			int faction = factionsListboxes[i]->getSelectedOption();
+			bool cpuPlayer;
 
-			if(factionChoice == 0) continue;
+			if(factionsListboxes[i]->getContents()[faction] == L"None") continue;
 
-			int faction = factionChoice - 1;
+			if(MAIN_PLAYER_ID == i)
+				cpuPlayer = false;
+			else{
+				faction--;
+				cpuPlayer = true;
+			}
 
-			bool cpuPlayer = (i > 0);
 			string diffStr = (cpuPlayer ? wstringToString(difficultiesListboxes[i]->getContents()[colorsListboxes[i]->getSelectedOption()]) : "");
 			int difficulty = -1;
 
