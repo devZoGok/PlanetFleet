@@ -49,8 +49,10 @@ namespace battleship{
 
 	void ResearchButton::update(){
 		Button::update();
-
 		ActiveGameState *activeState = (ActiveGameState*)(GameManager::getSingleton()->getStateManager()->getAppStateByType((int)AppStateType::ACTIVE_STATE));
+
+		if(!activeState) return;
+
 		vector<int> technologies = activeState->getPlayer()->getTechnologies();
 		bool hasTech = (find(technologies.begin(), technologies.end(), techId) != technologies.end());
 
