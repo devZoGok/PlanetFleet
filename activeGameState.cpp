@@ -141,18 +141,8 @@ namespace battleship{
     void ActiveGameState::onDettached() {
 		AbstractAppState::onDettached();
 
-        isSelectionBox = false;
-		shiftPressed = false;
-		controlPressed = false;
-		selectMouseClicked = false;
-		orderMouseClicked = false;
-		buildableStructSelected = false;
-		selectingPatrolPoints = false;
-		selectingDestOrient = false;
-		forceCursorState = false;
-		orderPossible = false;
-		tradingScreen = false;
 		offerScreen = false;
+		tradingScreen = false;
     }
 
 	void ActiveGameState::updateCursor(){
