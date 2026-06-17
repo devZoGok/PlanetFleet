@@ -140,6 +140,9 @@ namespace battleship{
 
     void ActiveGameState::onDettached() {
 		AbstractAppState::onDettached();
+
+		offerScreen = false;
+		tradingScreen = false;
     }
 
 	void ActiveGameState::updateCursor(){

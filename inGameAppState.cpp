@@ -67,6 +67,7 @@ namespace battleship{
 		Camera *cam = Root::getSingleton()->getCamera();
 		cam->setPosition(Map::getSingleton()->getSpawnPoint(playerId) + Vector3(1, 1, 1) * configData::CAMERA_DISTANCE);
 		cam->lookAt(Vector3(0, -1, -1).norm(), Vector3(0, 1, -1).norm());
+		cam->setFarPlane(1000);
 
 		GameManager *gm = GameManager::getSingleton();
 		StateManager *stateManager = gm->getStateManager();

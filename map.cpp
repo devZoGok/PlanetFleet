@@ -212,9 +212,10 @@ namespace battleship{
 	}
 
 	void Map::Minimap::update(){
-		if(!GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE)) return;
-
 		Button *mb = ConcreteGuiManager::getSingleton()->getButton("minimap");
+
+		if(!(GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE) && mb)) return;
+
 		updateCamFrame(mb);
 	}
 
