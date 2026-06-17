@@ -6,6 +6,8 @@ music = {
 	tracks = {'intro.ogg'}
 }
 
+MAIN_PLAYER_ID = 0
+
 gui = {
 	{
 		pos = {x = 110, y = 310, z = 0},
