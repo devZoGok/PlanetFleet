@@ -84,7 +84,7 @@ gui = {
 		trigger = 82,
 	},
 	{
-		pos = {x = Pos.x + Size.x - (margin.right + 3 * techButtonSize.x), y = Pos.y + margin.top + 2 * heightOffset, z = .11},
+		pos = {x = Pos.x + Size.x - (margin.right + 3.5 * techButtonSize.x), y = Pos.y + margin.top + 2 * heightOffset, z = .11},
 		size = techButtonSize,
 		name = "Carriers",
 		imagePath = baseTechPath .. 'carriers.jpg',

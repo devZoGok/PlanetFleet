@@ -1,4 +1,4 @@
-playerListboxPos = {x = 110, y = 10, z = 0}
+playerListboxPos = {x = 20, y = 10, z = 0}
 Pos = {x = playerListboxPos.x, y = playerListboxPos.y, z = playerListboxPos.z} 
 FactionListboxSize = {x = 270, y = 20}
 Size = {x = 150, y = 20}

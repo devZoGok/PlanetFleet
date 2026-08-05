@@ -1,8 +1,29 @@
-numGui = 9
 gui = {
 	{
-		pos = {x = 210, y = 190, z = 0},
-		size = {x = 360, y = 20},
+		guiType = GuiType.TEXT,
+		name = '',
+		text = 'Video',
+		pos = {x = 20, y = 50, z = 0},
+		scale = .5,
+		font = 'batang.ttf',
+		fontFirstChar = 0,
+		fontLastChar = 256,
+		color = {x = 1, y = 1, z = 1, w = 1}
+	},
+	{
+		guiType = GuiType.TEXT,
+		name = '',
+		text = 'Resolution',
+		pos = {x = 20, y = 100, z = 0},
+		scale = .2,
+		font = 'batang.ttf',
+		fontFirstChar = 0,
+		fontLastChar = 256,
+		color = {x = 1, y = 1, z = 1, w = 1}
+	},
+	{
+		pos = {x = 20, y = 100, z = 0},
+		size = {x = 120, y = 20},
 		guiType = GuiType.LISTBOX,
 		listboxType = ListboxType.RESOLUTION,
 		numMaxDisplay = 5,
@@ -14,41 +35,21 @@ gui = {
 		}
 	},
 	{
-		pos = {x = 110, y = 40, z = 0},
-		guiType = GuiType.CHECKBOX
-	},
-	{
-		pos = {x = 110, y = 70, z = 0},
-		guiType = GuiType.CHECKBOX
-	},
-	{
-		pos = {x = 110, y = 100, z = 0},
-		guiType = GuiType.CHECKBOX
-	},
-	{
-		pos = {x = 110, y = 130, z = 0},
-		guiType = GuiType.CHECKBOX
-	},
-	{
-		pos = {x = 110, y = 160, z = 0},
-		guiType = GuiType.CHECKBOX
-	},
-	{
-		pos = {x = 100, y = 400, z = 0},
+		pos = {x = 20, y = 310, z = 0},
 		size = {x = 150, y = 20},
 		guiType = GuiType.BUTTON,
 		name = 'Ok',
 		buttonType = ButtonType.OK
 	},
 	{
-		pos = {x = 260, y = 400, z = 0},
+		pos = {x = 180, y = 310, z = 0},
 		size = {x = 150, y = 20},
 		guiType = GuiType.BUTTON,
 		name = 'Restore defaults',
 		buttonType = ButtonType.DEFAULTS
 	},
 	{
-		pos = {x = 420, y = 400, z = 0},
+		pos = {x = 340, y = 310, z = 0},
 		size = {x = 150, y = 20},
 		guiType = GuiType.BUTTON,
 		name = 'Back',
