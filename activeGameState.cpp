@@ -583,7 +583,10 @@ namespace battleship{
 			unitButtons.push_back(guiManager->getButtons()[guiManager->getButtons().size() - (i + 1)]);
 	}
     
+	// isPressed is whether the bind is pressed or just something like hovered
     void ActiveGameState::onAction(int bind, bool isPressed) {
+		int numEntered; // Used in entering number series to store the latest number entered
+
 		if(tradingScreen || !ConcreteGuiManager::getSingleton()->findClickedButtons().empty()) return;
 
 		GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
@@ -803,21 +806,49 @@ namespace battleship{
             case Bind::GROUP_7:
             case Bind::GROUP_8:
             case Bind::GROUP_9:
-                if(isPressed){
-                    int group = bind - Bind::GROUP_0;
+				// If none of the number keys are pressed then break
+				if(!isPressed) break;
 
-                    if(controlPressed)
-                        unitGroups[group] = mainPlayer->getSelectedUnits();
-                    else{
-                        if(!shiftPressed)
-                            mainPlayer->selectUnits(unitGroups[group]);
-                        else
-                            for(Unit *u : unitGroups[group])
-                                mainPlayer->selectUnit(u);
-                    }
-                }
+				// Otherwise save the number entered
+				numEntered =  bind - Bind::GROUP_0;
 
-                break;
+				// If this is the first number enetered in this group then set the pendingGroup to 0
+				if(pendingGroup == -1)
+				{
+					pendingGroup = 0;
+				}
+
+				// Multiply the current pendingGroup num by 10 to give it another 0's place and add the new number enetered
+				pendingGroup = pendingGroup * 10 + numEntered;
+				break;
+			case Bind::Key_Q:
+				// qPressed = isPressed;
+				// If Q is not pressed or the pending group has not been set then break
+				if(!isPressed || pendingGroup == -1) break;
+
+				if(controlPressed)
+				{
+					// Ctrl + group number + Q assigns the current selection of units
+                    unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
+				}
+				else
+				{
+					// Pressing a number and Q without shifting replaces the unit selection with the unit group for the number pressed
+					if(!shiftPressed)
+					{
+						deselectUnits();
+						mainPlayer->selectUnits(unitGroups[pendingGroup]);
+					}
+					// If shift is pressed then shift plus a number and Q adds the selection to the current selection
+					else
+					{
+						mainPlayer->selectUnits(unitGroups[pendingGroup]);
+						unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
+					}
+				}
+				// Reset the pending group 
+				pendingGroup = -1;
+				break;
 			case Bind::DESELECT_STRUCTURE:
 				forceCursorState = false;
 				buildableStructSelected = false;
@@ -860,5 +891,19 @@ namespace battleship{
 
 	void ActiveGameState::onRawMouseWheelScroll(bool up){
 		CameraController::getSingleton()->zoomCamera(up);
+	}
+
+	std::vector<Unit*>& ActiveGameState::getUnitGroup(int i)
+	{
+		static std::vector<Unit*> empty;
+		auto it = unitGroups.find(i);
+		if(it != unitGroups.end())
+		{
+			return it->second;
+		}
+		else
+		{
+			return empty;
+		}
 	}
 }

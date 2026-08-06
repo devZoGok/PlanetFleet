@@ -7,6 +7,7 @@
 #include "unit.h"
 
 #include <util.h>
+#include <unordered_map>
 
 namespace vb01{
 	class Node;
@@ -42,6 +43,7 @@ namespace battleship{
         void onAction(int, bool);
         void onAnalog(int, float);
 		void onRawMouseWheelScroll(bool);
+		std::vector<Unit*>& getUnitGroup(int i);
 		inline CursorState getCursorState(){return cursorState;}
 		inline void setCursorState(CursorState cs){this->cursorState = cs;}
 		inline void addButton(vb01Gui::Button *b){guiButtons.push_back(b);}
@@ -49,7 +51,7 @@ namespace battleship{
 		inline std::vector<vb01::Node*> getGuiRects(){return guiRects;}
 		inline std::vector<vb01::Text*> getGuiTexts(){return guiTexts;}
         inline Player* getPlayer(){return mainPlayer;}
-        inline std::vector<Unit*>& getUnitGroup(int i){return unitGroups[i];}
+        // inline std::vector<Unit*>& getUnitGroup(int i){return unitGroups[i];}
 		inline void setBuildableStructSelected(bool bss){this->buildableStructSelected = bss;}
 		inline bool isBuildableStructSelected(){return buildableStructSelected;}
 		inline float getDepth(){return depth;}
@@ -82,7 +84,9 @@ namespace battleship{
         GuiAppState *guiState;
 		GameObject *gameObjHoveredOn = nullptr;
 		vb01::Vector2 clickPoint;
-        std::vector<Unit*> unitGroups[9], prevSelectedUnits;
+        // std::vector<Unit*> unitGroups[10], prevSelectedUnits;
+		std::vector<Unit*> prevSelectedUnits;
+		std::unordered_map<int, std::vector<Unit*>> unitGroups;
 		std::vector<Order::Target> targets;
 		vb01::Node *dragboxNode = nullptr;
 		std::vector<vb01::Node*> guiRects;
@@ -91,6 +95,7 @@ namespace battleship{
         bool isSelectionBox = false;
 		bool shiftPressed = false;
 		bool controlPressed = false;
+		int pendingGroup = -1; // The group value entered to save and select a group of units. -1 means no units have been selected
 		bool selectMouseClicked = false;
 		bool orderMouseClicked = false;
 		bool buildableStructSelected = false;
