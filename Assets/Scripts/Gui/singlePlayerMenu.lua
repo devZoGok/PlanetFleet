@@ -21,6 +21,50 @@ gui = {
 		color = {x = 1, y = 1, z = 1, w = 1}
 	},
 	{
+		guiType = GuiType.TEXT,
+		name = '',
+		text = 'Player',
+		pos = {x = 20, y = 100, z = 0},
+		scale = .2,
+		font = 'batang.ttf',
+		fontFirstChar = 0,
+		fontLastChar = 256,
+		color = {x = 1, y = 1, z = 1, w = 1}
+	},
+	{
+		guiType = GuiType.TEXT,
+		name = '',
+		text = 'Faction',
+		pos = {x = 180, y = 100, z = 0},
+		scale = .2,
+		font = 'batang.ttf',
+		fontFirstChar = 0,
+		fontLastChar = 256,
+		color = {x = 1, y = 1, z = 1, w = 1}
+	},
+	{
+		guiType = GuiType.TEXT,
+		name = '',
+		text = 'Color',
+		pos = {x = 460, y = 100, z = 0},
+		scale = .2,
+		font = 'batang.ttf',
+		fontFirstChar = 0,
+		fontLastChar = 256,
+		color = {x = 1, y = 1, z = 1, w = 1}
+	},
+	{
+		guiType = GuiType.TEXT,
+		name = '',
+		text = 'Team',
+		pos = {x = 620, y = 100, z = 0},
+		scale = .2,
+		font = 'batang.ttf',
+		fontFirstChar = 0,
+		fontLastChar = 256,
+		color = {x = 1, y = 1, z = 1, w = 1}
+	},
+	{
 		pos = {x = 20, y = 310, z = 0},
 		size = Size,
 		guiType = GuiType.LISTBOX,
@@ -35,7 +79,7 @@ gui = {
 		buttonType = ButtonType.PLAY,
 		name = 'Play',
 		numDependencies = 4,
-		dependencies = {{id = 1}}
+		dependencies = {{id = 5}}
 	},
 	{
 		pos = {x = 20 + Size.x + 10, y = 460, z = 0},
