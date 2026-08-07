@@ -1,14 +1,14 @@
 #ifndef RESOURCE_AMMOUNT_BUTTON_H
 #define RESOURCE_AMMOUNT_BUTTON_H
 
-#include <button.h>
+#include "pfButtonBase.h"
 
 namespace vb01Gui{
 	class Textbox;
 }
 
 namespace battleship{
-	class ResourceAmmountButton : public vb01Gui::Button{
+	class ResourceAmmountButton : public PfButtonBase{
 		public:
 			ResourceAmmountButton(vb01::Vector3, vb01::Vector2, std::string, int, int, std::string);
 			void onClick();

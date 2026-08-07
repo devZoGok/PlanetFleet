@@ -12,7 +12,7 @@ namespace battleship{
 	using namespace vb01Gui;
 	using namespace gameBase;
 
-	StateToggleButton::StateToggleButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath) : Button(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, true, imagePath) {
+	StateToggleButton::StateToggleButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath) : PfButtonBase(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, true, imagePath) {
 		updateStateId();
 		toggleImage();
 	}

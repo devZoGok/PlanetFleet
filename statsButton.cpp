@@ -13,7 +13,7 @@ namespace battleship{
 	using namespace vb01;
 	using namespace gameBase;
 
-	StatsButton::StatsButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath) : Button(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, true, imagePath){}
+	StatsButton::StatsButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath) : PfButtonBase(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, true, imagePath){}
 
 	void StatsButton::addPlayerDataGuiElements(int playerId){
 		const int numPairs = 7;

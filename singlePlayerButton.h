@@ -3,20 +3,16 @@
 
 #include <vector>
 
-#include <button.h>
+#include "pfButtonBase.h"
 
 namespace battleship{
 	class Tooltip;
 
-    class SinglePlayerButton : public vb01Gui::Button {
+    class SinglePlayerButton : public PfButtonBase {
     public:
 		SinglePlayerButton(vb01::Vector3, vb01::Vector2, std::string);
-		~SinglePlayerButton();
+		~SinglePlayerButton(){}
 		void onClick();
-		void update();
-		inline void setTooltip(Tooltip *t){this->tooltip = t;}
-    private:
-		Tooltip *tooltip = nullptr;
     };
 }
 

@@ -30,7 +30,16 @@ gui = {
 		size = Size,
 		guiType = GuiType.BUTTON,
 		name = 'Single player',
-		buttonType = ButtonType.SINGLE_PLAYER
+		buttonType = ButtonType.SINGLE_PLAYER,
+		baseColor = {x = .6, y = .6, z = .6, w = 1},
+		hoveredOnColor = {x = .8, y = .8, z = .8, w = 1},
+		tooltip = {
+			offset = {x = 100, y = 100},
+			size = {x = 300, y = 200},
+			lines = {
+				{entry = {text = 'Play with computer opponents'}},
+			}
+		}
 	},
 	{
 		pos = {x = 20, y = 160, z = 0},

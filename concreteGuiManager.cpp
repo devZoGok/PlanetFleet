@@ -5,6 +5,7 @@
 #include "concreteGuiManager.h"
 #include "unit.h"
 #include "gameManager.h"
+#include "pfButtonBase.h"
 #include "singlePlayerButton.h"
 #include "mapEditorButton.h"
 #include "optionsButton.h"
@@ -134,13 +135,12 @@ namespace battleship{
 			tooltip = parseTooltip(tbl, pos);
 		}
 
-		Button *button = nullptr;
+		PfButtonBase *button = nullptr;
 		string guiScreen = "";
 
 		switch(type){
 			case SINGLE_PLAYER:
 				button = new SinglePlayerButton(pos, size, name);
-				((SinglePlayerButton*)button)->setTooltip(tooltip);
 				break;
 			case EDITOR:
 				button = new MapEditorButton(pos, size);
@@ -289,6 +289,23 @@ namespace battleship{
 				break;
 			}
 		}
+
+		sol::optional<sol::table> baseColorTblOpt = guiTable["baseColor"], hoveredColorTblOpt = guiTable["hoveredOnColor"];
+
+		if(baseColorTblOpt != sol::nullopt){
+			sol::table baseColorTbl = guiTable["baseColor"];
+			Vector4 color = Vector4(baseColorTbl["x"], baseColorTbl["y"], baseColorTbl["z"], baseColorTbl["w"]);
+			button->setBaseColor(color);
+			button->setColor(color);
+		}
+
+		if(hoveredColorTblOpt != sol::nullopt){
+			sol::table hoveredColorTbl = guiTable["hoveredOnColor"];
+			button->setHoveredOnColor(Vector4(hoveredColorTbl["x"], hoveredColorTbl["y"], hoveredColorTbl["z"], hoveredColorTbl["w"]));
+			button->setEnabledHoverdOn(true);
+		}
+
+		button->setTooltip(tooltip);
 
 		int typeArr[2]{(int)GuiElementType::BUTTON, (int)type};
 	 	guiElements.push_back(make_pair(typeArr, (void*)button));
