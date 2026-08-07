@@ -1,4 +1,3 @@
-#include <solUtil.h>
 #include <soundManager.h>
 
 #include <quad.h>
@@ -60,6 +59,42 @@ namespace battleship{
 		return concreteGuiManager;
 	}
 
+	Tooltip* ConcreteGuiManager::parseTooltip(sol::table &tooltipTbl, Vector3 guiPos){
+		sol::table offsetTbl = tooltipTbl["offset"], sizeTbl = tooltipTbl["size"];
+		Vector3 offset = Vector3(offsetTbl["x"], offsetTbl["y"], .1);
+		Vector2 size = Vector2(sizeTbl["x"], sizeTbl["y"]);
+
+		sol::table lineDataTbl = tooltipTbl["lines"];
+		int numLines = lineDataTbl.size();
+		vector<Tooltip::LineData> lines;
+
+		for(int i = 0; i < numLines; i++){
+			vector<pair<int, string>> iconsData;
+			sol::optional<sol::table> iconsTblOpt = lineDataTbl[i + 1]["icons"];
+
+			if(iconsTblOpt != sol::nullopt){
+				sol::table iconsTbl = lineDataTbl[i + 1]["icons"];
+				int numIcons = iconsTbl.size();
+
+				for(int j = 0; j < numIcons; j++)
+					iconsData.push_back(make_pair(iconsTbl[j + 1]["charId"], iconsTbl[j + 1]["path"]));
+			}
+
+			sol::table entryTbl = lineDataTbl[i + 1]["entry"];
+			wstring entry = (wstring)entryTbl["text"];
+			Vector4 color = Vector4::VEC_IJKL;
+			sol::optional<sol::table> colorTblOpt = entryTbl["color"];
+
+			if(colorTblOpt != sol::nullopt)
+				color = Vector4(entryTbl["color"]["r"], entryTbl["color"]["g"], entryTbl["color"]["b"], entryTbl["color"]["a"]);
+
+			lines.push_back(Tooltip::LineData(entry, color, iconsData));
+		}
+
+		string fontPath = GameManager::getSingleton()->getPath() + "Fonts/batang.ttf";
+		return new Tooltip(guiPos + offset, size, lines, fontPath);
+	}
+
 	//TODO refactor player difficulty and faction listbox selection
 	//TODO remove hardcoded font path values
 	//TODO use configurable map path values 
@@ -91,12 +126,21 @@ namespace battleship{
 			bool texturingEnabled = true;
 		}
 
+		Tooltip *tooltip = nullptr;
+		sol::optional<sol::table> tooltipTblOpt = guiTable["tooltip"];
+
+		if(tooltipTblOpt != sol::nullopt){
+			sol::table tbl = guiTable["tooltip"];
+			tooltip = parseTooltip(tbl, pos);
+		}
+
 		Button *button = nullptr;
 		string guiScreen = "";
 
 		switch(type){
 			case SINGLE_PLAYER:
 				button = new SinglePlayerButton(pos, size, name);
+				((SinglePlayerButton*)button)->setTooltip(tooltip);
 				break;
 			case EDITOR:
 				button = new MapEditorButton(pos, size);
