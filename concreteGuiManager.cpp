@@ -62,7 +62,7 @@ namespace battleship{
 
 	Tooltip* ConcreteGuiManager::parseTooltip(sol::table &tooltipTbl, Vector3 guiPos){
 		sol::table offsetTbl = tooltipTbl["offset"], sizeTbl = tooltipTbl["size"];
-		Vector3 offset = Vector3(offsetTbl["x"], offsetTbl["y"], .1);
+		Vector3 offset = Vector3(offsetTbl["x"], offsetTbl["y"], offsetTbl["z"]);
 		Vector2 size = Vector2(sizeTbl["x"], sizeTbl["y"]);
 
 		sol::table lineDataTbl = tooltipTbl["lines"];
@@ -89,11 +89,25 @@ namespace battleship{
 			if(colorTblOpt != sol::nullopt)
 				color = Vector4(entryTbl["color"]["r"], entryTbl["color"]["g"], entryTbl["color"]["b"], entryTbl["color"]["a"]);
 
-			lines.push_back(Tooltip::LineData(entry, color, iconsData));
+			int height = 20;
+			float scale = .2;
+			Vector3 textOffset = Vector3(0, -3, .21);
+
+			lines.push_back(Tooltip::LineData(entry, color, iconsData, height, textOffset, scale));
 		}
 
 		string fontPath = GameManager::getSingleton()->getPath() + "Fonts/batang.ttf";
-		return new Tooltip(guiPos + offset, size, lines, fontPath);
+		Tooltip *tooltip = new Tooltip(guiPos + offset, size, lines, fontPath);
+
+		sol::optional<sol::table> bgColorTblOpt = tooltipTbl["backgroundColor"];
+
+		if(bgColorTblOpt != sol::nullopt){
+			sol::table bgColorTbl = tooltipTbl["backgroundColor"];
+			Vector4 bgColor = Vector4(bgColorTbl["x"], bgColorTbl["y"], bgColorTbl["z"], bgColorTbl["w"]);
+			tooltip->getBackground()->getMaterial()->setVec4Uniform("diffuseColor", bgColor);
+		}
+
+		return tooltip;
 	}
 
 	//TODO refactor player difficulty and faction listbox selection
@@ -242,16 +256,16 @@ namespace battleship{
 				button = new ResearchButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["techId"]);
 				break;
 			case BUY_REFINEDS:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::BUY_REFINEDS);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::BUY_REFINEDS, (int)guiTable["amount"]);
 				break;
 			case SELL_REFINEDS:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::SELL_REFINEDS);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::SELL_REFINEDS, (int)guiTable["amount"]);
 				break;
 			case BUY_RESEARCH:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::BUY_RESEARCH);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::BUY_RESEARCH, (int)guiTable["amount"]);
 				break;
 			case SELL_RESEARCH:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::SELL_RESEARCH);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::SELL_RESEARCH, (int)guiTable["amount"]);
 				break;
 			case ACTIVE_STATE_BUTTON:
 				button = new ActiveStateButton(pos, size, guiTable["guiScreen"], name, fontBasePath + "batang.ttf", (int)guiTable["trigger"], imagePath);

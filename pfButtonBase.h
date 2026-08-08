@@ -15,7 +15,7 @@ namespace battleship{
 			inline void setEnabledHoverdOn(bool e){this->enabledHoveredOn = e;}
 			inline void setHoveredOnColor(vb01::Vector4 hc){this->hoveredOnColor = hc;}
 			inline void setBaseColor(vb01::Vector4 bc){this->baseColor = bc;}
-		private:
+		protected:
 			bool enabledHoveredOn = false;
 			vb01::Vector4 baseColor, hoveredOnColor;
 			Tooltip *tooltip = nullptr;

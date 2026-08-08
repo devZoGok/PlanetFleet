@@ -12,6 +12,9 @@ IconPath = {WEALTH = 'Icons/Resources/wealth.png', RESEARCH = 'Icons/Resources/r
 
 function createResourceTrayGui(cpuPlayer, lineId, guiId, imgPath)
 	height = HubMargin.top + lineId * iconSize.y
+	tooltipOffset = {x = iconSize.x * (cpuPlayer and 1 or -1), y = -iconSize.y, z = .1}
+	tooltipSize = {x = 190, y = 20}
+	resourceAmountDelta = 10
 
 	if guiId == ResourceTrayGuiId.ICON then
 		guiElPos = {x = HubPos.x + (cpuPlayer and HubMargin.left or HubSize.x -(HubMargin.right + 3 * iconSize.x + textboxSize.x)), y = height, z = .2}
@@ -36,11 +39,18 @@ function createResourceTrayGui(cpuPlayer, lineId, guiId, imgPath)
 		return {
 			guiType = GuiType.BUTTON,
 			buttonType = ButtonType.RESOURCE_AMMOUNT,
-			ammount = 10,
+			ammount = resourceAmountDelta,
 			name = '+',
 			pos = guiElPos,
 			size = iconSize,
-			trigger = 10
+			trigger = 10,
+			tooltip = {
+				offset = tooltipOffset,
+				size = tooltipSize,
+				lines = {
+					{entry = {text = 'Increase value by ' .. resourceAmountDelta}},
+				}
+			}
 		}
 	elseif guiId == ResourceTrayGuiId.DECREMENT then
 		guiElPos = {x = HubPos.x + (cpuPlayer and HubMargin.left + 2 * iconSize.x + textboxSize.x or HubSize.x -(HubMargin.right + iconSize.x)), y = height, z = .2}
@@ -48,11 +58,18 @@ function createResourceTrayGui(cpuPlayer, lineId, guiId, imgPath)
 		return {
 			guiType = GuiType.BUTTON,
 			buttonType = ButtonType.RESOURCE_AMMOUNT,
-			ammount = -10,
+			ammount = -resourceAmountDelta,
 			name = '-',
 			pos = guiElPos,
 			size = iconSize,
-			trigger = 10
+			trigger = 10,
+			tooltip = {
+				offset = tooltipOffset,
+				size = tooltipSize,
+				lines = {
+					{entry = {text = 'Decrease value by ' .. resourceAmountDelta}},
+				}
+			}
 		}
 	end
 end
