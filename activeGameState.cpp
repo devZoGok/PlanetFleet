@@ -829,21 +829,57 @@ namespace battleship{
 				if(controlPressed)
 				{
 					// Ctrl + group number + Q assigns the current selection of units
-                    unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
+
+					// If there are currently maximum allowed units in existence then do not allow creation of a new unique group, only allow overwritting an existing group
+					if(static_cast<int>(unitGroups.size()) >= maxUnitGroups)
+					{
+						// See if pendingGroup is equal to any key and overwrite the key if so
+						auto it = unitGroups.find(pendingGroup);
+						if(it != unitGroups.end())
+						{
+							unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
+						}
+						// Iterate through all the keys to see if pendingGroup is equal to any key and overwrite the key if so
+						// for(const auto& [key, value]: unitGroups)
+						// {
+						// 	if(key == pendingGroup)
+						// 	{
+						// 		unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
+						// 	}
+						// }
+						// If it can't overwrite then the pendingGroup will just be reset since this will bypass the rest of the if statements
+					}
+					else
+					{
+						unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
+					}
+
 				}
 				else
 				{
 					// Pressing a number and Q without shifting replaces the unit selection with the unit group for the number pressed
 					if(!shiftPressed)
 					{
-						deselectUnits();
-						mainPlayer->selectUnits(unitGroups[pendingGroup]);
+						auto it = unitGroups.find(pendingGroup);
+						if(it != unitGroups.end())
+						{
+							deselectUnits();
+							mainPlayer->selectUnits(it->second);
+						}
+						// deselectUnits();
+						// mainPlayer->selectUnits(unitGroups[pendingGroup]);
 					}
-					// If shift is pressed then shift plus a number and Q adds the selection to the current selection
+					// If shift is pressed then shift plus a number and Q adds the selection to the current group of the existing key
 					else
 					{
-						mainPlayer->selectUnits(unitGroups[pendingGroup]);
-						unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
+						auto it = unitGroups.find(pendingGroup);
+						if(it != unitGroups.end())
+						{
+							mainPlayer->selectUnits(it->second);
+							unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
+						}
+						// mainPlayer->selectUnits(unitGroups[pendingGroup]);
+						// unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
 					}
 				}
 				// Reset the pending group 

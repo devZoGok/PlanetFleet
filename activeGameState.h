@@ -51,6 +51,7 @@ namespace battleship{
 		inline std::vector<vb01::Node*> getGuiRects(){return guiRects;}
 		inline std::vector<vb01::Text*> getGuiTexts(){return guiTexts;}
         inline Player* getPlayer(){return mainPlayer;}
+		inline std::unordered_map<int, std::vector<Unit*>>& getUnitGroups(){return unitGroups;} // Returns the unitGroups by reference
         // inline std::vector<Unit*>& getUnitGroup(int i){return unitGroups[i];}
 		inline void setBuildableStructSelected(bool bss){this->buildableStructSelected = bss;}
 		inline bool isBuildableStructSelected(){return buildableStructSelected;}
@@ -96,6 +97,7 @@ namespace battleship{
 		bool shiftPressed = false;
 		bool controlPressed = false;
 		int pendingGroup = -1; // The group value entered to save and select a group of units. -1 means no units have been selected
+		int maxUnitGroups = 100; // There can be a max of 100 unit groups at a time
 		bool selectMouseClicked = false;
 		bool orderMouseClicked = false;
 		bool buildableStructSelected = false;

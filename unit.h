@@ -112,6 +112,7 @@ namespace battleship{
 		bool canGarrison(Vehicle*);
 		void initLosLight();
 		void destroyLosLight();
+		void removeFromUnitGroup();
 		int getNumFreeGarrisonSlots();
 		inline void setState(State s){state = s;}
 		inline State getState(){return state;}
