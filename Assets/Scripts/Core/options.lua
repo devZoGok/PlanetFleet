@@ -70,3 +70,6 @@ audio = {
 	sfxVolume = 100,
 	musicVolume = 100,
 }
+multiplayer = {
+	name = "Player"
+}

@@ -372,7 +372,6 @@ namespace battleship{
 				break;
 			case CPU_DIFFICULTIES:
 			case FACTIONS:
-			case COLORS:
 			case TEAMS:
 				numLines = lines.size();
 				closable = true;
@@ -380,6 +379,22 @@ namespace battleship{
 
 				listbox = new Listbox(pos, size, lines, maxDisplay, fontPath);
 				break;
+			case COLORS:{
+				numLines = lines.size();
+				closable = true;
+				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
+				SOL_LUA_STATE.script("colorCodes = generateColorTable(colors, 'code')");
+				sol::table colorCodesTbl = SOL_LUA_STATE["colorCodes"];
+
+				listbox = new Listbox(pos, size, lines, maxDisplay, fontPath);
+
+				for(int i = 0; i < numLines; i++){
+					Vector4 col = Vector4(colorCodesTbl[i + 1]["r"], colorCodesTbl[i + 1]["g"], colorCodesTbl[i + 1]["b"], 1);
+					listbox->getLineText(i)->getMaterial()->setVec4Uniform("diffuseColor", col);
+				}
+
+				break;
+			}
 			case CONSOLE:{
 				for(int i = 0; i < numMaxDisplay; i++)
 					lines.push_back("");

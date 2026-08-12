@@ -3,6 +3,7 @@
 #include "concreteGuiManager.h"
 
 #include <listbox.h>
+#include <text.h>
 
 #include <glfw3.h>
 
@@ -22,10 +23,13 @@ namespace battleship{
 	}
 	
 	void SinglePlayerButton::onClick() {
-		ConcreteGuiManager::getSingleton()->readLuaScreenScript("singlePlayerMenu.lua");
+		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
+		guiManager->readLuaScreenScript("singlePlayerMenu.lua");
 
 		Listbox *listbox = ConcreteGuiManager::getSingleton()->getListboxes()[0];
 		listbox->openUp();
 		listbox->close();
+
+		guiManager->getText("_mainPlayer")->setText(GameManager::getSingleton()->getMainPlayerName());
 	}
 }

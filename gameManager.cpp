@@ -265,6 +265,8 @@ namespace battleship{
 		sol::table resTable = SOL_LUA_STATE["graphics"]["resolution"]; 
 		width = resTable["x"];
 		height = resTable["y"];
+
+		mainPlayerName = (wstring)SOL_LUA_STATE["multiplayer"]["name"];
 	}
 
 	void GameManager::start(string gameDir) {
