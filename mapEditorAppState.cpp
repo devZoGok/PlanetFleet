@@ -5,6 +5,7 @@
 #include "resourceDeposit.h"
 #include "gameObjectFactory.h"
 #include "gameObjectFrameController.h"
+#include "concreteGuiManager.h"
 #include "player.h"
 #include "game.h"
 #include "map.h"
@@ -624,8 +625,7 @@ namespace battleship{
 	}
 
 	void MapEditorAppState::update(){
-		radiusText->setText(L"Radius: " + to_wstring(mapEditor->getCircleRadius()));
-		weightsText->setText(L"Weights generated: " + to_wstring(mapEditor->isWeightsGenerated()));
+		ConcreteGuiManager::getSingleton()->getText("radius_")->setText(L"Radius: " + to_wstring(mapEditor->getCircleRadius()));
 
 		CameraController *camCtr = CameraController::getSingleton();
 
@@ -641,25 +641,6 @@ namespace battleship{
 	void MapEditorAppState::onAttached(){
 		AbstractAppState::onAttached();
 		mapEditor = new MapEditor(mapName, mapSize, newMap);
-
-		Root *root = Root::getSingleton();
-		Material *mat = new Material(root->getLibPath() + "text");
-		mat->addBoolUniform("texturingEnabled", false);
-		mat->addVec4Uniform("diffuseColor", Vector4::VEC_IJKL);
-
-		string fontPath = GameManager::getSingleton()->getPath() + "Fonts/batang.ttf";
-		radiusText = new Text(fontPath, L"");
-		radiusText->setMaterial(mat);
-		weightsText = new Text(fontPath, L"");
-		weightsText->setMaterial(mat);
-
-		Node *radiusNode = new Node(Vector3(0, 100, 0));
-		radiusNode->addText(radiusText);
-		root->getGuiNode()->attachChild(radiusNode);
-
-		Node *weightsNode = new Node(Vector3(0, 200, 0));
-		weightsNode->addText(weightsText);
-		root->getGuiNode()->attachChild(weightsNode);
 	}
 
 	void MapEditorAppState::onDettached(){}
