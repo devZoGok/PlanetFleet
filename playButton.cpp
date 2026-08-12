@@ -15,7 +15,7 @@ namespace battleship{
 	using namespace vb01Gui;
 	using namespace gameBase;
 
-	PlayButton::PlayButton(Listbox *ml, Vector3 pos, Vector2 size, string name, bool separate) : Button(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", GLFW_KEY_P, separate), mapListbox(ml) {}
+	PlayButton::PlayButton(Listbox *ml, Vector3 pos, Vector2 size, string name, bool separate) : PfButtonBase(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", GLFW_KEY_P, separate), mapListbox(ml) {}
 	
 	void PlayButton::onClick() {
 		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();

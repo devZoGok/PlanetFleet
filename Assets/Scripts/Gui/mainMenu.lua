@@ -30,27 +30,60 @@ gui = {
 		size = Size,
 		guiType = GuiType.BUTTON,
 		name = 'Single player',
-		buttonType = ButtonType.SINGLE_PLAYER
+		buttonType = ButtonType.SINGLE_PLAYER,
+		baseColor = {x = .6, y = .6, z = .6, w = 1},
+		hoveredOnColor = {x = .8, y = .8, z = .8, w = 1},
+		tooltip = {
+			offset = {x = 100, y = -25, z = .1},
+			size = {x = 270, y = 20},
+			lines = {
+				{
+					entry = {text = 'Play with computer opponents'},
+				},
+
+			}
+		}
 	},
 	{
 		pos = {x = 20, y = 160, z = 0},
 		size = Size,
 		guiType = GuiType.BUTTON,
 		name = 'Map editor',
-		buttonType = ButtonType.MAP_EDITOR
+		buttonType = ButtonType.MAP_EDITOR,
+		tooltip = {
+			offset = {x = 100, y = -25, z = .1},
+			size = {x = 340, y = 20},
+			lines = {
+				{entry = {text = 'Create new maps or edit existing ones'}},
+			}
+		}
 	},
 	{
 		pos = {x = 20, y = 220, z = 0},
 		size = Size,
 		guiType = GuiType.BUTTON,
 		name = 'Options',
-		buttonType = ButtonType.OPTIONS
+		buttonType = ButtonType.OPTIONS,
+		tooltip = {
+			offset = {x = 100, y = -25, z = .1},
+			size = {x = 200, y = 20},
+			lines = {
+				{entry = {text = 'Configure Planet Fleet'}},
+			}
+		}
 	},
 	{
 		pos = {x = 20, y = 280, z = 0},
 		size = Size,
 		guiType = GuiType.BUTTON,
 		name = 'Exit',
-		buttonType = ButtonType.EXIT
+		buttonType = ButtonType.EXIT,
+		tooltip = {
+			offset = {x = 100, y = -25, z = .1},
+			size = {x = 150, y = 20},
+			lines = {
+				{entry = {text = 'Exit Planet Fleet'}},
+			}
+		}
 	}
 }

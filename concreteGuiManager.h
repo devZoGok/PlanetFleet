@@ -2,6 +2,7 @@
 #define CONCRETE_GUI_MANAGER_H
 
 #include <abstractGuiManager.h>
+#include <solUtil.h>
 
 #include <string>
 #include <utility>
@@ -71,6 +72,7 @@ namespace battleship{
 		CONSOLE,
 		TRADE_OFFERS
 	};
+	class Tooltip;
 
 	class ConcreteGuiManager : public vb01Gui::AbstractGuiManager{
 		public:
@@ -99,6 +101,7 @@ namespace battleship{
 			void parseLuaScript(std::string, std::string = "");
 		private:
 			ConcreteGuiManager();
+			Tooltip* parseTooltip(sol::table&, vb01::Vector3);
 			vb01Gui::Button* parseButton(int);
 			vb01Gui::Listbox* parseGameObjectListbox();
 			vb01Gui::Listbox* parseListbox(int);

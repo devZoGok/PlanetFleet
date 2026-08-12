@@ -118,7 +118,14 @@ gui = {
 		guiScreen = 'tradingHub.lua',
 		pos = {x = minimapSize.x, y = res.y - minimapSize.y, z = -.2},
 		size = {x = Size.x, y = minimapSize.y - .75 * sz},
-		trigger = 10
+		trigger = 10,
+		tooltip = {
+			offset = {x = Size.x, y = -(minimapSize.y - .75 * sz), z = .1},
+			size = {x = 310, y = 20},
+			lines = {
+				{entry = {text = 'Trade resources with other players'}},
+			}
+		}
 	},
 	{
 		guiType = GuiType.GUI_RECTANGLE,

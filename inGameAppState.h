@@ -16,16 +16,16 @@
 namespace battleship{
     class InGameAppState : public gameBase::AbstractAppState {
     public:
-        class ResumeButton : public vb01Gui::Button {
+        class ResumeButton : public PfButtonBase {
         public:
             ResumeButton(vb01::Vector3, vb01::Vector2);
             void onClick();
         private:
         };
 
-        class ConsoleButton : public vb01Gui::Button {
+        class ConsoleButton : public PfButtonBase {
         public:
-			class ConsoleCommandEntryButton : public Button {
+			class ConsoleCommandEntryButton : public PfButtonBase {
 			public:
 			    ConsoleCommandEntryButton(vb01Gui::Textbox*, vb01Gui::Listbox*, vb01::Vector3, vb01::Vector2, std::string);
 			    void onClick();
