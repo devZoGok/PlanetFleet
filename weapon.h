@@ -57,6 +57,7 @@ namespace battleship{
 			int id, projId = -1, damage = 0;
 			std::vector<int> targetUnits, targetProjectiles;
 			float minRange = 0, maxRange, maxFireAngle;
+			int maxAmmo, ammo;
 			vb01::s64 lastFireTime = 0;
 			FxManager::Fx *fireFx = nullptr;
 			vb01::Quaternion projRot;

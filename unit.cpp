@@ -123,9 +123,10 @@ namespace battleship{
 	}
 
 	void Unit::initWeapons(){
+		// The name, number, and type of weapons are read (in that order) from a table containing the weapons info in a Lua script
 		sol::state_view SOL_STATE_VIEW = generateView();
 		string objType = GameObject::getGameObjTableName();
-		sol::table unitTable = SOL_STATE_VIEW[objType][id + 1];
+		sol::table unitTable = SOL_STATE_VIEW[objType][id + 1]; // The table containing the weapons info
 
 		string tblName = "weapons";
 		sol::optional<sol::table> weaponsTblOpt = unitTable[tblName];
@@ -147,9 +148,10 @@ namespace battleship{
 	}
 
 	void Unit::destroyWeapons(){
+		// Deallocate all the memory declared for the weapons for this unit
 		for(Weapon *weapon : weapons)
 			delete weapon;
-
+		// Clear the weapons vector
 		weapons.clear();
 	}
 
@@ -195,6 +197,7 @@ namespace battleship{
 		selectionSfx = GameObject::prepareSfx(selectionSfxBuffer, sfxPath);
 	}
 
+	// Re-instantiates a unit
 	void Unit::reinit(){
 		if(losLightNode)
 			destroyLosLight();
@@ -386,16 +389,19 @@ namespace battleship{
 
 		for(Player *pl : Game::getSingleton()->getPlayers()){
 			vector<GameObject*> targs = pl->getDestructables();
+			// At the end of the targets vector insert all the destructables
 			targets.insert(targets.end(), targs.begin(), targs.end());
 		}
 
 		vector<Weapon*> attackWeapons = getWeaponsByOrder(Order::TYPE::ATTACK);
 
 		for(Order::Target &target : orders[0].targets)
+		// If there is a target unit then find it
 			if(target.unit){
 				if(find(targets.begin(), targets.end(), target.unit) != targets.end()){
 					bool canAttack = false;
 
+					// Go through the weapons and determine which ones can attack
 					for(Weapon *aw : attackWeapons){
 						int tc;
 
@@ -459,7 +465,7 @@ namespace battleship{
 
 	vector<Weapon*> Unit::getWeaponsByOrder(Order::TYPE type){
 		vector<Weapon*> weaps;
-
+		//getOrderType gets the order type from the Lua table containing the weapon data
 		for(Weapon *w : weapons)
 			if(w->getOrderType() == type)
 				weaps.push_back(w);
@@ -467,9 +473,12 @@ namespace battleship{
 		return weaps;
 	}
 
+	/// @brief Returns the weapons of the passed type. Currently, the type can either be damage or freezer
+	/// @param type 
+	/// @return 
 	vector<Weapon*> Unit::getWeaponsByType(int type){
 		vector<Weapon*> weaps;
-
+		//getType gets the type from the Lua table containing the weapon data
 		for(Weapon *w : weapons)
 			if(w->getType() == (Weapon::Type)type)
 				weaps.push_back(w);

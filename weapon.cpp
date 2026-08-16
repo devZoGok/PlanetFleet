@@ -21,6 +21,7 @@ namespace battleship{
 	Weapon::Weapon(Unit *u, sol::table unitTable, int wid) : 
 		unit(u), 
 		id(wid),
+		// This unit table is in unitData.lua under units, weaspons (line 126-176)
 		rateOfFire(unitTable["weapons"][wid + 1]["rateOfFire"]),
 		damage(unitTable["weapons"][wid + 1]["damage"].get_or(0))
 	{
@@ -356,12 +357,14 @@ namespace battleship{
 
 	bool Weapon::canAttackTarget(int objType, int typeOrClass){
 		switch((GameObject::Type)objType){
+			// Return whether the typeOrClass is in the target units if the game object type is a unit
 			case GameObject::Type::UNIT:
 				return (find(targetUnits.begin(), targetUnits.end(), typeOrClass) != targetUnits.end());
+			// Return whether the typeOrClass is in the target projectiles if the game object type is a projectile
 			case GameObject::Type::PROJECTILE:
 				return (find(targetProjectiles.begin(), targetProjectiles.end(), typeOrClass) != targetProjectiles.end());
 		}
-
+		// By default return true
 		return true;
 	}
 }
