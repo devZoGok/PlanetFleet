@@ -52,7 +52,6 @@ namespace battleship{
 		inline std::vector<vb01::Text*> getGuiTexts(){return guiTexts;}
         inline Player* getPlayer(){return mainPlayer;}
 		inline std::unordered_map<int, std::vector<Unit*>>& getUnitGroups(){return unitGroups;} // Returns the unitGroups by reference
-        // inline std::vector<Unit*>& getUnitGroup(int i){return unitGroups[i];}
 		inline void setBuildableStructSelected(bool bss){this->buildableStructSelected = bss;}
 		inline bool isBuildableStructSelected(){return buildableStructSelected;}
 		inline float getDepth(){return depth;}
@@ -85,7 +84,6 @@ namespace battleship{
         GuiAppState *guiState;
 		GameObject *gameObjHoveredOn = nullptr;
 		vb01::Vector2 clickPoint;
-        // std::vector<Unit*> unitGroups[10], prevSelectedUnits;
 		std::vector<Unit*> prevSelectedUnits;
 		std::unordered_map<int, std::vector<Unit*>> unitGroups;
 		std::vector<Order::Target> targets;
