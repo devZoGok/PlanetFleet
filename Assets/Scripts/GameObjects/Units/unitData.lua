@@ -771,10 +771,11 @@ units = {
 				name = 'Hack', 
 				orderType = OrderType.HACK,
 				tooltip = {
-					size = {x = 200, y = 40},
+					size = {x = 220, y = 60},
 					lines = {
-						{entry = {text = 'Eject'}},
-						{entry = {text = 'Eject all garrisoned units'}},
+						{entry = {text = 'Hack'}},
+						{entry = {text = 'Hack into a hostile unit'}},
+						{entry = {text = 'to turn it over to your side'}},
 					}
 				}
 			}
@@ -867,10 +868,11 @@ units = {
 				name = 'Hack', 
 				orderType = OrderType.HACK,
 				tooltip = {
-					size = {x = 200, y = 40},
+					size = {x = 220, y = 60},
 					lines = {
-						{entry = {text = 'Eject'}},
-						{entry = {text = 'Eject all garrisoned units'}},
+						{entry = {text = 'Hack'}},
+						{entry = {text = 'Hack into a hostile unit'}},
+						{entry = {text = 'to turn it over to your side'}},
 					}
 				}
 			}
@@ -963,10 +965,11 @@ units = {
 				name = 'Hack', 
 				orderType = OrderType.HACK,
 				tooltip = {
-					size = {x = 200, y = 40},
+					size = {x = 220, y = 60},
 					lines = {
-						{entry = {text = 'Eject'}},
-						{entry = {text = 'Eject all garrisoned units'}},
+						{entry = {text = 'Hack'}},
+						{entry = {text = 'Hack into a hostile unit'}},
+						{entry = {text = 'to turn it over to your side'}},
 					}
 				}
 			}

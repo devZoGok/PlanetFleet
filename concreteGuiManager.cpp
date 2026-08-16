@@ -77,12 +77,15 @@ namespace battleship{
 				sol::table iconsTbl = lineDataTbl[i + 1]["icons"];
 				int numIcons = iconsTbl.size();
 
-				for(int j = 0; j < numIcons; j++)
-					iconsData.push_back(make_pair(iconsTbl[j + 1]["charId"], iconsTbl[j + 1]["path"]));
+				for(int j = 0; j < numIcons; j++){
+					string path = iconsTbl[j + 1]["path"];
+					iconsData.push_back(make_pair(iconsTbl[j + 1]["charId"], path));
+				}
 			}
 
 			sol::table entryTbl = lineDataTbl[i + 1]["entry"];
-			wstring entry = (wstring)entryTbl["text"];
+			string e = entryTbl["text"];
+			wstring entry = vb01::stringToWstring(e);
 			Vector4 color = Vector4::VEC_IJKL;
 			sol::optional<sol::table> colorTblOpt = entryTbl["color"];
 
