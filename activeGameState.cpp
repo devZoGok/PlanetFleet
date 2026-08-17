@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <map>
+#include <unordered_set>
 
 #include "activeGameState.h"
 #include "inGameAppState.h"
@@ -833,24 +834,18 @@ namespace battleship{
 					// If there are currently maximum allowed units in existence then do not allow creation of a new unique group, only allow overwritting an existing group
 					if(static_cast<int>(unitGroups.size()) >= maxUnitGroups)
 					{
-						// See if pendingGroup is equal to any key and overwrite the key if so
+						// See if pendingGroup is equal to any key and overwrite the key if so.
 						auto it = unitGroups.find(pendingGroup);
 						if(it != unitGroups.end())
 						{
 							unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
 						}
-						// Iterate through all the keys to see if pendingGroup is equal to any key and overwrite the key if so
-						// for(const auto& [key, value]: unitGroups)
-						// {
-						// 	if(key == pendingGroup)
-						// 	{
-						// 		unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
-						// 	}
-						// }
 						// If it can't overwrite then the pendingGroup will just be reset since this will bypass the rest of the if statements
 					}
+					// Runs if there are not max allowed units in existence
 					else
 					{
+						// This will create a key if it doesn't already exist
 						unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
 					}
 
@@ -866,8 +861,6 @@ namespace battleship{
 							deselectUnits();
 							mainPlayer->selectUnits(it->second);
 						}
-						// deselectUnits();
-						// mainPlayer->selectUnits(unitGroups[pendingGroup]);
 					}
 					// If shift is pressed then shift plus a number and Q adds the selection to the current group of the existing key
 					else
@@ -876,10 +869,21 @@ namespace battleship{
 						if(it != unitGroups.end())
 						{
 							mainPlayer->selectUnits(it->second);
-							unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
+
+							// Create unordered_set containing unit group to check for duplicates while adding the currently selected units to the groups
+							std::unordered_set<Unit*> duplicateCheck(unitGroups[pendingGroup].begin(), unitGroups[pendingGroup].end());
+
+							for(Unit* unit: mainPlayer->getSelectedUnits())
+							{
+								if(duplicateCheck.insert(unit).second)
+								{
+									unitGroups[pendingGroup].push_back(unit);
+								}
+							}
+
+							// I believe this produces same result but rewrites entire group
+							// unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
 						}
-						// mainPlayer->selectUnits(unitGroups[pendingGroup]);
-						// unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
 					}
 				}
 				// Reset the pending group 
