@@ -880,9 +880,6 @@ namespace battleship{
 									unitGroups[pendingGroup].push_back(unit);
 								}
 							}
-
-							// I believe this produces same result but rewrites entire group
-							// unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
 						}
 					}
 				}
