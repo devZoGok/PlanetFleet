@@ -852,35 +852,16 @@ namespace battleship{
 				}
 				else
 				{
-					// Pressing a number and Q without shifting replaces the unit selection with the unit group for the number pressed
-					if(!shiftPressed)
+					auto it = unitGroups.find(pendingGroup);
+					if(it != unitGroups.end())
 					{
-						auto it = unitGroups.find(pendingGroup);
-						if(it != unitGroups.end())
+						// Pressing a number and Q without shifting replaces the unit selection with the unit group for the number pressed
+						// Pressing shift allows multiple unit groups to be selected
+						if(!shiftPressed)
 						{
 							deselectUnits();
-							mainPlayer->selectUnits(it->second);
 						}
-					}
-					// If shift is pressed then shift plus a number and Q adds the selection to the current group of the existing key
-					else
-					{
-						auto it = unitGroups.find(pendingGroup);
-						if(it != unitGroups.end())
-						{
-							mainPlayer->selectUnits(it->second);
-
-							// Create unordered_set containing unit group to check for duplicates while adding the currently selected units to the groups
-							std::unordered_set<Unit*> duplicateCheck(unitGroups[pendingGroup].begin(), unitGroups[pendingGroup].end());
-
-							for(Unit* unit: mainPlayer->getSelectedUnits())
-							{
-								if(duplicateCheck.insert(unit).second)
-								{
-									unitGroups[pendingGroup].push_back(unit);
-								}
-							}
-						}
+						mainPlayer->selectUnits(it->second);
 					}
 				}
 				// Reset the pending group 
