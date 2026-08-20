@@ -122,6 +122,7 @@ namespace battleship{
 		}
 	}
 
+	/// @brief Initialize the weapons for this unit 
 	void Unit::initWeapons(){
 		// The name, number, and type of weapons are read (in that order) from a table containing the weapons info in a Lua script
 		sol::state_view SOL_STATE_VIEW = generateView();
@@ -141,7 +142,7 @@ namespace battleship{
 				sol::optional<int> wtOpt = unitTable[tblName][i + 1]["type"];
 
 				if(wtOpt != sol::nullopt) wt = unitTable[tblName][i + 1]["type"];
-
+				// Create a new weapon from the unitTable and push it to the weapons vector for this unit
 				weapons.push_back(new Weapon(this, unitTable, i));
 			}
 		}
@@ -274,14 +275,18 @@ namespace battleship{
 	}
 
     void Unit::update() {
+		// Since a unit is a game object and a destructable, run their update functions
 		GameObject::update();
 		destructable->update();
 
+		// If the unit is EM jammed then see if enough time has passed to make the unit able to fight again
 		if(condition == Condition::EM_JAMMED && getTime() - lastJamTime > restartTime)
 			condition = Condition::ABLE;
 
+		// Freeze the unit if its freeze status is greater than 100
 		if(destructable->getFreezeStatus() >= 100) condition = Condition::FROZEN;
 
+		// Attack targets if the unit is not in the hold fire state
 		if(state != State::HOLD_FIRE)
 			autoAttackTargets();
 
@@ -463,6 +468,9 @@ namespace battleship{
 		}
 	}
 
+	/// @brief Returns the weapons that are of the passed order type
+	/// @param type 
+	/// @return 
 	vector<Weapon*> Unit::getWeaponsByOrder(Order::TYPE type){
 		vector<Weapon*> weaps;
 		//getOrderType gets the order type from the Lua table containing the weapon data
@@ -552,6 +560,8 @@ namespace battleship{
 		}
 	}
 
+	/// @brief 
+	/// @return 
 	vector<Player*> Unit::getSelectingPlayers(){
 		vector<Player*> players = Game::getSingleton()->getPlayers(), selectingPlayers;
 

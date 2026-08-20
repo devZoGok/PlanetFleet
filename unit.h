@@ -98,7 +98,7 @@ namespace battleship{
 		};
 
 		enum class State {CHASE, STAND_GROUND, HOLD_FIRE};
-		enum class Condition{ABLE, FROZEN, EM_JAMMED};
+		enum class Condition{ABLE, FROZEN, EM_JAMMED}; // EM Jammed refers to the unit's electromagnetic communications being jammed
 
         Unit(Player*, int, vb01::Vector3, vb01::Quaternion, State = State::STAND_GROUND);
         virtual ~Unit();

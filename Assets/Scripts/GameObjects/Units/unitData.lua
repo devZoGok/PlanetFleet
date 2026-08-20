@@ -129,6 +129,8 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100,
+				maxAmmo = 100, -- Just a test
+				ammo = 50, -- Just a test
 				maxRange = 40,
 				damage = 50,
 				maxFireAngle = .1,
