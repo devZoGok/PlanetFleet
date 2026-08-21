@@ -12,6 +12,8 @@
 #include <glm.hpp>
 #include <ext.hpp>
 
+#include <algorithm>
+
 #include "unit.h"
 #include "weapon.h"
 #include "util.h"
@@ -64,6 +66,7 @@ namespace battleship{
 		destroySound();
 		destroyHitbox();
 		destroyModel();
+		removeFromUnitGroup();
     }
 
 	void Unit::initProperties(){
@@ -170,6 +173,23 @@ namespace battleship{
 		model->dettachChild(losLightNode);
 		delete losLightNode;
 		losLightNode = nullptr;
+	}
+
+	/// @brief Check if unit is in a unit group and if so remove it
+	void Unit::removeFromUnitGroup(){
+		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
+		std::unordered_map<int, std::vector<Unit*>>& unitGroups = activeState->getUnitGroups();
+
+		// Iterate through all the individual unit groups and see if this unit is in any of them
+		for(auto& [key, value]: unitGroups)
+		{
+			if(std::find(value.begin(), value.end(), this) != value.end())
+			{
+				//std::erase(value, this);
+				value.erase(std::remove(value.begin(), value.end(), this), value.end());
+			}
+		}
+
 	}
 
 	int Unit::getNumFreeGarrisonSlots(){

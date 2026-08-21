@@ -9,7 +9,7 @@ else()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pedantic")
 endif()
 
-set(CMAKE_CXX_STANDART 17)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 set(CMAKE_BUILD_TYPE Debug)
 set(BUILD_TESTS OFF)
@@ -50,6 +50,16 @@ set(GAME_BASE_DIR external/gameBase)
 
 add_executable(${GAME_NAME} main.cpp ${GAME_SRC})
 
+# Do this for Windows
+if(MSVC)
+    target_compile_options(${GAME_NAME} PRIVATE 
+		/bigobj 
+		# /utf-8
+        # /UUNICODE
+        # /U_UNICODE
+    )
+endif()
+
 include_directories(external/tinydir)
 include_directories(external/vb01/external/glm)
 include_directories(external/vb01/external/glm/glm)
@@ -81,6 +91,15 @@ if(BUILD_TESTS)
 	set(TEST_NAME battleshipTests)
 	
 	add_executable(${TEST_NAME} ${TEST_SRC})
+	# Do this for Windows
+	if(MSVC)
+    target_compile_options(${TEST_NAME} PRIVATE
+		/bigobj
+		# /utf-8
+        # /UUNICODE
+        # /U_UNICODE
+    )
+	endif()
 	target_include_directories(${TEST_NAME} PUBLIC ${VB01_DIR})
 	target_include_directories(${TEST_NAME} PUBLIC ${VB01_GUI_DIR})
 	target_include_directories(${TEST_NAME} PUBLIC ${GAME_BASE_DIR})

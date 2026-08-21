@@ -16,8 +16,9 @@ mappings = {
 		{bind = 12, trigger = 0, action = true, bindType = 1, inOptions = true},
 		{bind = 13, trigger = 1, action = true, bindType = 1, inOptions = true},
 		{bind = 14, trigger = 72, action = true, bindType = 0, inOptions = true},
-		{bind = 15, trigger = 0, action = true, bindType = 0, inOptions = true},
-		{bind = 16, trigger = 0, action = true, bindType = 0, inOptions = true},
+		-- The triggers for 15 and 16, zoom in and out used to be 0 but I changed them to +/= and -
+		{bind = 15, trigger = 61, action = true, bindType = 0, inOptions = true},
+		{bind = 16, trigger = 45, action = true, bindType = 0, inOptions = true},
 		{bind = 17, trigger = 341, action = true, bindType = 0, inOptions = true},
 		{bind = 18, trigger = 340, action = true, bindType = 0, inOptions = true},
 		{bind = 19, trigger = 80, action = true, bindType = 0, inOptions = true},
@@ -35,6 +36,7 @@ mappings = {
 		{bind = 31, trigger = 57, action = true, bindType = 0, inOptions = true},
 		{bind = 32, trigger = 66, action = true, bindType = 0, inOptions = true},
 		{bind = 33, trigger = 256, action = true, bindType = 0, inOptions = true},
+		{bind = 53, trigger = 81, action = true, bindType = 0, inOptions = true}, -- wasn't sure if it should be in options
 		{bind = 47, trigger = 69, action = true, bindType = 0, inOptions = false},
 		{bind = 48, trigger = 84, action = true, bindType = 0, inOptions = false},
 		{bind = 49, trigger = 89, action = true, bindType = 0, inOptions = false},
