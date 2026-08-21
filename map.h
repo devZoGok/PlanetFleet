@@ -69,7 +69,7 @@ namespace battleship{
 		};
 
 		static Map* getSingleton();
-        ~Map(){} // Destructor is public
+        ~Map(){}
 		static std::vector<Edge> generateAdjacentNodeEdges(int, int, int, int, int);
         void update();
         void load(std::string);
@@ -111,7 +111,7 @@ namespace battleship{
 		std::vector<vb01::Node*> lights;
 		std::vector<std::pair<Cell::Type, std::vector<Cell*>>> regions;
 
-        Map(){} // Constructor is private
+        Map(){}
 		void preprareScene(bool);
 		void loadSpawnPoints();
 		void loadLights();

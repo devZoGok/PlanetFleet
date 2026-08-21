@@ -251,8 +251,6 @@ namespace battleship{
 		);
 	}
 
-	/// @brief Sets the name of the directory where all the files are located as the passed game directory
-	/// @param gameDir 
 	void GameManager::initLua(string gameDir){
 		sol::state_view SOL_LUA_STATE = generateView();
 
@@ -261,8 +259,7 @@ namespace battleship{
 
 		for(string f : configData::scripts)
 			SOL_LUA_STATE.script_file(path + f);
-		
-		// Gets the minimap Lua script
+
 		SOL_LUA_STATE.script_file(path + "Scripts/Gui/_minimap.lua");
 
 		sol::table resTable = SOL_LUA_STATE["graphics"]["resolution"]; 
@@ -270,14 +267,11 @@ namespace battleship{
 		height = resTable["y"];
 	}
 
-	/// @brief Starts game execution
-	/// @param gameDir is the game directory all the game files are stored in
 	void GameManager::start(string gameDir) {
 		running = true;
 		registerMembers();
 		initLua(gameDir);
 
-		// I beliieve this sets the game window width and height and name (last variable), I'm not for sure about the path
 		Root *root = Root::getSingleton();
 		root->start(width, height, path + "../external/vb01/", "Battleship");
 
@@ -285,7 +279,6 @@ namespace battleship{
     	inputManager = new InputManager(stateManager, root->getWindow());
 	}
 
-    /// @brief Updates the sound, input, and state manager along with the root of the game engine
     void GameManager::update() {
 		Root::getSingleton()->update();
 		SoundManager::getSingleton()->update();
