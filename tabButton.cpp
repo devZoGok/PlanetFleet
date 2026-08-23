@@ -7,7 +7,7 @@ namespace battleship{
 	using namespace vb01;
 	using namespace vb01Gui;
 
-    TabButton::TabButton(Vector3 pos, Vector2 size, string name, string screenScript) : Button(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true) {
+    TabButton::TabButton(Vector3 pos, Vector2 size, string name, string screenScript) : PfButtonBase(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true) {
 		this->screenScript = screenScript;
 	}
 

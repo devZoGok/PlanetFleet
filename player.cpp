@@ -186,6 +186,8 @@ namespace battleship{
 		projectiles.erase(projectiles.begin() + id);
 	}
 
+	/// @brief Takes the units in the passed vector and pushes them onto the selectedUnits vector for the player if they a garrisonable and not already selected
+	/// @param selUnits 
 	void Player::selectUnits(vector<Unit*> selUnits){
 		for(Unit *u : selUnits){
 			bool garrisonable = (!u->isVehicle() || (u->isVehicle() && !((Vehicle*)u)->getGarrisonable()));

@@ -12,6 +12,8 @@
 #include <glm.hpp>
 #include <ext.hpp>
 
+#include <algorithm>
+
 #include "unit.h"
 #include "weapon.h"
 #include "util.h"
@@ -64,6 +66,7 @@ namespace battleship{
 		destroySound();
 		destroyHitbox();
 		destroyModel();
+		removeFromUnitGroup();
     }
 
 	/// @brief Sets all the unit properties from the Lua table containing the units
@@ -187,6 +190,23 @@ namespace battleship{
 		model->dettachChild(losLightNode);
 		delete losLightNode;
 		losLightNode = nullptr;
+	}
+
+	/// @brief Check if unit is in a unit group and if so remove it
+	void Unit::removeFromUnitGroup(){
+		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
+		std::unordered_map<int, std::vector<Unit*>>& unitGroups = activeState->getUnitGroups();
+
+		// Iterate through all the individual unit groups and see if this unit is in any of them
+		for(auto& [key, value]: unitGroups)
+		{
+			if(std::find(value.begin(), value.end(), this) != value.end())
+			{
+				//std::erase(value, this);
+				value.erase(std::remove(value.begin(), value.end(), this), value.end());
+			}
+		}
+
 	}
 
 	int Unit::getNumFreeGarrisonSlots(){
@@ -547,22 +567,8 @@ namespace battleship{
 
 	//TODO select only the closest cells based on unit size
 	void Unit::placeAt(Vector3 p){
-		Map *map = Map::getSingleton();
-
-		if(alignToSurface){
-			vector<RayCaster::CollisionResult> res = map->raycastTerrain(Vector3(p.x, 100, p.z), -Vector3::VEC_J, true);
-			
-			if(res.empty() || res[0].mesh->getNode() != map->getNodeParent()->getChild(0))
-				model->lookAt(Vector3(dirVec.x, 0, dirVec.z).norm(), Vector3::VEC_J);
-			else if(res[0].mesh->getNode() == map->getNodeParent()->getChild(0)){
-				float angle = upVec.getAngleBetween(res[0].norm);
-
-				//if(angle > 0)
-					model->lookAt(leftVec.cross(res[0].norm), res[0].norm);
-			}
-		}
-
 		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
+		Map *map = Map::getSingleton();
 
 		//check twice in case the unit is warped over a long distance
 		if(activeState) map->blockCells(this);

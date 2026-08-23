@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <map>
+#include <unordered_set>
 
 #include "activeGameState.h"
 #include "inGameAppState.h"
@@ -583,7 +584,10 @@ namespace battleship{
 			unitButtons.push_back(guiManager->getButtons()[guiManager->getButtons().size() - (i + 1)]);
 	}
     
+	// isPressed is whether the bind is pressed or just something like hovered
     void ActiveGameState::onAction(int bind, bool isPressed) {
+		int numEntered; // Used in entering number series to store the latest number entered
+
 		if(tradingScreen || !ConcreteGuiManager::getSingleton()->findClickedButtons().empty()) return;
 
 		GameObjectFrameController *ufCtr = GameObjectFrameController::getSingleton();
@@ -803,21 +807,66 @@ namespace battleship{
             case Bind::GROUP_7:
             case Bind::GROUP_8:
             case Bind::GROUP_9:
-                if(isPressed){
-                    int group = bind - Bind::GROUP_0;
+				// If none of the number keys are pressed then break
+				if(!isPressed) break;
 
-                    if(controlPressed)
-                        unitGroups[group] = mainPlayer->getSelectedUnits();
-                    else{
-                        if(!shiftPressed)
-                            mainPlayer->selectUnits(unitGroups[group]);
-                        else
-                            for(Unit *u : unitGroups[group])
-                                mainPlayer->selectUnit(u);
-                    }
-                }
+				// Otherwise save the number entered
+				numEntered =  bind - Bind::GROUP_0;
 
-                break;
+				// If this is the first number enetered in this group then set the pendingGroup to 0
+				if(pendingGroup == -1)
+				{
+					pendingGroup = 0;
+				}
+
+				// Multiply the current pendingGroup num by 10 to give it another 0's place and add the new number enetered
+				pendingGroup = pendingGroup * 10 + numEntered;
+				break;
+			case Bind::Key_Q:
+				// qPressed = isPressed;
+				// If Q is not pressed or the pending group has not been set then break
+				if(!isPressed || pendingGroup == -1) break;
+
+				if(controlPressed)
+				{
+					// Ctrl + group number + Q assigns the current selection of units
+
+					// If there are currently maximum allowed units in existence then do not allow creation of a new unique group, only allow overwritting an existing group
+					if(static_cast<int>(unitGroups.size()) >= maxUnitGroups)
+					{
+						// See if pendingGroup is equal to any key and overwrite the key if so.
+						auto it = unitGroups.find(pendingGroup);
+						if(it != unitGroups.end())
+						{
+							unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
+						}
+						// If it can't overwrite then the pendingGroup will just be reset since this will bypass the rest of the if statements
+					}
+					// Runs if there are not max allowed units in existence
+					else
+					{
+						// This will create a key if it doesn't already exist
+						unitGroups[pendingGroup] = mainPlayer->getSelectedUnits();
+					}
+
+				}
+				else
+				{
+					auto it = unitGroups.find(pendingGroup);
+					if(it != unitGroups.end())
+					{
+						// Pressing a number and Q without shifting replaces the unit selection with the unit group for the number pressed
+						// Pressing shift allows multiple unit groups to be selected
+						if(!shiftPressed)
+						{
+							deselectUnits();
+						}
+						mainPlayer->selectUnits(it->second);
+					}
+				}
+				// Reset the pending group 
+				pendingGroup = -1;
+				break;
 			case Bind::DESELECT_STRUCTURE:
 				forceCursorState = false;
 				buildableStructSelected = false;
@@ -860,5 +909,19 @@ namespace battleship{
 
 	void ActiveGameState::onRawMouseWheelScroll(bool up){
 		CameraController::getSingleton()->zoomCamera(up);
+	}
+
+	std::vector<Unit*>& ActiveGameState::getUnitGroup(int i)
+	{
+		static std::vector<Unit*> empty;
+		auto it = unitGroups.find(i);
+		if(it != unitGroups.end())
+		{
+			return it->second;
+		}
+		else
+		{
+			return empty;
+		}
 	}
 }

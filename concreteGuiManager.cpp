@@ -1,4 +1,3 @@
-#include <solUtil.h>
 #include <soundManager.h>
 
 #include <quad.h>
@@ -6,6 +5,7 @@
 #include "concreteGuiManager.h"
 #include "unit.h"
 #include "gameManager.h"
+#include "pfButtonBase.h"
 #include "singlePlayerButton.h"
 #include "mapEditorButton.h"
 #include "optionsButton.h"
@@ -60,6 +60,59 @@ namespace battleship{
 		return concreteGuiManager;
 	}
 
+	Tooltip* ConcreteGuiManager::parseTooltip(sol::table &tooltipTbl, Vector3 guiPos){
+		sol::table offsetTbl = tooltipTbl["offset"], sizeTbl = tooltipTbl["size"];
+		Vector3 offset = Vector3(offsetTbl["x"], offsetTbl["y"], offsetTbl["z"]);
+		Vector2 size = Vector2(sizeTbl["x"], sizeTbl["y"]);
+
+		sol::table lineDataTbl = tooltipTbl["lines"];
+		int numLines = lineDataTbl.size();
+		vector<Tooltip::LineData> lines;
+
+		for(int i = 0; i < numLines; i++){
+			vector<pair<int, string>> iconsData;
+			sol::optional<sol::table> iconsTblOpt = lineDataTbl[i + 1]["icons"];
+
+			if(iconsTblOpt != sol::nullopt){
+				sol::table iconsTbl = lineDataTbl[i + 1]["icons"];
+				int numIcons = iconsTbl.size();
+
+				for(int j = 0; j < numIcons; j++){
+					string path = iconsTbl[j + 1]["path"];
+					iconsData.push_back(make_pair(iconsTbl[j + 1]["charId"], path));
+				}
+			}
+
+			sol::table entryTbl = lineDataTbl[i + 1]["entry"];
+			string e = entryTbl["text"];
+			wstring entry = vb01::stringToWstring(e);
+			Vector4 color = Vector4::VEC_IJKL;
+			sol::optional<sol::table> colorTblOpt = entryTbl["color"];
+
+			if(colorTblOpt != sol::nullopt)
+				color = Vector4(entryTbl["color"]["r"], entryTbl["color"]["g"], entryTbl["color"]["b"], entryTbl["color"]["a"]);
+
+			int height = 20;
+			float scale = .2;
+			Vector3 textOffset = Vector3(0, -3, .21);
+
+			lines.push_back(Tooltip::LineData(entry, color, iconsData, height, textOffset, scale));
+		}
+
+		string fontPath = GameManager::getSingleton()->getPath() + "Fonts/batang.ttf";
+		Tooltip *tooltip = new Tooltip(guiPos + offset, size, lines, fontPath);
+
+		sol::optional<sol::table> bgColorTblOpt = tooltipTbl["backgroundColor"];
+
+		if(bgColorTblOpt != sol::nullopt){
+			sol::table bgColorTbl = tooltipTbl["backgroundColor"];
+			Vector4 bgColor = Vector4(bgColorTbl["x"], bgColorTbl["y"], bgColorTbl["z"], bgColorTbl["w"]);
+			tooltip->getBackground()->getMaterial()->setVec4Uniform("diffuseColor", bgColor);
+		}
+
+		return tooltip;
+	}
+
 	//TODO refactor player difficulty and faction listbox selection
 	//TODO remove hardcoded font path values
 	//TODO use configurable map path values 
@@ -91,7 +144,15 @@ namespace battleship{
 			bool texturingEnabled = true;
 		}
 
-		Button *button = nullptr;
+		Tooltip *tooltip = nullptr;
+		sol::optional<sol::table> tooltipTblOpt = guiTable["tooltip"];
+
+		if(tooltipTblOpt != sol::nullopt){
+			sol::table tbl = guiTable["tooltip"];
+			tooltip = parseTooltip(tbl, pos);
+		}
+
+		PfButtonBase *button = nullptr;
 		string guiScreen = "";
 
 		switch(type){
@@ -198,16 +259,16 @@ namespace battleship{
 				button = new ResearchButton(pos, size, name, (int)guiTable["trigger"], imagePath, (int)guiTable["techId"]);
 				break;
 			case BUY_REFINEDS:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::BUY_REFINEDS);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::BUY_REFINEDS, (int)guiTable["amount"]);
 				break;
 			case SELL_REFINEDS:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::SELL_REFINEDS);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::SELL_REFINEDS, (int)guiTable["amount"]);
 				break;
 			case BUY_RESEARCH:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::BUY_RESEARCH);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::BUY_RESEARCH, (int)guiTable["amount"]);
 				break;
 			case SELL_RESEARCH:
-				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::SELL_RESEARCH);
+				button = new TradeButton(pos, size, name, (int)guiTable["trigger"], imagePath, TradeButton::Type::SELL_RESEARCH, (int)guiTable["amount"]);
 				break;
 			case ACTIVE_STATE_BUTTON:
 				button = new ActiveStateButton(pos, size, guiTable["guiScreen"], name, fontBasePath + "batang.ttf", (int)guiTable["trigger"], imagePath);
@@ -245,6 +306,23 @@ namespace battleship{
 				break;
 			}
 		}
+
+		sol::optional<sol::table> baseColorTblOpt = guiTable["baseColor"], hoveredColorTblOpt = guiTable["hoveredOnColor"];
+
+		if(baseColorTblOpt != sol::nullopt){
+			sol::table baseColorTbl = guiTable["baseColor"];
+			Vector4 color = Vector4(baseColorTbl["x"], baseColorTbl["y"], baseColorTbl["z"], baseColorTbl["w"]);
+			button->setBaseColor(color);
+			button->setColor(color);
+		}
+
+		if(hoveredColorTblOpt != sol::nullopt){
+			sol::table hoveredColorTbl = guiTable["hoveredOnColor"];
+			button->setHoveredOnColor(Vector4(hoveredColorTbl["x"], hoveredColorTbl["y"], hoveredColorTbl["z"], hoveredColorTbl["w"]));
+			button->setEnabledHoverdOn(true);
+		}
+
+		button->setTooltip(tooltip);
 
 		int typeArr[2]{(int)GuiElementType::BUTTON, (int)type};
 	 	guiElements.push_back(make_pair(typeArr, (void*)button));
@@ -372,7 +450,6 @@ namespace battleship{
 				break;
 			case CPU_DIFFICULTIES:
 			case FACTIONS:
-			case COLORS:
 			case TEAMS:
 				numLines = lines.size();
 				closable = true;
@@ -380,6 +457,22 @@ namespace battleship{
 
 				listbox = new Listbox(pos, size, lines, maxDisplay, fontPath);
 				break;
+			case COLORS:{
+				numLines = lines.size();
+				closable = true;
+				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
+				SOL_LUA_STATE.script("colorCodes = generateColorTable(colors, 'code')");
+				sol::table colorCodesTbl = SOL_LUA_STATE["colorCodes"];
+
+				listbox = new Listbox(pos, size, lines, maxDisplay, fontPath);
+
+				for(int i = 0; i < numLines; i++){
+					Vector4 col = Vector4(colorCodesTbl[i + 1]["r"], colorCodesTbl[i + 1]["g"], colorCodesTbl[i + 1]["b"], 1);
+					listbox->getLineText(i)->getMaterial()->setVec4Uniform("diffuseColor", col);
+				}
+
+				break;
+			}
 			case CONSOLE:{
 				for(int i = 0; i < numMaxDisplay; i++)
 					lines.push_back("");

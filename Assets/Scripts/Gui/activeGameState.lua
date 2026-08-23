@@ -29,7 +29,7 @@ end
 eyeIcon = 'eye.png'
 refIcon = 'refineds.png'
 minimapSize = {x = 200, y = 200}
-minimapPos = {x = 0, y = res.y - minimapSize.y, z = .85}
+minimapPos = {x = 0, y = res.y - minimapSize.y, z = -.05}
 
 resTextScale = {x = .5, y = .5}
 resIconBasePath = 'Icons/Resources/'
@@ -45,7 +45,7 @@ noHackTex = 'noHack.png'
 gui = {
 	{
 		guiType = GuiType.GUI_RECTANGLE,
-		pos = {x = minimapPos.x, y = minimapPos.y, z = .8},
+		pos = {x = minimapPos.x, y = minimapPos.y, z = -.1},
 		size = minimapSize,
 		color = {x = .5, y = .5, z = .5, w = .6}
 	},
@@ -61,7 +61,7 @@ gui = {
 		guiType = GuiType.TEXT,
 		name = 'refineds',
 		text = '',
-		pos = {x = s, y = s, z = 0},
+		pos = {x = s, y = s, z = -.2},
 		scale = resTextScale,
 		font = 'batang.ttf',
 		fontFirstChar = 0,
@@ -72,7 +72,7 @@ gui = {
 		guiType = GuiType.TEXT,
 		name = 'wealth',
 		text = '',
-		pos = {x = s, y = 2 * s, z = 0},
+		pos = {x = s, y = 2 * s, z = -.2},
 		scale = resTextScale,
 		font = 'batang.ttf',
 		fontFirstChar = 0,
@@ -83,7 +83,7 @@ gui = {
 		guiType = GuiType.TEXT,
 		name = 'research',
 		text = '',
-		pos = {x = s, y = 3 * s, z = 0},
+		pos = {x = s, y = 3 * s, z = -.2},
 		scale = resTextScale,
 		font = 'batang.ttf',
 		fontFirstChar = 0,
@@ -93,21 +93,21 @@ gui = {
 	{
 		guiType = GuiType.GUI_RECTANGLE,
 		name = 'refineds',
-		pos = {x = 0, y = 0, z = 0},
+		pos = {x = 0, y = 0, z = -.2},
 		size = {x = s, y = s},
 		imagePath = resIconBasePath .. 'refineds.png',
 	},
 	{
 		guiType = GuiType.GUI_RECTANGLE,
 		name = 'wealth',
-		pos = {x = 0, y = 1 * s, z = 0},
+		pos = {x = 0, y = 1 * s, z = -.2},
 		size = {x = s, y = s},
 		imagePath = resIconBasePath .. 'wealth.png',
 	},
 	{
 		guiType = GuiType.GUI_RECTANGLE,
 		name = 'research',
-		pos = {x = 0, y = 2 * s, z = 0},
+		pos = {x = 0, y = 2 * s, z = -.2},
 		size = {x = s, y = s},
 		imagePath = resIconBasePath .. 'research.png',
 	},
@@ -116,16 +116,21 @@ gui = {
 		buttonType = ButtonType.PLAYER_TRADE,
 		name = 'Trade',
 		guiScreen = 'tradingHub.lua',
-		pos = {x = minimapSize.x, y = res.y - minimapSize.y, z = 0},
+		pos = {x = minimapSize.x, y = res.y - minimapSize.y, z = -.2},
 		size = {x = Size.x, y = minimapSize.y - .75 * sz},
-		trigger = 10
+		trigger = 10,
+		tooltip = {
+			offset = {x = Size.x, y = -(minimapSize.y - .75 * sz), z = .1},
+			size = {x = 310, y = 20},
+			lines = {
+				{entry = {text = 'Trade resources with other players'}},
+			}
+		}
 	},
 	{
 		guiType = GuiType.GUI_RECTANGLE,
-		pos = {x = minimapSize.x, y = res.y - .75 * sz, z = 0},
+		pos = {x = minimapSize.x, y = res.y - .75 * sz, z = -.2},
 		size = {x = res.x - minimapPos.x, y = sz * .75},
 		color = {x = .6, y = .6, z = .6, w = .4}
 	},
-	--[[
-	]]--
 }
