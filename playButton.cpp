@@ -15,7 +15,7 @@ namespace battleship{
 	using namespace vb01Gui;
 	using namespace gameBase;
 
-	PlayButton::PlayButton(Listbox *ml, Vector3 pos, Vector2 size, string name, bool separate) : Button(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", GLFW_KEY_P, separate), mapListbox(ml) {}
+	PlayButton::PlayButton(Listbox *ml, Vector3 pos, Vector2 size, string name, bool separate) : PfButtonBase(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", GLFW_KEY_P, separate), mapListbox(ml) {}
 	
 	// Starts the gameplay
 	void PlayButton::onClick() {
@@ -41,38 +41,19 @@ namespace battleship{
 		const int MAIN_PLAYER_ID = (int)generateView()["MAIN_PLAYER_ID"];
 	
 		for(int i = 0; i < numPlayers; i++){
-			int faction = factionsListboxes[i]->getSelectedOption();
-			bool cpuPlayer;
+			if(i != MAIN_PLAYER_ID && difficultiesListboxes[i - 1]->getContents()[difficultiesListboxes[i - 1]->getSelectedOption()] == L"None") continue;
 
-			if(factionsListboxes[i]->getContents()[faction] == L"None") continue;
+			wstring factionStr = factionsListboxes[i]->getContents()[factionsListboxes[i]->getSelectedOption()];
+			int faction = (factionStr == L"Random" ? rand() % 3 : factionsListboxes[i]->getSelectedOption() - 1);
 
-			if(MAIN_PLAYER_ID == i)
-				cpuPlayer = false;
-			else{
-				faction--;
-				cpuPlayer = true;
-			}
+			bool cpuPlayer = (MAIN_PLAYER_ID != i);
+			int difficulty = (cpuPlayer ? difficultiesListboxes[i - 1]->getSelectedOption() : -1);
 
-			string diffStr = (cpuPlayer ? wstringToString(difficultiesListboxes[i]->getContents()[colorsListboxes[i]->getSelectedOption()]) : "");
-			int difficulty = -1;
-
-			if(diffStr == "Easy") difficulty = 0;
-			else if(diffStr == "Medium") difficulty = 1;
-			else if(diffStr == "Hard") difficulty = 2;
-
-			string colorStr = wstringToString(colorsListboxes[i]->getContents()[colorsListboxes[i]->getSelectedOption()]);
-			Vector3 color;
-
-			if(colorStr == "Black") color = Vector3::VEC_ZERO;
-			else if(colorStr == "Red") color = Vector3::VEC_I;
-			else if(colorStr == "Green") color = Vector3::VEC_J;
-			else if(colorStr == "Blue") color = Vector3::VEC_K;
-			else if(colorStr == "White") color = Vector3::VEC_IJK;
-
+			Vector4 color = ((Material::Vector4Uniform*)colorsListboxes[i]->getLineText(colorsListboxes[i]->getSelectedOption())->getMaterial()->getUniform("diffuseColor"))->value;
 			int team = stoi(teamsListboxes[i]->getContents()[teamsListboxes[i]->getSelectedOption()]);
-
 			string name = (cpuPlayer ? "CPU player #" + to_string(i) : "Player");
-			game->addPlayer(new Player(difficulty, faction, team, color, cpuPlayer, i, name));
+
+			game->addPlayer(new Player(difficulty, faction, team, Vector3(color.x, color.y, color.z), cpuPlayer, i, name));
 		}
 		
 		// HUD GUI for during gameplay

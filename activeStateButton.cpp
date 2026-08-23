@@ -19,7 +19,7 @@ namespace battleship{
 	using namespace gameBase;
 
 	ActiveStateButton::ActiveStateButton(Vector3 pos, Vector2 size, string gs, string name, string fontPath, int trigger, string imagePath) : 
-		Button(pos, size, name, fontPath, trigger, true, imagePath), guiScreen(gs){}
+		PfButtonBase(pos, size, name, fontPath, trigger, true, imagePath), guiScreen(gs){}
 
 	void ActiveStateButton::onClick(){
 		StateManager *stateManager = GameManager::getSingleton()->getStateManager();

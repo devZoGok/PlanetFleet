@@ -112,6 +112,7 @@ namespace battleship{
 		bool canGarrison(Vehicle*);
 		void initLosLight();
 		void destroyLosLight();
+		void removeFromUnitGroup();
 		int getNumFreeGarrisonSlots();
 		inline void setState(State s){state = s;}
 		inline State getState(){return state;}
@@ -148,9 +149,10 @@ namespace battleship{
         sf::SoundBuffer *selectionSfxBuffer;
         sf::Sound *selectionSfx = nullptr;
 		vb01::Node *losLightNode = nullptr;
-		bool vehicle, currOrderStarted = false, alignToSurface = false;
+		bool vehicle, currOrderStarted = false;
 		Condition condition = Condition::ABLE;
     protected:
+		bool alignToSurface = false;
         UnitType type;
         UnitClass unitClass;
         std::vector<Order> orders;

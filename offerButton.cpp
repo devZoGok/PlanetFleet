@@ -17,7 +17,7 @@ namespace battleship{
 	using namespace gameBase;
 
 	OfferButton::OfferButton(Vector3 pos, Vector2 size, int plId, string name, int trigger, string imagePath) : 
-		Button(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, true, imagePath),
+		PfButtonBase(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, true, imagePath),
 		playerId(plId){}
 
 	void OfferButton::onClick(){

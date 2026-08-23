@@ -3,16 +3,16 @@
 
 #include <vector>
 
-#include <button.h>
+#include "pfButtonBase.h"
 
 namespace battleship{
-    class SinglePlayerButton : public vb01Gui::Button {
+	class Tooltip;
+
+    class SinglePlayerButton : public PfButtonBase {
     public:
 		SinglePlayerButton(vb01::Vector3, vb01::Vector2, std::string);
+		~SinglePlayerButton(){}
 		void onClick();
-		void onMouseOver();
-		void onMouseOff();
-    private:
     };
 }
 

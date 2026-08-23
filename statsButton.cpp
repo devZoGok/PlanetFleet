@@ -13,7 +13,7 @@ namespace battleship{
 	using namespace vb01;
 	using namespace gameBase;
 
-	StatsButton::StatsButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath) : Button(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, true, imagePath){}
+	StatsButton::StatsButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath) : PfButtonBase(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, true, imagePath){}
 
 	void StatsButton::addPlayerDataGuiElements(int playerId){
 		const int numPairs = 7;
@@ -43,11 +43,11 @@ namespace battleship{
 			categoryMat->addVec4Uniform("diffuseColor", Vector4(plCol.x, plCol.y, plCol.z, 1));
 
 			Text *categoryVal = new Text(GameManager::getSingleton()->getPath() + "Fonts/" + fontName, unitDataPairs[i].second);
-			categoryVal->setScale(category->getScale());
 			categoryVal->setMaterial(categoryMat);
 
 			Node *categoryValNode = new Node(category->getNode()->getPosition() + Vector3(0, statsInitHeight + statsSpace * playerId, 0));
 			categoryValNode->addText(categoryVal);
+			categoryValNode->setScale(category->getNode()->getScale());
 			root->getGuiNode()->attachChild(categoryValNode);
 
 			guiManager->addText(categoryVal);
