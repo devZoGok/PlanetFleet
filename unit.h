@@ -137,6 +137,10 @@ namespace battleship{
 
 			if(cond == Condition::EM_JAMMED) lastJamTime = vb01::getTime();
 		}
+		inline int getMaxAmmo(){return maxAmmo;}
+		inline int getAmmo(){return ammo;}
+		void addAmmo(int ammoToAdd);
+		void reduceAmmo(int ammoToLose);
     private:
 		void renderOrderLine(bool);
 		void initWeapons();
@@ -150,6 +154,7 @@ namespace battleship{
 		vb01::Node *losLightNode = nullptr;
 		bool vehicle, currOrderStarted = false, alignToSurface = false;
 		Condition condition = Condition::ABLE;
+		int maxAmmo, ammo;
     protected:
         UnitType type;
         UnitClass unitClass;

@@ -59,14 +59,21 @@ namespace battleship{
 			if(fireFx) fxManager->addFx(fireFx);
 		}
 
-		// Some weapons may not have ammo so will we do a check of maxAmmo before assigning it
-		sol::optional<int> maxAmmoOpt = weaponTable["maxAmmo"];
-		if(maxAmmoOpt != sol::nullopt)
+		// If a weapon doesn't fire it will not have an ammo consumptiopn
+		sol::optional<int> ammoConsumpOpt = weaponTable["ammoConsumption"];
+		if(ammoConsumpOpt != sol::nullopt)
 		{
-			maxAmmo = weaponTable["maxAmmo"].get<int>();
-			// Units that have maxAmmo should also have ammo but just in case they don't 0 will be assigned
-			ammo = weaponTable["ammo"].get_or<int, int>(0);
+			ammoConsumption = weaponTable["ammoConsumption"].get<int>();
 		}
+
+		// // Some weapons may not have ammo so will we do a check of maxAmmo before assigning it
+		// sol::optional<int> maxAmmoOpt = weaponTable["maxAmmo"];
+		// if(maxAmmoOpt != sol::nullopt)
+		// {
+		// 	maxAmmo = weaponTable["maxAmmo"].get<int>();
+		// 	// Units that have maxAmmo should also have ammo but just in case they don't 0 will be assigned
+		// 	ammo = weaponTable["ammo"].get_or<int, int>(0);
+		// }
 	}
 
 	void Weapon::initTargetData(vector<int> &targetVec, sol::table weaponTable, string tblKey, vector<int> allValues){
@@ -274,7 +281,7 @@ namespace battleship{
 	/// @brief Fires the weapon once according to the given order
 	/// @param order 
 	void Weapon::fire(Order order){
-		// Will only fire if enuogh time has passed to stay firing at the rate of fire for the weapon and if the weapon is not out of ammo
+		// Will only fire if enuogh time has passed to stay firing at the rate of fire for the weapon and if the unit the weapon belongs to has enough ammo
 		if(!canFire()) return;
 
 		GameObject *target = order.targets[0].unit;
@@ -311,8 +318,9 @@ namespace battleship{
 			unit->getPlayer()->addProjectile(GameObjectFactory::createProjectile(unit, projId, p, r));
 		}
 
-		// Reduce the ammo by 1
-		ammo -= 1;
+		// Reduce the ammo by the amount the weapon consumes
+		unit->reduceAmmo(ammoConsumption);
+		cout << "Current Ammo Amount " << unit->getAmmo() << endl;
 
 		lastFireTime = getTime();
 	}
@@ -388,18 +396,18 @@ namespace battleship{
 		return true;
 	}
 
-	/// @brief Add the passed amount of ammo to the current ammo amount unless the resulting amount would exceed the max ammo for the weapon
-	/// @param ammoToAdd 
-	void Weapon::addAmmo(int ammoToAdd)
-	{
-		int newAmmoAmount = ammoToAdd + ammo;
-		if(newAmmoAmount > maxAmmo)
-		{
-			ammo = maxAmmo;
-		}
-		else
-		{
-			ammo = newAmmoAmount;
-		}
-	}
+	// /// @brief Add the passed amount of ammo to the current ammo amount unless the resulting amount would exceed the max ammo for the weapon
+	// /// @param ammoToAdd 
+	// void Weapon::addAmmo(int ammoToAdd)
+	// {
+	// 	int newAmmoAmount = ammoToAdd + ammo;
+	// 	if(newAmmoAmount > maxAmmo)
+	// 	{
+	// 		ammo = maxAmmo;
+	// 	}
+	// 	else
+	// 	{
+	// 		ammo = newAmmoAmount;
+	// 	}
+	// }
 }

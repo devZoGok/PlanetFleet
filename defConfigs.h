@@ -151,8 +151,8 @@ namespace battleship{
 				GLFW_KEY_LEFT,
   		        GLFW_KEY_RIGHT,
   		        GLFW_KEY_H, 
-  		        3, 
-  		        4, 
+  		      	GLFW_KEY_EQUAL, // Changed zoom in to the plus/equal key
+				GLFW_KEY_MINUS, // Changed zoom out to the minus key
   		        GLFW_KEY_LEFT_CONTROL, 
   		        GLFW_KEY_LEFT_SHIFT, 
   		        GLFW_KEY_P, 

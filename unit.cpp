@@ -42,7 +42,7 @@ namespace battleship{
 		selectable = true;
 
 		destructable = new Destructable(this);
-
+		// Initiate the properties from the Lua table
 		Unit::initProperties();
 		initModel();
 		initHitbox();
@@ -66,10 +66,12 @@ namespace battleship{
 		destroyModel();
     }
 
+	/// @brief Sets all the unit properties from the Lua table containing the units
 	void Unit::initProperties(){
 		GameObject::initProperties();
 
 		sol::state_view SOL_LUA_VIEW = generateView();
+		// Returns the table name as "units"
 		string objType = GameObject::getGameObjTableName();
 		sol::table unitTable = SOL_LUA_VIEW[objType][id + 1];
 
@@ -120,6 +122,18 @@ namespace battleship{
 				buildableUnits.push_back(BuildableUnit(buTable["id"], game->isUnitUnlocked(currTechs, id) | (bool)buTable["buildable"]));
 			}
 		}
+
+		// Some units may not have ammo so will we do a check of maxAmmo before assigning it
+		sol::optional<int> maxAmmoOpt = unitTable["maxAmmo"];
+		if(maxAmmoOpt != sol::nullopt)
+		{
+			maxAmmo = unitTable["maxAmmo"].get<int>();
+			// Units that have maxAmmo should also have ammo but just in case they don't 0 will be assigned
+			ammo = unitTable["ammo"].get_or<int, int>(0);
+		}
+
+		cout << "Max Ammo " << maxAmmo << endl;
+		cout << "Starting Ammo " << ammo << endl;
 	}
 
 	/// @brief Initialize the weapons for this unit 
@@ -310,6 +324,7 @@ namespace battleship{
 
 	//TODO remove order argument from action methods
     void Unit::executeOrders() {
+		// Return if there are no orders or if the unit is not able to execute orders
 		if(orders.empty() || condition != Condition::ABLE) return;
 
 		if(!currOrderStarted) startCurrentOrder();
@@ -597,5 +612,37 @@ namespace battleship{
             selectionSfx->play();
 
         orderLineDispTime = getTime();
+
+		cout << "Current Ammo For Selected" << ammo << endl;
     }
+
+	/// @brief Add the passed amount of ammo to the current ammo amount unless the resulting amount would exceed the max ammo for the weapon
+	/// @param ammoToAdd 
+	void Unit::addAmmo(int ammoToAdd)
+	{
+		int newAmmoAmount = ammoToAdd + ammo;
+		if(newAmmoAmount > maxAmmo)
+		{
+			ammo = maxAmmo;
+		}
+		else
+		{
+			ammo = newAmmoAmount;
+		}
+	}
+
+	/// @brief Reduce the amount of ammo for the unit by the passed amount
+	/// @param amoToLose 
+	void Unit::reduceAmmo(int ammoToLose)
+	{
+		int newAmmoAmount = ammo - ammoToLose;
+		if(newAmmoAmount < 0)
+		{
+			ammo = 0;
+		}
+		else
+		{
+			ammo = newAmmoAmount;
+		}
+	}
 }
