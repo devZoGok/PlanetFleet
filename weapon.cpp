@@ -59,21 +59,15 @@ namespace battleship{
 			if(fireFx) fxManager->addFx(fireFx);
 		}
 
-		// If a weapon doesn't fire it will not have an ammo consumptiopn
-		sol::optional<int> ammoConsumpOpt = weaponTable["ammoConsumption"];
-		if(ammoConsumpOpt != sol::nullopt)
+		// Some weapons may not have ammo so will we do a check of maxAmmo before assigning it
+		sol::optional<int> maxAmmoOpt = weaponTable["maxAmmo"];
+		if(maxAmmoOpt != sol::nullopt)
 		{
-			ammoConsumption = weaponTable["ammoConsumption"].get<int>();
+			maxAmmo = weaponTable["maxAmmo"].get<int>();
+			// Units that have maxAmmo should also have ammo but just in case they don't 0 will be assigned
+			ammo = weaponTable["ammo"].get_or<int, int>(0);
+			ammoConsumption = weaponTable["ammoConsumption"].get_or<int, int>(1);
 		}
-
-		// // Some weapons may not have ammo so will we do a check of maxAmmo before assigning it
-		// sol::optional<int> maxAmmoOpt = weaponTable["maxAmmo"];
-		// if(maxAmmoOpt != sol::nullopt)
-		// {
-		// 	maxAmmo = weaponTable["maxAmmo"].get<int>();
-		// 	// Units that have maxAmmo should also have ammo but just in case they don't 0 will be assigned
-		// 	ammo = weaponTable["ammo"].get_or<int, int>(0);
-		// }
 	}
 
 	void Weapon::initTargetData(vector<int> &targetVec, sol::table weaponTable, string tblKey, vector<int> allValues){
@@ -289,7 +283,7 @@ namespace battleship{
 
 		if(fireFx) useFx(fireFx, targPos, true);
 
-		// If there is no projectile to fire at
+		// If there is no projectile to fire
 		if(projId == -1){
 			sol::table weaponTbl = generateView()["units"][unit->getId() + 1]["weapons"][id + 1];
 			FxManager *fxManager = FxManager::getSingleton();
@@ -311,7 +305,7 @@ namespace battleship{
 				if(numFx > 0) useFx(fxManager->initFx(weaponTbl[fxKey], unit->getModel(), false), targPos, false);
 			}
 		}
-		// If there is a projectile to fire at
+		// If there is a projectile to fire
 		else{
 			Quaternion r = projPar->localToGlobalOrientation(projRot);
 			Vector3 p = projPar->localToGlobalPosition(projPos);
@@ -319,9 +313,7 @@ namespace battleship{
 		}
 
 		// Reduce the ammo by the amount the weapon consumes
-		unit->reduceAmmo(ammoConsumption);
-		cout << "Current Ammo Amount " << unit->getAmmo() << endl;
-
+		reduceAmmo(ammoConsumption);
 		lastFireTime = getTime();
 	}
 
@@ -391,23 +383,24 @@ namespace battleship{
 			// Return whether the typeOrClass is in the target projectiles if the game object type is a projectile
 			case GameObject::Type::PROJECTILE:
 				return (find(targetProjectiles.begin(), targetProjectiles.end(), typeOrClass) != targetProjectiles.end());
+			default:
+				return true;
 		}
-		// By default return true
-		return true;
+	}
+	
+	/// @brief Add the passed amount of ammo to the current ammo amount unless the resulting amount would exceed the max ammo for the weapon
+	/// @param ammoToAdd 
+	void Weapon::addAmmo(int ammoToAdd)
+	{
+		int newAmmoAmount = ammoToAdd + ammo;
+		ammo = std::clamp(newAmmoAmount, 0, maxAmmo);
 	}
 
-	// /// @brief Add the passed amount of ammo to the current ammo amount unless the resulting amount would exceed the max ammo for the weapon
-	// /// @param ammoToAdd 
-	// void Weapon::addAmmo(int ammoToAdd)
-	// {
-	// 	int newAmmoAmount = ammoToAdd + ammo;
-	// 	if(newAmmoAmount > maxAmmo)
-	// 	{
-	// 		ammo = maxAmmo;
-	// 	}
-	// 	else
-	// 	{
-	// 		ammo = newAmmoAmount;
-	// 	}
-	// }
+	/// @brief Reduce the amount of ammo for the unit by the passed amount
+	/// @param amoToLose 
+	void Weapon::reduceAmmo(int ammoToLose)
+	{
+		int newAmmoAmount = ammo - ammoToLose;
+		ammo = std::clamp(newAmmoAmount, 0, maxAmmo);
+	}
 }

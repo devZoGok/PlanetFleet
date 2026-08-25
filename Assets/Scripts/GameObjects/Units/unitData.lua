@@ -130,6 +130,8 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100,
 				ammoConsumption = 1, --Just a test
+				maxAmmo = 100, -- Just a test
+				ammo = 50, -- Just a test
 				maxRange = 40,
 				damage = 50,
 				maxFireAngle = .1,
@@ -183,8 +185,6 @@ units = {
 		health = 500,
 		buildTime = 600,
 		cost = 500,
-		maxAmmo = 100, -- Just a test
-		ammo = 50, -- Just a test
 		size = {x = 6, y = 9.22, z = 2.42},
 		hitboxOffset = {x = 0, y = 4.5, z = 0},
 		lineOfSight = 25,
@@ -210,6 +210,8 @@ units = {
 				maxRange = 40,
 				damage = 50,
 				ammoConsumption = 1,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxFireAngle = .1,
 				nodes = {{name = 'turret', rotationSpeed = 1, angleConstraints = {min = -1.5, max = 1.5}, vertical = true}},
 				fireFx = {
@@ -262,8 +264,6 @@ units = {
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
-		maxAmmo = 100, -- Just a test
-		ammo = 80, -- Just a test
 		size = {x = 5.37, y = 6, z = 8.57},
 		hitboxOffset = {x = 0, y = 3.02, z = .16},
 		lineOfSight = 25,
@@ -289,6 +289,8 @@ units = {
 				maxRange = 40,
 				damage = 50,
 				ammoConsumption = 1,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxFireAngle = .1,
 				nodes = {{name = 'turret', rotationSpeed = 1, angleConstraints = {min = -1.5, max = 1.5}, vertical = true}},
 				fireFx = {
@@ -341,8 +343,6 @@ units = {
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
-		maxAmmo = 100, -- Just a test
-		ammo = 80, -- Just a test
 		size = {x = 3.25, y = 3.86, z = 3.86},
 		hitboxOffset = {x = 0, y = 4.27, z = .13},
 		lineOfSight = 25,
@@ -367,6 +367,8 @@ units = {
 				rateOfFire = 1000, 
 				damage = 900, 
 				ammoConsumption = 1,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 50,
 				maxFireAngle = .1,
 				nodes = {{name = 'TankASHead', rotationSpeed = .05, vertical = false}, {name = 'barell', rotationSpeed = .05, angleConstraints = {min = 0, max = .349}, vertical = true}},
@@ -403,8 +405,6 @@ units = {
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
-		maxAmmo = 100, -- Just a test
-		ammo = 80, -- Just a test
 		size = {x = 11.505, y = 10.3979, z = 17.1902},
 		hitboxOffset = {x = 0, y = 5.46, z = .86},
 		lineOfSight = 75,
@@ -429,6 +429,8 @@ units = {
 				rateOfFire = 1000, 
 				damage = 200, 
 				ammoConsumption = 1, 
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 50,
 				maxFireAngle = .1,
 				nodes = {{name = 'TankGun_AM', rotationSpeed = .05, vertical = false}, {name = 'barell', rotationSpeed = .05, angleConstraints = {min = -.2, max = .74}, vertical = true}},
@@ -465,8 +467,6 @@ units = {
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
-		maxAmmo = 100, -- Just a test
-		ammo = 80, -- Just a test
 		size = {x = 13.6, y = 6.79, z = 21.8},
 		hitboxOffset = {x = 0, y = 3.31, z = 0},
 		lineOfSight = 75,
@@ -491,6 +491,8 @@ units = {
 				rateOfFire = 1000, 
 				damage = 200, 
 				ammoConsumption = 1,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 50,
 				maxFireAngle = .1,
 				nodes = {
@@ -530,8 +532,6 @@ units = {
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
-		maxAmmo = 100, -- Just a test
-		ammo = 80, -- Just a test
 		size = {x = 7.2, y = 10.3, z = 15},
 		hitboxOffset = {x = 0, y = 5.27, z = .26},
 		lineOfSight = 75,
@@ -616,6 +616,8 @@ units = {
 				rateOfFire = 2000, 
 				damage = 5000, 
 				ammoConsumption = 2,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 70,
 				maxFireAngle = .1,
 				nodes = {
@@ -652,8 +654,6 @@ units = {
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
-		maxAmmo = 100, -- Just a test
-		ammo = 80, -- Just a test
 		size = {x = 10.4, y = 14, z = 12.9},
 		hitboxOffset = {x = 0, y = 7, z = 1.3},
 		lineOfSight = 90,
@@ -678,6 +678,8 @@ units = {
 				rateOfFire = 2000, 
 				damage = 5000,
 				ammoConsumption = 2,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 70,
 				maxFireAngle = .1,
 				nodes = {
@@ -715,8 +717,6 @@ units = {
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
-		maxAmmo = 100, -- Just a test
-		ammo = 80, -- Just a test
 		size = {x = 6.8, y = 6.8, z = 15.2},
 		hitboxOffset = {x = 0, y = 1, z = 0},
 		lineOfSight = 30,
@@ -1691,6 +1691,8 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				ammoConsumption = 1, --Test
+				maxAmmo = 100, -- Just a test
+				ammo = 100, -- Just a test
 				maxRange = 50,
 				nodes = {{name = 'rearAATurret', rotationSpeed = .05, vertical = false}, {name = 'rearAATurretBarrel', rotationSpeed = .05, vertical = true}},
 				fireFx = {
@@ -1718,8 +1720,6 @@ units = {
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
-		maxAmmo = 100, -- Just a test
-		ammo = 100, -- Just a test
 		size = {x = 21.2, y = 26.3, z = 85.8},
 		hitboxOffset = {x = 0, y = 6.92, z = .66},
 		lineOfSight = 5,
@@ -1790,6 +1790,8 @@ units = {
 				rateOfFire = 200, 
 				damage = 10, 
 				ammoConsumption = 1, -- Test
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 50,
 				nodes = {
 					{name = 'aaTurret', rotationSpeed = .05, vertical = false}, 
@@ -1832,8 +1834,6 @@ units = {
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
-		maxAmmo = 100, -- Just a test
-		ammo = 80, -- Just a test
 		size = {x = 21.1, y = 22.6, z = 67.3},
 		hitboxOffset = {x = 0, y = 6.42, z = 3.2},
 		lineOfSight = 5,
@@ -2470,6 +2470,8 @@ units = {
 				projectile = {id = ProjectileId.TORPEDO, pos = {x = 0, y = -.27, z = 4.6}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				damage = 200, 
 				ammoConsumption = 1, --Test
+				maxAmmo = 50, -- Just a test
+				ammo = 50, -- Just a test
 				maxRange = 200, 
 				rateOfFire = 500, 
 				fireFx = {
@@ -2487,8 +2489,6 @@ units = {
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
-		maxAmmo = 50, -- Just a test
-		ammo = 50, -- Just a test
 		hitboxOffset = {x = 0, y = 1.03, z = -1.41},
 		size = {x = 5.37, y = 7.66, z = 43},
 		lineOfSight = 0,
@@ -2587,6 +2587,8 @@ units = {
 				maxRange = 500,
 				damage = 0,
 				ammoConsumption = 1, --Test
+				maxAmmo = 100, -- Just a test
+				ammo = 50, -- Just a test
 				nodes = {
 					{name = 'turret', rotationSpeed = .05, vertical = false},
 					{name = 'barrel', rotationSpeed = .05, angleConstraints = {min = -.523, max = .523}, vertical = true},
@@ -2610,8 +2612,6 @@ units = {
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
-		maxAmmo = 100, -- Just a test
-		ammo = 50, -- Just a test
 		size = {x = 20.3, y = 12.5, z = 56.2},
 		hitboxOffset = {x = 0, y = 4.7, z = 0},
 		lineOfSight = 25,
@@ -2636,6 +2636,8 @@ units = {
 				rateOfFire = 1000, 
 				damage = 0,
 				ammoConsumption = 1, --Test
+				maxAmmo = 100, -- Just a test
+				ammo = 100, -- Just a test
 				maxRange = 25,
 				maxFireAngle = .1,
 				nodes = {{name = 'turret', rotationSpeed = .05, vertical = false}},
@@ -2655,8 +2657,6 @@ units = {
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
-		maxAmmo = 100, -- Just a test
-		ammo = 100, -- Just a test
 		size = {x = 7.3, y = 7.15, z = 37.9},
 		hitboxOffset = {x = 0, y = 1.13, z = 1.83},
 		lineOfSight = 25,
@@ -3151,6 +3151,8 @@ units = {
 				rateOfFire = 100, 
 				damage = 7, 
 				ammoConsumption = 2, --Test
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 100,
 				maxFireAngle = .4,
 				nodes = {
@@ -3198,8 +3200,6 @@ units = {
 		health = 500,
 		buildTime = 1000,
 		cost = 500,
-		maxAmmo = 100, -- Just a test
-		ammo = 80, -- Just a test
 		size = {x = 5, y = 8, z = 5},
 		hitboxOffset = {x = 0, y = 4, z = 0},
 		lineOfSight = 55,

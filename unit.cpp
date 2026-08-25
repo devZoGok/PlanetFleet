@@ -125,18 +125,6 @@ namespace battleship{
 				buildableUnits.push_back(BuildableUnit(buTable["id"], game->isUnitUnlocked(currTechs, id) | (bool)buTable["buildable"]));
 			}
 		}
-
-		// Some units may not have ammo so will we do a check of maxAmmo before assigning it
-		sol::optional<int> maxAmmoOpt = unitTable["maxAmmo"];
-		if(maxAmmoOpt != sol::nullopt)
-		{
-			maxAmmo = unitTable["maxAmmo"].get<int>();
-			// Units that have maxAmmo should also have ammo but just in case they don't 0 will be assigned
-			ammo = unitTable["ammo"].get_or<int, int>(0);
-		}
-
-		cout << "Max Ammo " << maxAmmo << endl;
-		cout << "Starting Ammo " << ammo << endl;
 	}
 
 	/// @brief Initialize the weapons for this unit 
@@ -619,36 +607,9 @@ namespace battleship{
 
         orderLineDispTime = getTime();
 
-		cout << "Current Ammo For Selected" << ammo << endl;
+		for(auto i: weapons)
+		{
+			cout << "Current ammo of selected unit's weapons " <<  i->getAmmo() << endl;
+		}
     }
-
-	/// @brief Add the passed amount of ammo to the current ammo amount unless the resulting amount would exceed the max ammo for the weapon
-	/// @param ammoToAdd 
-	void Unit::addAmmo(int ammoToAdd)
-	{
-		int newAmmoAmount = ammoToAdd + ammo;
-		if(newAmmoAmount > maxAmmo)
-		{
-			ammo = maxAmmo;
-		}
-		else
-		{
-			ammo = newAmmoAmount;
-		}
-	}
-
-	/// @brief Reduce the amount of ammo for the unit by the passed amount
-	/// @param amoToLose 
-	void Unit::reduceAmmo(int ammoToLose)
-	{
-		int newAmmoAmount = ammo - ammoToLose;
-		if(newAmmoAmount < 0)
-		{
-			ammo = 0;
-		}
-		else
-		{
-			ammo = newAmmoAmount;
-		}
-	}
 }
