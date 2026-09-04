@@ -18,12 +18,15 @@ namespace battleship{
 	using namespace vb01;
 	using namespace gameBase;
 
+	// This unit table is in unitData.lua under units, weaspons (line 126-176)
+	// The wid being + 1 is due to Lua tables beginning at index 1 instead of 0
 	Weapon::Weapon(Unit *u, sol::table unitTable, int wid) : 
 		unit(u), 
 		id(wid),
 		rateOfFire(unitTable["weapons"][wid + 1]["rateOfFire"]),
 		damage(unitTable["weapons"][wid + 1]["damage"].get_or(0))
 	{
+		// This weapon table is in unitData.lua under units, weaspons (line 126-176)
 		sol::table weaponTable = unitTable["weapons"][wid + 1];
 		maxRange = weaponTable["maxRange"];
 		maxFireAngle = weaponTable["maxFireAngle"].get_or(.1);
@@ -55,6 +58,16 @@ namespace battleship{
 
 			if(fireFx) fxManager->addFx(fireFx);
 		}
+
+		// Some weapons may not have ammo so will we do a check of maxAmmo before assigning it
+		sol::optional<int> maxAmmoOpt = weaponTable["maxAmmo"];
+		if(maxAmmoOpt != sol::nullopt)
+		{
+			maxAmmo = weaponTable["maxAmmo"].get<int>();
+			// Units that have maxAmmo should also have ammo but just in case they don't 0 will be assigned
+			ammo = weaponTable["ammo"].get_or<int, int>(0);
+			ammoConsumption = weaponTable["ammoConsumption"].get_or<int, int>(1);
+		}
 	}
 
 	void Weapon::initTargetData(vector<int> &targetVec, sol::table weaponTable, string tblKey, vector<int> allValues){
@@ -71,6 +84,7 @@ namespace battleship{
 	}
 
 	void Weapon::initNodes(sol::table weaponTable){
+		// Check if weaponTable exists
 		sol::optional<sol::table> nodesTblOpt = weaponTable["nodes"];
 
 		if(nodesTblOpt == sol::nullopt) return;
@@ -189,7 +203,7 @@ namespace battleship{
 				bool withinAngle = (dirVec.getAngleBetween((targPos - refPos).norm()) <= maxFireAngle);
 				aimedAtTarget = withinRange && withinAngle;
 			}
-
+			// This fire function handles the ammunition depletion
 			if(aimedAtTarget) fire(unit->getOrder(0));
 		}
 		else{
@@ -258,7 +272,10 @@ namespace battleship{
 	}
 
 	//TODO replace the 'laser' flag literal 
+	/// @brief Fires the weapon once according to the given order
+	/// @param order 
 	void Weapon::fire(Order order){
+		// Will only fire if enuogh time has passed to stay firing at the rate of fire for the weapon and if the unit the weapon belongs to has enough ammo
 		if(!canFire()) return;
 
 		GameObject *target = order.targets[0].unit;
@@ -266,6 +283,7 @@ namespace battleship{
 
 		if(fireFx) useFx(fireFx, targPos, true);
 
+		// If there is no projectile to fire
 		if(projId == -1){
 			sol::table weaponTbl = generateView()["units"][unit->getId() + 1]["weapons"][id + 1];
 			FxManager *fxManager = FxManager::getSingleton();
@@ -287,12 +305,15 @@ namespace battleship{
 				if(numFx > 0) useFx(fxManager->initFx(weaponTbl[fxKey], unit->getModel(), false), targPos, false);
 			}
 		}
+		// If there is a projectile to fire
 		else{
 			Quaternion r = projPar->localToGlobalOrientation(projRot);
 			Vector3 p = projPar->localToGlobalPosition(projPos);
 			unit->getPlayer()->addProjectile(GameObjectFactory::createProjectile(unit, projId, p, r));
 		}
 
+		// Reduce the ammo by the amount the weapon consumes
+		reduceAmmo(ammoConsumption);
 		lastFireTime = getTime();
 	}
 
@@ -356,12 +377,30 @@ namespace battleship{
 
 	bool Weapon::canAttackTarget(int objType, int typeOrClass){
 		switch((GameObject::Type)objType){
+			// Return whether the typeOrClass is in the target units if the game object type is a unit
 			case GameObject::Type::UNIT:
 				return (find(targetUnits.begin(), targetUnits.end(), typeOrClass) != targetUnits.end());
+			// Return whether the typeOrClass is in the target projectiles if the game object type is a projectile
 			case GameObject::Type::PROJECTILE:
 				return (find(targetProjectiles.begin(), targetProjectiles.end(), typeOrClass) != targetProjectiles.end());
+			default:
+				return true;
 		}
+	}
+	
+	/// @brief Add the passed amount of ammo to the current ammo amount unless the resulting amount would exceed the max ammo for the weapon
+	/// @param ammoToAdd 
+	void Weapon::addAmmo(int ammoToAdd)
+	{
+		int newAmmoAmount = ammoToAdd + ammo;
+		ammo = std::clamp(newAmmoAmount, 0, maxAmmo);
+	}
 
-		return true;
+	/// @brief Reduce the amount of ammo for the unit by the passed amount
+	/// @param amoToLose 
+	void Weapon::reduceAmmo(int ammoToLose)
+	{
+		int newAmmoAmount = ammo - ammoToLose;
+		ammo = std::clamp(newAmmoAmount, 0, maxAmmo);
 	}
 }

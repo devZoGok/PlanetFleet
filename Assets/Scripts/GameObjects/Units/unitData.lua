@@ -129,6 +129,9 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100,
+				ammoConsumption = 1, --Just a test
+				maxAmmo = 100, -- Just a test
+				ammo = 50, -- Just a test
 				maxRange = 40,
 				damage = 50,
 				maxFireAngle = .1,
@@ -206,6 +209,9 @@ units = {
 				rateOfFire = 100,
 				maxRange = 40,
 				damage = 50,
+				ammoConsumption = 1,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxFireAngle = .1,
 				nodes = {{name = 'turret', rotationSpeed = 1, angleConstraints = {min = -1.5, max = 1.5}, vertical = true}},
 				fireFx = {
@@ -282,6 +288,9 @@ units = {
 				rateOfFire = 250,
 				maxRange = 40,
 				damage = 50,
+				ammoConsumption = 1,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxFireAngle = .1,
 				nodes = {{name = 'turret', rotationSpeed = 1, angleConstraints = {min = -1.5, max = 1.5}, vertical = true}},
 				fireFx = {
@@ -357,6 +366,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				damage = 900, 
+				ammoConsumption = 1,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 50,
 				maxFireAngle = .1,
 				nodes = {{name = 'TankASHead', rotationSpeed = .05, vertical = false}, {name = 'barell', rotationSpeed = .05, angleConstraints = {min = 0, max = .349}, vertical = true}},
@@ -416,6 +428,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				damage = 200, 
+				ammoConsumption = 1, 
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 50,
 				maxFireAngle = .1,
 				nodes = {{name = 'TankGun_AM', rotationSpeed = .05, vertical = false}, {name = 'barell', rotationSpeed = .05, angleConstraints = {min = -.2, max = .74}, vertical = true}},
@@ -475,6 +490,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				damage = 200, 
+				ammoConsumption = 1,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 50,
 				maxFireAngle = .1,
 				nodes = {
@@ -597,6 +615,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 2000, 
 				damage = 5000, 
+				ammoConsumption = 2,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 70,
 				maxFireAngle = .1,
 				nodes = {
@@ -655,7 +676,10 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 2000, 
-				damage = 5000, 
+				damage = 5000,
+				ammoConsumption = 2,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 70,
 				maxFireAngle = .1,
 				nodes = {
@@ -1600,6 +1624,7 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1500, 
 				damage = 70, 
+				ammoConsumption = 1, --Test
 				maxRange = 50,
 				nodes = {{name = 'frontTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44}, vertical = false}},
 				fireFx = {
@@ -1620,6 +1645,7 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1500, 
 				damage = 70, 
+				ammoConsumption = 1, --Test
 				maxRange = 50,
 				nodes = {{name = 'rearTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44}, vertical = false}},
 				fireFx = {
@@ -1640,6 +1666,7 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				damage = 10, 
+				ammoConsumption = 1, --Test
 				maxRange = 50,
 				nodes = {{name = 'frontAATurret', rotationSpeed = .05, vertical = false}, {name = 'frontAATurretBarrel', rotationSpeed = .05, vertical = true}},
 				fireFx = {
@@ -1663,6 +1690,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				damage = 10, 
+				ammoConsumption = 1, --Test
+				maxAmmo = 100, -- Just a test
+				ammo = 100, -- Just a test
 				maxRange = 50,
 				nodes = {{name = 'rearAATurret', rotationSpeed = .05, vertical = false}, {name = 'rearAATurretBarrel', rotationSpeed = .05, vertical = true}},
 				fireFx = {
@@ -1759,6 +1789,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				damage = 10, 
+				ammoConsumption = 1, -- Test
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 50,
 				nodes = {
 					{name = 'aaTurret', rotationSpeed = .05, vertical = false}, 
@@ -2436,6 +2469,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				projectile = {id = ProjectileId.TORPEDO, pos = {x = 0, y = -.27, z = 4.6}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				damage = 200, 
+				ammoConsumption = 1, --Test
+				maxAmmo = 50, -- Just a test
+				ammo = 50, -- Just a test
 				maxRange = 200, 
 				rateOfFire = 500, 
 				fireFx = {
@@ -2550,6 +2586,9 @@ units = {
 				rateOfFire = 100,
 				maxRange = 500,
 				damage = 0,
+				ammoConsumption = 1, --Test
+				maxAmmo = 100, -- Just a test
+				ammo = 50, -- Just a test
 				nodes = {
 					{name = 'turret', rotationSpeed = .05, vertical = false},
 					{name = 'barrel', rotationSpeed = .05, angleConstraints = {min = -.523, max = .523}, vertical = true},
@@ -2595,7 +2634,10 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
-				damage = 0, 
+				damage = 0,
+				ammoConsumption = 1, --Test
+				maxAmmo = 100, -- Just a test
+				ammo = 100, -- Just a test
 				maxRange = 25,
 				maxFireAngle = .1,
 				nodes = {{name = 'turret', rotationSpeed = .05, vertical = false}},
@@ -3108,6 +3150,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100, 
 				damage = 7, 
+				ammoConsumption = 2, --Test
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 100,
 				maxFireAngle = .4,
 				nodes = {

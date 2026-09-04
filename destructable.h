@@ -14,7 +14,7 @@ namespace battleship{
 	enum class Armor {CAST, COMBINED, MECHANIC, SHELL, STEEL};
 
 	class GameObject;
-
+	/// @brief A game object that can be destroyed by having its health depleted
 	class Destructable{
 		public:
 			Destructable(GameObject*);

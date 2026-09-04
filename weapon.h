@@ -51,12 +51,17 @@ namespace battleship{
 			inline Unit* getUnit(){return unit;}
 			inline Type getType(){return type;}
 			inline Order::TYPE getOrderType(){return orderType;}
+			inline int getMaxAmmo(){return maxAmmo;}
+			inline int getAmmo(){return ammo;}
+			void addAmmo(int ammoToAdd);
+			void reduceAmmo(int ammoToLose);
 		private:
 			Unit *unit = nullptr;
 			Order::TYPE orderType;
 			int id, projId = -1, damage = 0;
 			std::vector<int> targetUnits, targetProjectiles;
 			float minRange = 0, maxRange, maxFireAngle;
+			int maxAmmo, ammo, ammoConsumption = 1; // ammount of ammo firing the weapon consumes
 			vb01::s64 lastFireTime = 0;
 			FxManager::Fx *fireFx = nullptr;
 			vb01::Quaternion projRot;
@@ -69,7 +74,7 @@ namespace battleship{
 			void initProjectileData(sol::table);
 			void initNodes(sol::table);
 			void useFx(FxManager::Fx*, vb01::Vector3, bool);
-			inline bool canFire(){return vb01::getTime() - lastFireTime > rateOfFire;}
+			inline bool canFire(){return (vb01::getTime() - lastFireTime > rateOfFire && ammo >= ammoConsumption);}
 		protected:
 			int rateOfFire;
 			std::vector<Component> components;
