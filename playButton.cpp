@@ -17,6 +17,7 @@ namespace battleship{
 
 	PlayButton::PlayButton(Listbox *ml, Vector3 pos, Vector2 size, string name, bool separate) : PfButtonBase(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", GLFW_KEY_P, separate), mapListbox(ml) {}
 	
+	// Starts the gameplay
 	void PlayButton::onClick() {
 		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
 		vector<Listbox*> factionsListboxes, difficultiesListboxes, colorsListboxes, teamsListboxes;
@@ -30,6 +31,7 @@ namespace battleship{
 			else if(name == "teams") teamsListboxes.push_back(listbox);
 		}
 
+		// Initialize the game
 		Game *game = Game::getSingleton();
 		game->initTechnologies();
 
@@ -53,7 +55,10 @@ namespace battleship{
 
 			game->addPlayer(new Player(difficulty, faction, team, Vector3(color.x, color.y, color.z), cpuPlayer, i, name));
 		}
-	
+		
+		// HUD GUI for during gameplay
+		// The loading app state passed is an InGameAppState for the selected map with the inGame.lua script for the screen
+		// The initial state of the current map is used to populate the HUD GUI here
 		handleLoadingGui(new LoadingAppState(new InGameAppState(mapName), "inGame.lua"));
 	}
 }

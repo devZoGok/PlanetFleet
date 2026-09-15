@@ -49,11 +49,13 @@ namespace battleship{
 
 	ConcreteGuiManager::ConcreteGuiManager(){
 		string assetPath = GameManager::getSingleton()->getPath();
+		// These base paths are used for when the LUA GUI entries refer to textures or font
 		texBasePath = assetPath + "Textures/";
 		fontBasePath = assetPath + "Fonts/";
 	}
 
 	ConcreteGuiManager* ConcreteGuiManager::getSingleton(){
+		// Return the single already created concreteGui Mangner
 		if(!concreteGuiManager)
 			concreteGuiManager = new ConcreteGuiManager();
 
@@ -221,6 +223,7 @@ namespace battleship{
 			case EXPORT:
 				button = new ExportButton(pos, size);
 				break;
+			// This case begins the gameplay
 			case PLAY:{
 				int mid = guiTable["dependencies"][1]["id"];
 				Listbox *mapListbox = (MapListbox*)guiElements[mid].second;
@@ -634,7 +637,8 @@ namespace battleship{
 
 		return text;
 	}
-
+	
+	/// @brief Parse the music variables from the Lua script
 	void ConcreteGuiManager::parseMusic(){
 		sol::state_view SOL_STATE_VIEW = generateView();
 		sol::optional<sol::table> musicTblOpt = SOL_STATE_VIEW["music"];
@@ -663,6 +667,7 @@ namespace battleship{
 		sm->play(trackPaths, 100, delay, loop, shuffle);
 	}
 
+	// Parses the passed lua script and removes any existing GUI elements (the removal is for switching between screens)
 	void ConcreteGuiManager::readLuaScreenScript(
 			string script,
 			vector<Button*> buttonExceptions,
@@ -699,12 +704,19 @@ namespace battleship{
 		parseLuaScript(script);
 	}
 
+	/// @brief Parses a lua script to display its GUI screen defined in the it
+	/// @param script 
+	/// @param luaCode 
 	void ConcreteGuiManager::parseLuaScript(string script, string luaCode){
 		guiElements.clear();
 
 		string basePath = GameManager::getSingleton()->getPath() + "Scripts/Gui/";
+		// Creates a shared lua state if it doesn't exist and wraps it in a state view for convenient C++ access
+		// It the state exists then it just creates a state view wrapper around the same state
 		sol::state_view SOL_LUA_VIEW = generateView();
+		// Set the music to nil since not every screen has a music value to override the one from the last screen
 		SOL_LUA_VIEW.script("music = nil");
+		// Loads and executes the passed lua script inside the shared lua state, creating variables from the passed script that can be accessed
 		SOL_LUA_VIEW.script_file(basePath + script);
 
 		if(luaCode != "") SOL_LUA_VIEW.script(luaCode);
@@ -712,6 +724,7 @@ namespace battleship{
 		SOL_LUA_VIEW.script("numGui = #gui");
 		int numGuiElements = SOL_LUA_VIEW["numGui"];
 
+		// Go through all the GUI entriies in mainMenu.lua and based on their type add the correspondding element
 		for(int i = 0; i < numGuiElements; i++){
 			int guiTypeId = SOL_LUA_VIEW["gui"][i + 1]["guiType"];
 
