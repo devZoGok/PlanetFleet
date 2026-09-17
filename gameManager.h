@@ -37,6 +37,7 @@ namespace battleship{
 
 		gameBase::StateManager *stateManager = nullptr;
 		gameBase::InputManager *inputManager = nullptr;
+		bool fullscreen;
         int width, height;
 		std::string path = "";
 		std::wstring mainPlayerName = L"";

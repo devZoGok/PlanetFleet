@@ -22,6 +22,17 @@ gui = {
 		color = {x = 1, y = 1, z = 1, w = 1}
 	},
 	{
+		guiType = GuiType.TEXT,
+		name = '',
+		text = 'Fullscreen',
+		pos = {x = 170, y = 110, z = 0},
+		scale = .2,
+		font = 'batang.ttf',
+		fontFirstChar = 0,
+		fontLastChar = 256,
+		color = {x = 1, y = 1, z = 1, w = 1}
+	},
+	{
 		pos = {x = 20, y = 100, z = 0},
 		size = {x = 120, y = 20},
 		guiType = GuiType.LISTBOX,
@@ -33,6 +44,10 @@ gui = {
 			'800 x 600',
 			'1920 x 1080'
 		}
+	},
+	{
+		pos = {x = 260, y = 100, z = 0},
+		guiType = GuiType.CHECKBOX
 	},
 	{
 		pos = {x = 20, y = 310, z = 0},

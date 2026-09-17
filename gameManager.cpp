@@ -262,7 +262,9 @@ namespace battleship{
 
 		SOL_LUA_STATE.script_file(path + "Scripts/Gui/_minimap.lua");
 
-		sol::table resTable = SOL_LUA_STATE["graphics"]["resolution"]; 
+		sol::table graphicsTable = SOL_LUA_STATE["graphics"];
+		fullscreen = graphicsTable["fullscreen"];
+		sol::table resTable = graphicsTable["resolution"]; 
 		width = resTable["x"];
 		height = resTable["y"];
 
@@ -276,7 +278,7 @@ namespace battleship{
 		initLua(gameDir);
 
 		Root *root = Root::getSingleton();
-		root->start(width, height, path + "../external/vb01/", "Battleship");
+		root->start(width, height, path + "../external/vb01/", "Planet Fleet", fullscreen);
 
 		stateManager = new StateManager();
     	inputManager = new InputManager(stateManager, root->getWindow());
