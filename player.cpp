@@ -311,6 +311,9 @@ namespace battleship{
 		}
 	}
 
+    /// @brief Returns a vector of the units belonging to players of the same team
+    /// @param includeOwn  whether or not to include this player's units in the returned vector
+    /// @return 
     vector<Unit*> Player::getFriendlyUnits(bool includeOwn){
 		vector<Unit*> friendlyUnits;
 
@@ -322,11 +325,14 @@ namespace battleship{
 		return friendlyUnits;
 	}
 
+    /// @brief Returns a vector of the hostile units to this player that are in its unit's line of sight
+    /// @return 
     vector<Unit*> Player::getHostileUnits(){
 		vector<Unit*> hostileUnits, friendlyUnits = getFriendlyUnits(true);
 
         for (Player *pl : Game::getSingleton()->getPlayers(true))
             for (Unit *u : pl->getUnits())
+			// If the player is not on the same team and the unit is visible to one of the friendly units then include in the hostile untis
 				if(pl->getTeam() != getTeam() && isObjectVisible(u, friendlyUnits))
                 	hostileUnits.push_back(u);
 

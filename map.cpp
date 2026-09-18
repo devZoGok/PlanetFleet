@@ -149,25 +149,49 @@ namespace battleship{
 		int width = asset->width, height = asset->height;
 
 		Vector3 mapSize = map->getMapSize();
-		// Stores the positions of the friendly units
+		// Stores the positions of the friendly units to display on the map
 		vector<pair<Unit*, Vector2>> unitMinimapPos;
+		// vector<tuple<Unit*, Vector2, bool>> unitMinimao
+		// Stores the positions of the hostile units to display on the map
+		// vector<pair<Unit*, Vector2>> hostileUnitMinimapPos;
 		// Get the current game state
 		ActiveGameState *activeState = (ActiveGameState*)gm->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
 
 		// Go through all the units on the player's team and get their map position to convert to minimap coordinates to store in the minimap positions 
+		// ADD IN THE UNITS ON THE ENEMY TEAM THAT ARE WITHIN THE LINE OF SIGHT OF ANY PLAYER SIDE UNITS
+
+		// Go through all the players that belong to the same team
 		for(Player *pl : Game::getSingleton()->getPlayers(true))
 			if(pl->getTeam() == activeState->getPlayer()->getTeam()){
+				// Get and go through all the units that belong to the player
 				vector<Unit*> units = pl->getUnits();
 
 				for(Unit *u : units){
 					// Skip adding all the garrisonable units
 					if(u->isVehicle() && ((Vehicle*)u)->getGarrisonable()) continue;
-
+					
+					// Map the position of the unit to map coordinates
 					Vector2 coords = Vector2(
 						int(u->getPos().x / mapSize.x * width),
 						int(-u->getPos().z / mapSize.z * height)
 					);
+					// Push the units and its respective coordinates to the position vector
 					unitMinimapPos.push_back(make_pair(u, coords));
+				}
+
+				// Get and go through all the hostile units in the line of sight of the player's units
+				vector<Unit*> hostileUnits = pl->getHostileUnits();
+				for(Unit *hu: hostileUnits){
+					// Skip adding all the garrisonable units
+					if(hu->isVehicle() && ((Vehicle*)hu)->getGarrisonable()) continue;
+					
+					// Map the position of the unit to map coordinates
+					Vector2 coords = Vector2(
+						int(hu->getPos().x / mapSize.x * width),
+						int(-hu->getPos().z / mapSize.z * height)
+					);
+					// Push the units and its respective coordinates to the position vector
+					unitMinimapPos.push_back(make_pair(hu, coords));
 				}
 			}
 
@@ -183,7 +207,7 @@ namespace battleship{
 
 		int unitPxRadius = 1;
 
-		// Go through all the minimap positions and 
+		// Go through all the friendly minimap positions 
 		for(pair<Unit*, Vector2> unitPair : unitMinimapPos){
 			Unit *losUnit = unitPair.first;
 			Vector2 losUnitCoords = unitPair.second;
@@ -199,8 +223,7 @@ namespace battleship{
 						asset->image[numChannels * pxId + 0] = oldImageData[numChannels * pxId + 0];
 						asset->image[numChannels * pxId + 1] = oldImageData[numChannels * pxId + 1];
 						asset->image[numChannels * pxId + 2] = oldImageData[numChannels * pxId + 2];
-						// Color the areas inside visible regions near the friendly unit minimap positions with the current player's color
-						// This only shows friendly units in the line of sight, should that be the case?
+						// Color the areas inside visible regions near the minimap positions with the current player's color
 						for(pair<Unit*, Vector2> addUnitPair : unitMinimapPos)
 							if(fabs(addUnitPair.second.x - coords.x) < unitPxRadius && fabs(addUnitPair.second.y - coords.y) < unitPxRadius){
 								Vector3 unitCol = addUnitPair.first->getPlayer()->getColor();
@@ -248,6 +271,7 @@ namespace battleship{
 		updateCamFrame(mb);
 	}
 
+	/// @brief Loads the minimap image
 	void Map::Minimap::load(){
 		for(Node *node : depositIcons)
 			node->setVisible(true);
@@ -522,6 +546,7 @@ namespace battleship{
 	//TODO move minimap loading elsewhere
 	void Map::loadPlayersGameObjects(){
 		Game *game = Game::getSingleton();
+		// The Civilian plauer is not choosable
 		vector<Player*> choosablePlayers = game->getPlayers(false);
 		sol::state_view SOL_LUA_VIEW = generateView();
 
@@ -777,6 +802,7 @@ namespace battleship{
 	}
 
 	void Map::unloadPlayerObjects(){
+		// Go through the civilian players and remove all the units and resource deposits from them
 		for(Player *pl : Game::getSingleton()->getPlayers(true)){
 			while(pl->getNumUnits() > 0){
 				pl->removeUnit(0);

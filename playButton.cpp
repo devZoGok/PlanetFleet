@@ -37,15 +37,18 @@ namespace battleship{
 
 		int selectedMap = mapListbox->getSelectedOption();
 		string mapName = wstringToString(mapListbox->getContents()[selectedMap]);
+		// The number of players comes from the map (Guess each map has its own number of spawn points)
 		int numPlayers = Map::getSingleton()->getNumMapSpawnPoints(mapName);
 		const int MAIN_PLAYER_ID = (int)generateView()["MAIN_PLAYER_ID"];
 	
 		for(int i = 0; i < numPlayers; i++){
+			// Skip adding the player if this player id is not the main player yet has no difficulty specified 
 			if(i != MAIN_PLAYER_ID && difficultiesListboxes[i - 1]->getContents()[difficultiesListboxes[i - 1]->getSelectedOption()] == L"None") continue;
 
 			wstring factionStr = factionsListboxes[i]->getContents()[factionsListboxes[i]->getSelectedOption()];
 			int faction = (factionStr == L"Random" ? rand() % 3 : factionsListboxes[i]->getSelectedOption() - 1);
 
+			// Set as a cpu player if not the main player
 			bool cpuPlayer = (MAIN_PLAYER_ID != i);
 			int difficulty = (cpuPlayer ? difficultiesListboxes[i - 1]->getSelectedOption() : -1);
 
