@@ -42,11 +42,14 @@ namespace battleship{
 		return minimap;
 	}
 
+	// Minimap constructor, just constructs the generic minimap data used in each minimap regardless of which map is loading
 	Map::Minimap::Minimap(){
+		// Gets map size
 		Vector3 mapSize = Map::getSingleton()->getMapSize();
 		float ratio = mapSize.x / mapSize.z;
-
+		
 		sol::state_view SOL_LUA_VIEW = generateView();
+		// Set the minimap size
 		SOL_LUA_VIEW.script_file(GameManager::getSingleton()->getPath() + "Scripts/Gui/activeGameState.lua");
 		sol::table sizeTbl = SOL_LUA_VIEW["minimapSize"];
 		float initSizeX = sizeTbl["x"], initSizeY = sizeTbl["y"];
@@ -73,7 +76,8 @@ namespace battleship{
 		string camIconFile = SOL_LUA_VIEW["eyeIcon"];
 		camIcon = initIcon(Root::getSingleton()->getCamera()->getPosition(), basePath + camIconFile);
 	}
-
+	
+	// Minimap destructor
 	Map::Minimap::~Minimap(){
 		Node *guiNode = Root::getSingleton()->getGuiNode();
 
@@ -88,10 +92,16 @@ namespace battleship{
 		delete camIcon;
 	}
 
+
+	/// @brief Initialize an icon for the minimap by passing its path and poition on the map
+	/// @param posOnMap 
+	/// @param iconPath 
+	/// @return 
 	Node* Map::Minimap::initIcon(Vector3 posOnMap, string iconPath){
+		// Get the icon image, its size, and texture
 		string p[]{iconPath};
-		ImageAsset *asset = (ImageAsset*)AssetManager::getSingleton()->getAsset(iconPath);
-		Vector3 iconSize = Vector3(asset->width, asset->height, 0);
+		ImageAsset *iconAsset = (ImageAsset*)AssetManager::getSingleton()->getAsset(iconPath);
+		Vector3 iconSize = Vector3(iconAsset->width, iconAsset->height, 0);
 		Texture *tex = new Texture(p, 1, false);
 
 		Root *root = Root::getSingleton();
@@ -99,6 +109,7 @@ namespace battleship{
 		mat->addBoolUniform("texturingEnabled", true);
 		mat->addTexUniform("diffuseMap", tex, false);
 
+		// Get the minimap size and position on the screen
 		sol::state_view SOL_LUA_VIEW = generateView();
 		sol::table posTbl = SOL_LUA_VIEW["minimapPos"],
 		   	_posTbl = SOL_LUA_VIEW["_minimapPos"],
@@ -109,14 +120,16 @@ namespace battleship{
 		Vector3 minimapPos = Vector3((float)_posTbl["x"], (float)posTbl["y"] + (float)_posTbl["y"], (float)posTbl["z"]);
 
 		Vector3 mapSize = Map::getSingleton()->getMapSize();
+		// Use the minimap size and the map size to place the icon on the minimap in a position corresponding to its position in the real map
 		Vector2 iconPos = Vector2(
 			minimapSize.x * (posOnMap.x + .5 * mapSize.x) / mapSize.x,
 			minimapSize.y * (posOnMap.z + .5 * mapSize.z) / mapSize.z 
 		);
 
+		// Create a quad rendering the icon UI element
 		Quad *quad = new Quad(iconSize, false);
 		quad->setMaterial(mat);
-
+		// Attach the quad to a GUI node of the icon's size and position
 		Node *node = new Node(minimapPos + Vector3(iconPos.x, iconPos.y, .05) - .5 * iconSize);
 		node->attachMesh(quad);
 		root->getGuiNode()->attachChild(node);
@@ -125,37 +138,55 @@ namespace battleship{
 	}
 
 	//TODO add a flag to Player::getUnits* whether to include garrisoned units
+	/// @brief Updates the minimap according to the real map
 	void Map::Minimap::updateImage(){
-		GameManager *gm = GameManager::getSingleton();
-		Map *map = Map::getSingleton();
-
-		string imagePath = gm->getPath() + "Models/Maps/" + map->getMapName() + "/minimap.jpg";
-		ImageAsset *asset = (ImageAsset*)AssetManager::getSingleton()->getAsset(imagePath);
-		int width = asset->width, height = asset->height;
-
-		Vector3 mapSize = map->getMapSize();
+		// Vector3 mapSize = map->getMapSize();
+		Vector3 mapSize = Map::getSingleton()->getMapSize();
+		// Stores the positions of the friendly units to display on the map
 		vector<pair<Unit*, Vector2>> unitMinimapPos;
+		// Get the current game state
+		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
 
-		ActiveGameState *activeState = (ActiveGameState*)gm->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
-
+		// Go through all the units on the player's team and get their map position to convert to minimap coordinates to store in the minimap positions 
+		// Go through all the players that belong to the same team
 		for(Player *pl : Game::getSingleton()->getPlayers(true))
 			if(pl->getTeam() == activeState->getPlayer()->getTeam()){
+				// Get and go through all the units that belong to the player
 				vector<Unit*> units = pl->getUnits();
 
 				for(Unit *u : units){
+					// Skip adding all the garrisonable units
 					if(u->isVehicle() && ((Vehicle*)u)->getGarrisonable()) continue;
-
+					
+					// Map the position of the unit to map coordinates
 					Vector2 coords = Vector2(
 						int(u->getPos().x / mapSize.x * width),
 						int(-u->getPos().z / mapSize.z * height)
 					);
+					// Push the units and its respective coordinates to the position vector
 					unitMinimapPos.push_back(make_pair(u, coords));
+				}
+
+				// Get and go through all the hostile units in the line of sight of the player's units
+				vector<Unit*> hostileUnits = pl->getHostileUnits();
+				for(Unit *hu: hostileUnits){
+					// Skip adding all the garrisonable units
+					if(hu->isVehicle() && ((Vehicle*)hu)->getGarrisonable()) continue;
+					
+					// Map the position of the unit to map coordinates
+					Vector2 coords = Vector2(
+						int(hu->getPos().x / mapSize.x * width),
+						int(-hu->getPos().z / mapSize.z * height)
+					);
+					// Push the units and its respective coordinates to the position vector
+					unitMinimapPos.push_back(make_pair(hu, coords));
 				}
 			}
 
 		int pxId = 0, numChannels = asset->numChannels, size = width * height * numChannels;
 		float losFactor = .6;
 
+		// Darkens the entire minimap
 		for(u8 *p = asset->image; p != asset->image + size; p += numChannels, pxId += numChannels){
 			*(p + 0) = losFactor * oldImageData[pxId + 0];
 			*(p + 1) = losFactor * oldImageData[pxId + 1];
@@ -164,41 +195,55 @@ namespace battleship{
 
 		int unitPxRadius = 1;
 
+		// Go through all the minimap positions 
 		for(pair<Unit*, Vector2> unitPair : unitMinimapPos){
 			Unit *losUnit = unitPair.first;
 			Vector2 losUnitCoords = unitPair.second;
 			float minimapLos = losUnit->getLineOfSight() / mapSize.x * width;
 
+			// Restore brightness based on if the units are in the LOS radius
 			for(int x = max(-.5f * width, losUnitCoords.x - minimapLos); x < min(.5f * width, losUnitCoords.x + minimapLos); x++){
 				for(int y = max(-.5f * height, losUnitCoords.y - minimapLos); y < min(.5f * height, losUnitCoords.y + minimapLos); y++){
 					int pxId = width * (y + .5 * height) + (x + .5 * width);
 					Vector2 coords = Vector2(x, y);
+					bool newColorSet = false;
 
 					if(coords.getDistanceFrom(losUnitCoords) < minimapLos){
-						asset->image[numChannels * pxId + 0] = oldImageData[numChannels * pxId + 0];
-						asset->image[numChannels * pxId + 1] = oldImageData[numChannels * pxId + 1];
-						asset->image[numChannels * pxId + 2] = oldImageData[numChannels * pxId + 2];
-
-						for(pair<Unit*, Vector2> addUnitPair : unitMinimapPos)
+						// Find if there is a unit whose coordinates are within the pixel radius for being in los
+						for(pair<Unit*, Vector2> addUnitPair : unitMinimapPos) {
 							if(fabs(addUnitPair.second.x - coords.x) < unitPxRadius && fabs(addUnitPair.second.y - coords.y) < unitPxRadius){
+								// If so, color the pixel of the unit the color of its team
 								Vector3 unitCol = addUnitPair.first->getPlayer()->getColor();
 								asset->image[numChannels * pxId + 0] = unitCol.x * 255;
 								asset->image[numChannels * pxId + 1] = unitCol.y * 255;
 								asset->image[numChannels * pxId + 2] = unitCol.z * 255;
 
+								newColorSet = true;
 								break;
 							}
+						}
+						// Otherwise, leave the pixel the color that it was before in the minimap image of the previous frame 
+						if(!newColorSet)
+						{
+							// Old coloring before updated changes, keeps this if the coordinate is still in los and has no changes to reflect
+							asset->image[numChannels * pxId + 0] = oldImageData[numChannels * pxId + 0];
+							asset->image[numChannels * pxId + 1] = oldImageData[numChannels * pxId + 1];
+							asset->image[numChannels * pxId + 2] = oldImageData[numChannels * pxId + 2];
+						}
 					}
 				}
 			}
 		}
 
+		// Load the minimap image data
 		Node *rectNode = ConcreteGuiManager::getSingleton()->getButton("minimap")->getRectNode();
 		Material *mat = rectNode->getMesh(0)->getMaterial();
 		Texture *tex = ((Material::TextureUniform*)mat->getUniform("diffuseMap"))->value;
 		tex->loadImageData(asset, false);
 	}
 
+	/// @brief Updates the position of the camera positiion icon GUI that goes on the minimap to where the camera is currently in the real map
+	/// @param minimapButton 
 	void Map::Minimap::updateCamFrame(Button *minimapButton){
 		Vector3 camPos = Root::getSingleton()->getCamera()->getPosition();
 		Vector3 mapSize = Map::getSingleton()->getMapSize();
@@ -208,17 +253,22 @@ namespace battleship{
 			minimapSize.y * (camPos.z + .5 * mapSize.z) / mapSize.z 
 		);
 
+		// Overlay the icon on the minimap by using the minimap's position
 		camIcon->setPosition(minimapButton->getPos() + Vector3(iconPos.x, iconPos.y, .06));
 	}
 
+	/// @brief Updates the minimap unit positions and cam frame icon as long as the application state is active
 	void Map::Minimap::update(){
 		Button *mb = ConcreteGuiManager::getSingleton()->getButton("minimap");
 
 		if(!(GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE) && mb)) return;
 
+		updateImage();
+
 		updateCamFrame(mb);
 	}
 
+	/// @brief Loads the minimap image and any other data specific to this minimap
 	void Map::Minimap::load(){
 		for(Node *node : depositIcons)
 			node->setVisible(true);
@@ -227,8 +277,10 @@ namespace battleship{
 		string minimapPath = GameManager::getSingleton()->getPath() + "Models/Maps/" + Map::getSingleton()->getMapName() + "/minimap.jpg";
 
 		am->load(minimapPath);
-		ImageAsset *asset = (ImageAsset*)am->getAsset(minimapPath);
-		int imgSize = asset->width * asset->height * asset->numChannels;
+		asset = (ImageAsset*)am->getAsset(minimapPath);
+		width = asset->width, height = asset->height;
+		int imgSize = width * height * asset->numChannels;
+
 		oldImageData = new u8[imgSize];
 
 		for(int i = 0; i < imgSize; i++)
@@ -279,6 +331,7 @@ namespace battleship{
 		return edges;
 	}
 
+	/// @brief Update the minimap
 	void Map::update(){
 		Minimap::getSingleton()->update();
 	}
@@ -492,6 +545,7 @@ namespace battleship{
 	//TODO move minimap loading elsewhere
 	void Map::loadPlayersGameObjects(){
 		Game *game = Game::getSingleton();
+		// The Civilian plauer is not choosable
 		vector<Player*> choosablePlayers = game->getPlayers(false);
 		sol::state_view SOL_LUA_VIEW = generateView();
 
@@ -747,6 +801,7 @@ namespace battleship{
 	}
 
 	void Map::unloadPlayerObjects(){
+		// Go through the civilian players and remove all the units and resource deposits from them
 		for(Player *pl : Game::getSingleton()->getPlayers(true)){
 			while(pl->getNumUnits() > 0){
 				pl->removeUnit(0);

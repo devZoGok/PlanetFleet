@@ -79,6 +79,7 @@ namespace battleship{
 		sol::state_view SOL_LUA_VIEW = generateView();
 		vector<Player*> cpuPlayers = getCpuPlayers();
 
+		// Add the cpu players to the cpu player array in the Lua file
 		for(int i = 0; i < cpuPlayers.size(); i++)
 			SOL_LUA_VIEW["game"]["cpuPlayers"][i + 1] = cpuPlayers[i];
 
@@ -226,6 +227,9 @@ namespace battleship{
 		return false;
 	}
 	
+	/// @brief Returns the civilian players if true is passed and the non-civilian players otherwise
+	/// @param civPl 
+	/// @return 
 	vector<Player*> Game::getPlayers(bool civPl){
 		vector<Player*> playersVec = players;
 
@@ -234,6 +238,8 @@ namespace battleship{
 		return playersVec;
 	}
 
+	/// @brief Returns the cpu players
+	/// @return 
 	vector<Player*> Game::getCpuPlayers(){
 		vector<Player*> playersVec;
 

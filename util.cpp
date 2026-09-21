@@ -36,6 +36,8 @@ using namespace vb01Gui;
 namespace battleship{
 	using namespace configData;
 
+	/// @brief Pushes the loadable assets from asset manager as a state to the state manager stack
+	/// @param loadState 
 	void handleLoadingGui(LoadingAppState *loadState){
 		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
 		guiManager->readLuaScreenScript("loadingScreen.lua");
