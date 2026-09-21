@@ -14,6 +14,7 @@ namespace vb01{
 	class Model;
 	class Material;
 	class Node;
+	struct ImageAsset;
 }
 
 namespace vb01Gui{
@@ -66,6 +67,9 @@ namespace battleship{
 				vb01::Node *camFrame = nullptr;
 				std::vector<vb01::Node*> depositIcons;
 				vb01::Node* camIcon = nullptr;
+
+				vb01::ImageAsset *asset = nullptr;
+				int width, height;
 		};
 
 		static Map* getSingleton();
