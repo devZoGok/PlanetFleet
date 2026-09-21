@@ -66,7 +66,8 @@ mappings = {
 		{bind = 46, trigger = 68, action = true, bindType = 0, inOptions = false},
 }
 graphics = {
-	resolution = {x = 1920, y = 1080}
+	fullscreen = false,
+	resolution = {x = 800, y = 600}
 }
 audio = {
 	sfxVolume = 100,

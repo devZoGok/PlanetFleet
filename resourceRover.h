@@ -17,13 +17,16 @@ namespace battleship{
 			inline int getLoad(int id){return cargo[id];}
 			inline int calcTotalLoad(){return cargo[0] + cargo[1] + cargo[2];}
 			inline int getCapacity(){return capacity;}
+			// Checks if enough time has passed since the last load to keep with the rover's loading rate and that it hasn't loaded long enough to reach capacity
+			// from unit to rover
 			inline bool canLoad(){return vb01::getTime() - lastLoadTime > loadRate && calcTotalLoad() < capacity;}
+			// Checks if enough time has passed since the last unload to keep with the rover's loading rate, from rover to unit
 			inline bool canUnload(int id){return vb01::getTime() - lastLoadTime > loadRate && cargo[id] > 0;}
 		private:
 			void initProperties();
 			void collectRefineds(Order);
 			void loadResources(Structure*, bool);
-			void handleResources(Order);
+			void handleResources(Order); // Overrides the handleResources function from unit class
 			Unit* getClosestUnit(std::vector<Structure*>);
 
 			vb01::s64 lastLoadTime = 0;

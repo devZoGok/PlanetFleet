@@ -281,13 +281,15 @@ namespace battleship{
 			}
 	}
 
+	/// @brief Returns all the destructables for the player
+	/// @return 
 	vector<GameObject*> Player::getDestructables(){
 		vector<GameObject*> destructables;
-
+		// If the projectile can be destroyed then add it to the destructables
 		for(Projectile *p : projectiles)
 			if(p->getDestructable())
 				destructables.push_back(p);
-
+		// All units are added to the destructables
 		for(Unit *unit : units)
 			destructables.push_back((GameObject*)unit);
 
