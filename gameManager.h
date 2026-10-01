@@ -20,6 +20,7 @@ namespace battleship{
 		static GameManager* getSingleton();
 		void start(std::string);
         void update();
+		bool applyGraphicsOptions();
         inline int getWidth(){return width;}
         inline int getHeight(){return height;}
 		inline std::string getPath(){return path;}
@@ -34,6 +35,7 @@ namespace battleship{
         ~GameManager(){}
 		void registerMembers();
 		void initLua(std::string);
+		void exposeWindowSize();
 
 		gameBase::StateManager *stateManager = nullptr;
 		gameBase::InputManager *inputManager = nullptr;

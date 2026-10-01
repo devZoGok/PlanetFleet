@@ -1,4 +1,4 @@
-res = graphics.resolution
+res = windowSize
 
 Size = {x = 200, y = 20}
 initPos = {x = .5 * (res.x - Size.x), y = 100, z = 0}

@@ -53,7 +53,8 @@ namespace battleship{
 			"Scripts/Core/player.lua",
 			"Scripts/Technologies/technologyData.lua",
 			"Scripts/Abilities/abilityData.lua",
-			"Scripts/Trading/traderData.lua"
+			"Scripts/Trading/traderData.lua",
+			"Scripts/Core/optionsStore.lua"
 		};
 
 		// Binds that remain the same throughout the lifecycle of a scene/GUI

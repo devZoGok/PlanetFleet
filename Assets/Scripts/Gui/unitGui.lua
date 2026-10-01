@@ -1,4 +1,4 @@
-res = graphics.resolution
+res = windowSize
 sz = 210
 
 resTextScale = {x = .5, y = .5}

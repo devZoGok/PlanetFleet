@@ -1,4 +1,4 @@
-res = graphics.resolution
+res = windowSize
 HubMargin.top = 100
 
 resTrayPos = {x = HubPos.x + HubMargin.left, y = HubPos.y + HubMargin.top}

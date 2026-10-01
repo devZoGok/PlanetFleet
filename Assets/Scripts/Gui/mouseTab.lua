@@ -32,9 +32,10 @@ gui = {
 		minValue = 0,
 		maxValue = 2,
 		guiType = GuiType.SLIDER,
+		option = {path = 'mouse.sensitivity', step = .05},
 		numDependencies = 1,
 		dependencies = {
-			{id = 1}
+			{id = 2}
 		}
 	},
 	{
@@ -50,21 +51,30 @@ gui = {
 	},
 	{
 		pos = {x = 110, y = 135, z = 0},
-		guiType = GuiType.CHECKBOX
+		guiType = GuiType.CHECKBOX,
+		option = {path = 'mouse.reverse'}
 	},
 	{
 		pos = {x = 100, y = 400, z = 0},
 		size = {x = 150, y = 20},
 		guiType = GuiType.BUTTON,
 		name = 'Ok',
-		buttonType = ButtonType.OK
+		buttonType = ButtonType.OK,
+		dependencies = {
+			{id = 3},
+			{id = 5}
+		}
 	},
 	{
 		pos = {x = 260, y = 400, z = 0},
 		size = {x = 150, y = 20},
 		guiType = GuiType.BUTTON,
 		name = 'Restore defaults',
-		buttonType = ButtonType.DEFAULTS
+		buttonType = ButtonType.DEFAULTS,
+		dependencies = {
+			{id = 3},
+			{id = 5}
+		}
 	},
 	{
 		pos = {x = 420, y = 400, z = 0},

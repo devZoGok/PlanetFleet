@@ -13,6 +13,7 @@
 #include "tabButton.h"
 #include "okButton.h"
 #include "defaultsButton.h"
+#include "optionBinding.h"
 #include "backButton.h"
 #include "newMapButton.h"
 #include "loadMapButton.h"
@@ -113,6 +114,26 @@ namespace battleship{
 		return tooltip;
 	}
 
+	vector<OptionBinding> ConcreteGuiManager::parseOptionBindings(sol::table &guiTable){
+		vector<OptionBinding> bindings;
+		sol::optional<sol::table> depsTblOpt = guiTable["dependencies"];
+
+		if(depsTblOpt == sol::nullopt) return bindings;
+
+		sol::table depsTbl = guiTable["dependencies"];
+		int numDeps = depsTbl.size();
+
+		for(int i = 0; i < numDeps; i++){
+			int id = depsTbl[i + 1]["id"];
+			sol::table depTbl = generateView()["gui"][id + 1];
+			sol::table optionTbl = depTbl["option"];
+
+			bindings.push_back(OptionBinding((GuiElementType)depTbl["guiType"], guiElements[id].second, optionTbl));
+		}
+
+		return bindings;
+	}
+
 	//TODO refactor player difficulty and faction listbox selection
 	//TODO remove hardcoded font path values
 	//TODO use configurable map path values 
@@ -169,10 +190,10 @@ namespace battleship{
 				button = new ExitButton(pos, size);
 				break;
 			case OK:
-				button = new OkButton(pos, size, name);
+				button = new OkButton(pos, size, name, parseOptionBindings(guiTable));
 				break;
 			case DEFAULTS:
-				button = new DefaultsButton(pos, size, name);
+				button = new DefaultsButton(pos, size, name, parseOptionBindings(guiTable));
 				break;
 			case BACK: {
 				string screen = guiTable["screen"];
@@ -380,11 +401,7 @@ namespace battleship{
 				break;
 			}
 			case RESOLUTION:{
-				numLines = guiTable["numLines"];
-
-				for(int i = 0; i < numLines; i++)
-					lines.push_back(guiTable["lines"][i + 1]);
-
+				numLines = lines.size();
 				closable = true;
 				maxDisplay = (numLines > numMaxDisplay ? numMaxDisplay : numLines);
 
@@ -675,6 +692,7 @@ namespace battleship{
 			string luaCode
 		){
 		removeAllGuiElements(buttonExceptions, listboxExceptions, checkboxExceptions, sliderExceptions, textboxExceptions, guiRectboxExceptions, textExceptions);
+		screenScript = script;
 		parseLuaScript(script, luaCode);
 	}
 
@@ -737,6 +755,13 @@ namespace battleship{
 				case TEXT:
 					addText(parseText(i));
 					break;
+			}
+
+			sol::optional<sol::table> optionTblOpt = SOL_LUA_VIEW["gui"][i + 1]["option"];
+
+			if(optionTblOpt != sol::nullopt){
+				sol::table optionTbl = SOL_LUA_VIEW["gui"][i + 1]["option"];
+				OptionBinding((GuiElementType)guiTypeId, guiElements[i].second, optionTbl).load();
 			}
 		}
 

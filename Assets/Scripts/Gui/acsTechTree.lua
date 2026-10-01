@@ -1,4 +1,4 @@
-res = graphics.resolution
+res = windowSize
 Size = {x = res.x * .5, y = res.y * .5}
 techButtonSize = {x = 50, y = 50}
 Pos = {x = res.x * .3, y = res.y * .1, z = .1}
