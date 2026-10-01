@@ -1,12 +1,12 @@
 #ifndef UNIT_BUTTON_H
 #define UNIT_BUTTON_H
 
-#include <button.h>
+#include "pfButtonBase.h"
 
 namespace battleship{
 	class Unit;
 
-	class UnitButton : public vb01Gui::Button{
+	class UnitButton : public PfButtonBase{
 		public:
 			UnitButton(vb01::Vector3, vb01::Vector2, std::string, std::string, int, std::string);
 		protected:

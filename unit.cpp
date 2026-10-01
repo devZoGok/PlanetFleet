@@ -12,6 +12,8 @@
 #include <glm.hpp>
 #include <ext.hpp>
 
+#include <algorithm>
+
 #include "unit.h"
 #include "weapon.h"
 #include "util.h"
@@ -42,7 +44,7 @@ namespace battleship{
 		selectable = true;
 
 		destructable = new Destructable(this);
-
+		// Initiate the properties from the Lua table
 		Unit::initProperties();
 		initModel();
 		initHitbox();
@@ -64,12 +66,15 @@ namespace battleship{
 		destroySound();
 		destroyHitbox();
 		destroyModel();
+		removeFromUnitGroup();
     }
 
+	/// @brief Sets all the unit properties from the Lua table containing the units
 	void Unit::initProperties(){
 		GameObject::initProperties();
 
 		sol::state_view SOL_LUA_VIEW = generateView();
+		// Returns the table name as "units"
 		string objType = GameObject::getGameObjTableName();
 		sol::table unitTable = SOL_LUA_VIEW[objType][id + 1];
 
@@ -122,10 +127,12 @@ namespace battleship{
 		}
 	}
 
+	/// @brief Initialize the weapons for this unit 
 	void Unit::initWeapons(){
+		// The name, number, and type of weapons are read (in that order) from a table containing the weapons info in a Lua script
 		sol::state_view SOL_STATE_VIEW = generateView();
 		string objType = GameObject::getGameObjTableName();
-		sol::table unitTable = SOL_STATE_VIEW[objType][id + 1];
+		sol::table unitTable = SOL_STATE_VIEW[objType][id + 1]; // The table containing the weapons info
 
 		string tblName = "weapons";
 		sol::optional<sol::table> weaponsTblOpt = unitTable[tblName];
@@ -140,16 +147,17 @@ namespace battleship{
 				sol::optional<int> wtOpt = unitTable[tblName][i + 1]["type"];
 
 				if(wtOpt != sol::nullopt) wt = unitTable[tblName][i + 1]["type"];
-
+				// Create a new weapon from the unitTable and push it to the weapons vector for this unit
 				weapons.push_back(new Weapon(this, unitTable, i));
 			}
 		}
 	}
 
 	void Unit::destroyWeapons(){
+		// Deallocate all the memory declared for the weapons for this unit
 		for(Weapon *weapon : weapons)
 			delete weapon;
-
+		// Clear the weapons vector
 		weapons.clear();
 	}
 
@@ -170,6 +178,23 @@ namespace battleship{
 		model->dettachChild(losLightNode);
 		delete losLightNode;
 		losLightNode = nullptr;
+	}
+
+	/// @brief Check if unit is in a unit group and if so remove it
+	void Unit::removeFromUnitGroup(){
+		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
+		std::unordered_map<int, std::vector<Unit*>>& unitGroups = activeState->getUnitGroups();
+
+		// Iterate through all the individual unit groups and see if this unit is in any of them
+		for(auto& [key, value]: unitGroups)
+		{
+			if(std::find(value.begin(), value.end(), this) != value.end())
+			{
+				//std::erase(value, this);
+				value.erase(std::remove(value.begin(), value.end(), this), value.end());
+			}
+		}
+
 	}
 
 	int Unit::getNumFreeGarrisonSlots(){
@@ -195,6 +220,7 @@ namespace battleship{
 		selectionSfx = GameObject::prepareSfx(selectionSfxBuffer, sfxPath);
 	}
 
+	// Re-instantiates a unit
 	void Unit::reinit(){
 		if(losLightNode)
 			destroyLosLight();
@@ -271,14 +297,18 @@ namespace battleship{
 	}
 
     void Unit::update() {
+		// Since a unit is a game object and a destructable, run their update functions
 		GameObject::update();
 		destructable->update();
 
+		// If the unit is EM jammed then see if enough time has passed to make the unit able to fight again
 		if(condition == Condition::EM_JAMMED && getTime() - lastJamTime > restartTime)
 			condition = Condition::ABLE;
 
+		// Freeze the unit if its freeze status is greater than 100
 		if(destructable->getFreezeStatus() >= 100) condition = Condition::FROZEN;
 
+		// Attack targets if the unit is not in the hold fire state
 		if(state != State::HOLD_FIRE)
 			autoAttackTargets();
 
@@ -302,6 +332,7 @@ namespace battleship{
 
 	//TODO remove order argument from action methods
     void Unit::executeOrders() {
+		// Return if there are no orders or if the unit is not able to execute orders
 		if(orders.empty() || condition != Condition::ABLE) return;
 
 		if(!currOrderStarted) startCurrentOrder();
@@ -386,16 +417,19 @@ namespace battleship{
 
 		for(Player *pl : Game::getSingleton()->getPlayers()){
 			vector<GameObject*> targs = pl->getDestructables();
+			// At the end of the targets vector insert all the destructables
 			targets.insert(targets.end(), targs.begin(), targs.end());
 		}
 
 		vector<Weapon*> attackWeapons = getWeaponsByOrder(Order::TYPE::ATTACK);
 
 		for(Order::Target &target : orders[0].targets)
+		// If there is a target unit then find it
 			if(target.unit){
 				if(find(targets.begin(), targets.end(), target.unit) != targets.end()){
 					bool canAttack = false;
 
+					// Go through the weapons and determine which ones can attack
 					for(Weapon *aw : attackWeapons){
 						int tc;
 
@@ -457,9 +491,12 @@ namespace battleship{
 		}
 	}
 
+	/// @brief Returns the weapons that are of the passed order type
+	/// @param type 
+	/// @return 
 	vector<Weapon*> Unit::getWeaponsByOrder(Order::TYPE type){
 		vector<Weapon*> weaps;
-
+		//getOrderType gets the order type from the Lua table containing the weapon data
 		for(Weapon *w : weapons)
 			if(w->getOrderType() == type)
 				weaps.push_back(w);
@@ -467,9 +504,12 @@ namespace battleship{
 		return weaps;
 	}
 
+	/// @brief Returns the weapons of the passed type. Currently, the type can either be damage or freezer
+	/// @param type 
+	/// @return 
 	vector<Weapon*> Unit::getWeaponsByType(int type){
 		vector<Weapon*> weaps;
-
+		//getType gets the type from the Lua table containing the weapon data
 		for(Weapon *w : weapons)
 			if(w->getType() == (Weapon::Type)type)
 				weaps.push_back(w);
@@ -515,22 +555,8 @@ namespace battleship{
 
 	//TODO select only the closest cells based on unit size
 	void Unit::placeAt(Vector3 p){
-		Map *map = Map::getSingleton();
-
-		if(alignToSurface){
-			vector<RayCaster::CollisionResult> res = map->raycastTerrain(Vector3(p.x, 100, p.z), -Vector3::VEC_J, true);
-			
-			if(res.empty() || res[0].mesh->getNode() != map->getNodeParent()->getChild(0))
-				model->lookAt(Vector3(dirVec.x, 0, dirVec.z).norm(), Vector3::VEC_J);
-			else if(res[0].mesh->getNode() == map->getNodeParent()->getChild(0)){
-				float angle = upVec.getAngleBetween(res[0].norm);
-
-				//if(angle > 0)
-					model->lookAt(leftVec.cross(res[0].norm), res[0].norm);
-			}
-		}
-
 		ActiveGameState *activeState = (ActiveGameState*)GameManager::getSingleton()->getStateManager()->getAppStateByType(AppStateType::ACTIVE_STATE);
+		Map *map = Map::getSingleton();
 
 		//check twice in case the unit is warped over a long distance
 		if(activeState) map->blockCells(this);
@@ -543,6 +569,8 @@ namespace battleship{
 		}
 	}
 
+	/// @brief 
+	/// @return 
 	vector<Player*> Unit::getSelectingPlayers(){
 		vector<Player*> players = Game::getSingleton()->getPlayers(), selectingPlayers;
 
@@ -578,5 +606,10 @@ namespace battleship{
             selectionSfx->play();
 
         orderLineDispTime = getTime();
+
+		for(auto i: weapons)
+		{
+			cout << "Current ammo of selected unit's weapons " <<  i->getAmmo() << endl;
+		}
     }
 }

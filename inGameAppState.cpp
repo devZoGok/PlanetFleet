@@ -1,6 +1,5 @@
 #include <algorithm>
 
-#include <button.h>
 
 #include <util.h>
 #include <root.h>
@@ -11,6 +10,7 @@
 
 #include "defConfigs.h"
 #include "inGameAppState.h"
+#include "pfButtonBase.h"
 #include "game.h"
 #include "console.h"
 #include "gameObjectFrameController.h"
@@ -27,22 +27,23 @@ namespace battleship{
 	using namespace configData;
 	using namespace gameBase;
 
-    InGameAppState::ResumeButton::ResumeButton(Vector3 pos, Vector2 size) : Button(pos, size, "Resume", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true) {}
+    InGameAppState::ResumeButton::ResumeButton(Vector3 pos, Vector2 size) : PfButtonBase(pos, size, "Resume", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true) {}
 
     void InGameAppState::ResumeButton::onClick() {
 		Game::getSingleton()->togglePause();
     }
 
-    InGameAppState::ConsoleButton::ConsoleButton(Vector3 pos, Vector2 size) : Button(pos, size, "Console", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true) { }
+    InGameAppState::ConsoleButton::ConsoleButton(Vector3 pos, Vector2 size) : PfButtonBase(pos, size, "Console", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true) {}
 
     void InGameAppState::ConsoleButton::onClick() {
 		ConcreteGuiManager::getSingleton()->readLuaScreenScript("console.lua");
     }
 
-	InGameAppState::ConsoleButton::ConsoleButton::ConsoleCommandEntryButton::ConsoleCommandEntryButton(Textbox *t, Listbox *l, Vector3 pos, Vector2 size, string name) : Button(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", 257, true) {
-	    textbox = t;
-	    listbox = l;
-	}
+	InGameAppState::ConsoleButton::ConsoleButton::ConsoleCommandEntryButton::ConsoleCommandEntryButton(Textbox *t, Listbox *l, Vector3 pos, Vector2 size, string name) : 
+		PfButtonBase(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", 257, true),
+		textbox(t),
+		listbox(l)
+   	{}
 	
 	void InGameAppState::ConsoleButton::ConsoleButton::ConsoleCommandEntryButton::onClick() {
 		Console::execute(wstringToString(textbox->getText()));

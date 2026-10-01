@@ -1,10 +1,10 @@
 #ifndef ORDER_BUTTON_H
 #define ORDER_BUTTON_H
 
-#include <button.h>
+#include "pfButtonBase.h"
 
 namespace battleship{
-	class OrderButton : public vb01Gui::Button{
+	class OrderButton : public PfButtonBase{
 		public:
 			OrderButton(vb01::Vector3, vb01::Vector2, std::string, int, std::string, int);
 			void onClick();

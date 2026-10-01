@@ -15,11 +15,12 @@ namespace battleship{
 	using namespace vb01Gui;
 	using namespace gameBase;
 
-	NewMapButton::OkButton::OkButton(vb01::Vector3 pos, vb01::Vector2 size, vb01Gui::Textbox *name, vb01Gui::Textbox *sx, vb01Gui::Textbox *sy) : Button(pos, size, "Ok", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true){
-		this->name = name;
-		this->sizeX = sx;
-		this->sizeY = sy;
-	}
+	NewMapButton::OkButton::OkButton(Vector3 pos, Vector2 size, Textbox *nm, Textbox *sx, Textbox *sy) : 
+		PfButtonBase(pos, size, "Ok", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true), 
+		name(nm), 
+		sizeX(sx), 
+		sizeY(sy)
+	{}
 
 	void NewMapButton::OkButton::onClick(){
 		Vector2 size = Vector2(
@@ -29,7 +30,7 @@ namespace battleship{
 		handleLoadingGui(new LoadingAppState(new MapEditorAppState(wstringToString(name->getText()), size, true), "mapEditor.lua"));
 	}
 
-	NewMapButton::NewMapButton(Vector3 pos, Vector2 size) : Button(pos, size, "New map", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf"){}
+	NewMapButton::NewMapButton(Vector3 pos, Vector2 size) : PfButtonBase(pos, size, "New map", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true){}
 
 	void NewMapButton::onClick(){
 		ConcreteGuiManager::getSingleton()->readLuaScreenScript("newMap.lua");

@@ -186,6 +186,8 @@ namespace battleship{
 		projectiles.erase(projectiles.begin() + id);
 	}
 
+	/// @brief Takes the units in the passed vector and pushes them onto the selectedUnits vector for the player if they a garrisonable and not already selected
+	/// @param selUnits 
 	void Player::selectUnits(vector<Unit*> selUnits){
 		for(Unit *u : selUnits){
 			bool garrisonable = (!u->isVehicle() || (u->isVehicle() && !((Vehicle*)u)->getGarrisonable()));
@@ -279,13 +281,15 @@ namespace battleship{
 			}
 	}
 
+	/// @brief Returns all the destructables for the player
+	/// @return 
 	vector<GameObject*> Player::getDestructables(){
 		vector<GameObject*> destructables;
-
+		// If the projectile can be destroyed then add it to the destructables
 		for(Projectile *p : projectiles)
 			if(p->getDestructable())
 				destructables.push_back(p);
-
+		// All units are added to the destructables
 		for(Unit *unit : units)
 			destructables.push_back((GameObject*)unit);
 

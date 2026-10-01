@@ -1,16 +1,16 @@
 #ifndef NEW_MAP_BUTTON_H
 #define NEW_MAP_BUTTON_H
 
-#include <button.h>
+#include "pfButtonBase.h"
 
 namespace vb01Gui{
 	class Textbox;
 }
 
 namespace battleship{
-	class NewMapButton : public vb01Gui::Button{
+	class NewMapButton : public PfButtonBase{
 		public:
-			class OkButton : public vb01Gui::Button{
+			class OkButton : public PfButtonBase{
 				public:
 					OkButton(vb01::Vector3, vb01::Vector2, vb01Gui::Textbox*, vb01Gui::Textbox*, vb01Gui::Textbox*);
 					void onClick();

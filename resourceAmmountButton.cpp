@@ -9,7 +9,9 @@ namespace battleship{
 	using namespace vb01;
 	using namespace vb01Gui;
 
-	ResourceAmmountButton::ResourceAmmountButton(Vector3 pos, Vector2 size, string name, int amm, int trigger, string imagePath) : Button(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, true, imagePath), ammount(amm) {
+	ResourceAmmountButton::ResourceAmmountButton(Vector3 pos, Vector2 size, string name, int amm, int trigger, string imagePath) : 
+		PfButtonBase(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, true, imagePath), ammount(amm)
+	{
 		ConcreteGuiManager *guiManager = ConcreteGuiManager::getSingleton();
 		int numTextboxes = guiManager->getTextboxes().size();
 		textbox = guiManager->getTextboxes()[numTextboxes - 1];

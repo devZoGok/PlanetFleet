@@ -1,4 +1,4 @@
-res = graphics.resolution
+res = windowSize
 Size = {x = 70, y = 70}
 
 gui = {

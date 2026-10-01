@@ -1,6 +1,7 @@
-headerHeight = 150
-statsInitHeight = 120
-statsSpace = 100
+headerHeight = 100
+statsInitLeft = .5 * res.x - 400
+statsInitHeight = 40
+statsSpace = 20
 fontName = 'batang.ttf'
 
 gui = {
@@ -8,8 +9,7 @@ gui = {
 		guiType = GuiType.TEXT,
 		text = 'Statistics',
 		name = 'stat',
-		pos = {x = 850, y = 100, z = 0},
-		zIndex = 0,
+		pos = {x = .4 * res.x, y = 50, z = 0},
 		scale = 0.5,
 		font = fontName,
 		fontFirstChar = 0,
@@ -20,9 +20,8 @@ gui = {
 		guiType = GuiType.TEXT,
 		text = 'Player',
 		name = 'pl',
-		pos = {x = 50, y = headerHeight, z = 0},
-		zIndex = 0,
-		scale = 0.3,
+		pos = {x = statsInitLeft + 10, y = headerHeight, z = 0},
+		scale = 0.18,
 		font = fontName,
 		fontFirstChar = 0,
 		fontLastChar = 256,
@@ -32,9 +31,8 @@ gui = {
 		guiType = GuiType.TEXT,
 		text = 'Vehicles built',
 		name = 'vb',
-		pos = {x = 150, y = headerHeight, z = 0},
-		zIndex = 0,
-		scale = 0.3,
+		pos = {x = statsInitLeft + 110, y = headerHeight, z = 0},
+		scale = 0.18,
 		font = fontName,
 		fontFirstChar = 0,
 		fontLastChar = 256,
@@ -44,9 +42,8 @@ gui = {
 		guiType = GuiType.TEXT,
 		text = 'Vehicles destroyed',
 		name = 'vd',
-		pos = {x = 450, y = headerHeight, z = 0},
-		zIndex = 0,
-		scale = 0.3,
+		pos = {x = statsInitLeft + 220, y = headerHeight, z = 0},
+		scale = 0.18,
 		font = fontName,
 		fontFirstChar = 0,
 		fontLastChar = 256,
@@ -56,9 +53,8 @@ gui = {
 		guiType = GuiType.TEXT,
 		text = 'Vehicles lost',
 		name = 'vl',
-		pos = {x = 850, y = headerHeight, z = 0},
-		zIndex = 0,
-		scale = 0.3,
+		pos = {x = statsInitLeft + 370, y = headerHeight, z = 0},
+		scale = 0.18,
 		font = fontName,
 		fontFirstChar = 0,
 		fontLastChar = 256,
@@ -66,11 +62,10 @@ gui = {
 	},
 	{
 		guiType = GuiType.TEXT,
-		text = 'Structures built',
+		text = 'Structs built',
 		name = 'sb',
-		pos = {x = 1050, y = headerHeight, z = 0},
-		zIndex = 0,
-		scale = 0.3,
+		pos = {x = statsInitLeft + 480, y = headerHeight, z = 0},
+		scale = 0.18,
 		font = fontName,
 		fontFirstChar = 0,
 		fontLastChar = 256,
@@ -78,11 +73,10 @@ gui = {
 	},
 	{
 		guiType = GuiType.TEXT,
-		text = 'Structures destroyed',
+		text = 'Structs destroyed',
 		name = 'sd',
-		pos = {x = 1350, y = headerHeight, z = 0},
-		zIndex = 0,
-		scale = 0.3,
+		pos = {x = statsInitLeft + 580, y = headerHeight, z = 0},
+		scale = 0.18,
 		font = fontName,
 		fontFirstChar = 0,
 		fontLastChar = 256,
@@ -90,18 +84,17 @@ gui = {
 	},
 	{
 		guiType = GuiType.TEXT,
-		text = 'Structures lost',
+		text = 'Structs lost',
 		name = 'sl',
-		pos = {x = 1720, y = headerHeight, z = 0},
-		zIndex = 0,
-		scale = 0.3,
+		pos = {x = statsInitLeft + 720, y = headerHeight, z = 0},
+		scale = 0.18,
 		font = 'batang.ttf',
 		fontFirstChar = 0,
 		fontLastChar = 256,
 		color = {x = 1, y = 1, z = 1, w = 1}
 	},
 	{
-		pos = {x = 1700, y = 1000, z = 0},
+		pos = {x = res.x - Size.x - 10, y = res.y - Size.y - 10, z = 0},
 		size = Size,
 		guiType = GuiType.BUTTON,
 		name = 'Back',

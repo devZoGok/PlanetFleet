@@ -39,6 +39,10 @@ namespace battleship{
 	}
 
 	//TODO implement a check of whether a vehicle is next to a building's outline
+
+	/// @brief 
+	/// @param targStruct 
+	/// @param loadResource passed as a logical expression of whether the order is to Load
 	void ResourceRover::loadResources(Structure *targStruct, bool loadResource){
 		float w = targStruct->getWidth(), l = targStruct->getLength();
 		bool closeEnough = (pos.getDistanceFrom(targStruct->getPos()) <= sqrt(l * l + w * w));
@@ -58,18 +62,25 @@ namespace battleship{
 				break;
 		}
 
+		// If the structure the rover is targeting belongs to the player then try to load or unload resources
 		if(player == targStruct->getPlayer()){
+			// Checks if the order given was not to load and if enough time has passed since the last load and if the cargo for the resource type exists
 			if(!loadResource && canUnload((int)resType)){
+				// Add the load speed amount of the resource type to the player's current resource count
 				player->updateResource(resType, loadSpeed, true);
 				cargo[(int)resType] -= loadSpeed;
 				lastLoadTime = getTime();
 			}
+			/* Checks if the order given was to load and the player is getting a valid resource type and that enough time has passed since the last load
+			while the loading capacity hasn't been reached */
 			else if(loadResource && canLoad() && player->getResource(resType) > 0){
+				// Reduce the load speed amount to the player's current resource count
 				player->updateResource(resType, -loadSpeed, true);
 				cargo[(int)resType] += loadSpeed;
 				lastLoadTime = getTime();
 			}
 		}
+		// If the rover is not targeting a player structure then try to trade resources
 		else{
 			vector<TradeOffer*> offers = player->getTradeOffers(targStruct->getPlayer());
 			if(offers.empty()) return;
@@ -98,6 +109,9 @@ namespace battleship{
 	}
 
 	//TODO equate rover load and extractor draw rates
+	
+	/// @brief Get resources from extractors and refineries for the resource rover to give to other units
+	/// @param order 
 	void ResourceRover::collectRefineds(Order order){
 		vector<Unit*> units = player->getUnits();
 		vector<Structure*> extractors, refineries;

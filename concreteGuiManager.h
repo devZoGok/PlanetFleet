@@ -2,6 +2,7 @@
 #define CONCRETE_GUI_MANAGER_H
 
 #include <abstractGuiManager.h>
+#include <solUtil.h>
 
 #include <string>
 #include <utility>
@@ -71,6 +72,8 @@ namespace battleship{
 		CONSOLE,
 		TRADE_OFFERS
 	};
+	class Tooltip;
+	class OptionBinding;
 
 	class ConcreteGuiManager : public vb01Gui::AbstractGuiManager{
 		public:
@@ -97,8 +100,11 @@ namespace battleship{
 					std::vector<vb01::Text*> = std::vector<vb01::Text*>{}
 				);
 			void parseLuaScript(std::string, std::string = "");
+			inline void reloadScreen(){readLuaScreenScript(screenScript);}
 		private:
 			ConcreteGuiManager();
+			Tooltip* parseTooltip(sol::table&, vb01::Vector3);
+			std::vector<OptionBinding> parseOptionBindings(sol::table&);
 			vb01Gui::Button* parseButton(int);
 			vb01Gui::Listbox* parseGameObjectListbox();
 			vb01Gui::Listbox* parseListbox(int);
@@ -110,7 +116,7 @@ namespace battleship{
 			void parseMusic();
 
 			std::vector<std::pair<int*, void*>> guiElements;
-			std::string texBasePath, fontBasePath;
+			std::string texBasePath, fontBasePath, screenScript;
 	};
 }
 

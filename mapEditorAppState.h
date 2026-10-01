@@ -16,7 +16,6 @@
 namespace vb01{
 	class Texture;
 }
-
 namespace battleship{
 	class MapEditor;
 
@@ -90,7 +89,6 @@ namespace battleship{
 			std::string mapName;
 			vb01::Vector2 mapSize;
 			bool newMap;
-			vb01::Text *radiusText = nullptr, *weightsText = nullptr;
 	};
 }
 

@@ -5,18 +5,18 @@ music = {
 	tracks = {'victory.ogg'}
 }
 
-res = graphics.resolution
+res = windowSize
 overlaySize = {x = 600, y = 450}
-overlayPos = {x = .5 * (res.x - overlaySize.x), y = 200, z = 0}
+overlayPos = {x = .5 * (res.x - overlaySize.x), y = 100, z = .2}
 buttonSize = {x = 150, y = 40}
-buttonInitPos = {x = .5 * (res.x - buttonSize.x), y = 350, z = .1}
+buttonInitPos = {x = .5 * (res.x - buttonSize.x), y = 250, z = .3}
 
 gui = {
 	{
 		guiType = GuiType.TEXT,
 		text = 'VICTORY!!!',
 		name = 'V',
-		pos = {x = overlayPos.x + 20, y = overlayPos.y + 75, z = .1},
+		pos = {x = overlayPos.x + 20, y = overlayPos.y + 75, z = .3},
 		scale = 1,
 		font = 'batang.ttf',
 		fontFirstChar = 0,

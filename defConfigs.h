@@ -26,9 +26,9 @@ namespace battleship{
 
   		const static int numAppStates = 5;
   		const static int numStaticBinds[numAppStates]{6, 0, 5, 19, 0};
-  		const static int numConfBinds[numAppStates]{0, 1, 27, 0, 0};
+  		const static int numConfBinds[numAppStates]{0, 1, 24, 0, 0};
 		const static int maxStaticBinds = 19;
-		const static int maxConfBinds = 23;
+		const static int maxConfBinds = 24;
 		const static int numScripts = 5;
 
 		const static std::string scriptPathBase = "Scripts/";
@@ -53,9 +53,11 @@ namespace battleship{
 			"Scripts/Core/player.lua",
 			"Scripts/Technologies/technologyData.lua",
 			"Scripts/Abilities/abilityData.lua",
-			"Scripts/Trading/traderData.lua"
+			"Scripts/Trading/traderData.lua",
+			"Scripts/Core/optionsStore.lua"
 		};
 
+		// Binds that remain the same throughout the lifecycle of a scene/GUI
   		const static Bind staticBinds[numAppStates][maxStaticBinds]{
   		    {
 				Bind::LEFT_CLICK,
@@ -82,6 +84,7 @@ namespace battleship{
 			},
 			{}
   		};
+		// Binds that change throughout the lifecycle of a scene/GUI
   		const static Bind confBinds[numAppStates][maxConfBinds]{
   		    {},
   		    {
@@ -110,7 +113,8 @@ namespace battleship{
   		        Bind::GROUP_8,
   		        Bind::GROUP_9,
   		        Bind::SELECT_STRUCTURE,
-  		        Bind::DESELECT_STRUCTURE
+  		        Bind::DESELECT_STRUCTURE,
+				Bind::Key_Q
   		    },
 			{},
 			{}
@@ -151,8 +155,10 @@ namespace battleship{
 				GLFW_KEY_LEFT,
   		        GLFW_KEY_RIGHT,
   		        GLFW_KEY_H, 
-  		        3, 
-  		        4, 
+				GLFW_KEY_EQUAL, // Changed zoom in to the plus/equal key
+				GLFW_KEY_MINUS, // Changed zoom out to the minus key
+  		        // 3, 
+  		        // 4, 
   		        GLFW_KEY_LEFT_CONTROL, 
   		        GLFW_KEY_LEFT_SHIFT, 
   		        GLFW_KEY_P, 
@@ -169,7 +175,8 @@ namespace battleship{
   		        GLFW_KEY_8,
   		        GLFW_KEY_9,
   		        GLFW_KEY_B,
-  		        GLFW_KEY_ESCAPE
+  		        GLFW_KEY_ESCAPE,
+				GLFW_KEY_Q
   		    },
 			{},
 			{}
@@ -185,7 +192,8 @@ namespace battleship{
   		const static bool isConfKey[numAppStates][maxConfBinds]{
 			{},
   		    {1},
-			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			// {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 			{},
 			{}
   		};

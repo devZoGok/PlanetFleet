@@ -9,7 +9,7 @@ else()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pedantic")
 endif()
 
-set(CMAKE_CXX_STANDART 17)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 set(CMAKE_BUILD_TYPE Debug)
 set(BUILD_TESTS OFF)
@@ -19,11 +19,11 @@ cmake_policy(SET CMP0015 NEW)
 set(STATES activeGameState.cpp inGameAppState.cpp guiAppState.cpp mapEditorAppState.cpp loadingAppState.cpp)
 
 set(UNIT_BUTTONS unitButton.cpp tradeButton.cpp buildButton.cpp trainButton.cpp researchButton.cpp orderButton.cpp stateToggleButton.cpp)
-set(OPTIONS_BUTTONS optionsButton.cpp tabButton.cpp okButton.cpp defaultsButton.cpp)
+set(OPTIONS_BUTTONS optionsButton.cpp tabButton.cpp okButton.cpp defaultsButton.cpp optionBinding.cpp)
 set(TRADING_BUTTONS activeStateBackButton.cpp playerTradeButton.cpp tradingScreenButton.cpp offerButton.cpp resourceAmmountButton.cpp)
 set(MENU_BUTTONS mainMenuButton.cpp singlePlayerButton.cpp exitButton.cpp backButton.cpp playButton.cpp)
 set(MAP_EDITOR_BUTTONS mapEditorButton.cpp newMapButton.cpp loadMapButton.cpp exportButton.cpp)
-set(BUTTONS statsButton.cpp activeStateButton.cpp minimapButton.cpp ${TRADING_BUTTONS} ${OPTIONS_BUTTONS} ${MENU_BUTTONS} ${MAP_EDITOR_BUTTONS} ${UNIT_BUTTONS})
+set(BUTTONS pfButtonBase.cpp statsButton.cpp activeStateButton.cpp minimapButton.cpp ${TRADING_BUTTONS} ${OPTIONS_BUTTONS} ${MENU_BUTTONS} ${MAP_EDITOR_BUTTONS} ${UNIT_BUTTONS})
 
 set(LISTBOXES skyboxTextureListbox.cpp landTextureListbox.cpp gameObjectListbox.cpp mapListbox.cpp)
 set(GUI tooltip.cpp concreteGuiManager.cpp ${BUTTONS} ${LISTBOXES})
@@ -49,6 +49,16 @@ set(VB01_GUI_DIR external/vb01Gui)
 set(GAME_BASE_DIR external/gameBase)
 
 add_executable(${GAME_NAME} main.cpp ${GAME_SRC})
+
+# Do this for Windows
+if(MSVC)
+    target_compile_options(${GAME_NAME} PRIVATE 
+		/bigobj 
+		# /utf-8
+        # /UUNICODE
+        # /U_UNICODE
+    )
+endif()
 
 include_directories(external/tinydir)
 include_directories(external/vb01/external/glm)
@@ -81,6 +91,15 @@ if(BUILD_TESTS)
 	set(TEST_NAME battleshipTests)
 	
 	add_executable(${TEST_NAME} ${TEST_SRC})
+	# Do this for Windows
+	if(MSVC)
+    target_compile_options(${TEST_NAME} PRIVATE
+		/bigobj
+		# /utf-8
+        # /UUNICODE
+        # /U_UNICODE
+    )
+	endif()
 	target_include_directories(${TEST_NAME} PUBLIC ${VB01_DIR})
 	target_include_directories(${TEST_NAME} PUBLIC ${VB01_GUI_DIR})
 	target_include_directories(${TEST_NAME} PUBLIC ${GAME_BASE_DIR})
