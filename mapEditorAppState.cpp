@@ -348,6 +348,7 @@ namespace battleship{
 		int numHorCells = int(mapSize.x / cellSize.x);
 		int numVertCells = int(mapSize.z / cellSize.z);
 		vector<Map::Cell> cells;
+		/*
 		vector<pair<int, float>> waterBodyBedPoints;
 		Node *terrainNode = map->getNodeParent();
 
@@ -415,10 +416,12 @@ namespace battleship{
 			}
 		}
 
+		*/
 		return cells;
 	}
 
 	void MapEditorAppState::MapEditor::generateMinimap(string mapFolder, vector<Map::Cell> &cells){
+		/*
 		Vector3 mapSize = map->getMapSize(), cellSize = map->getCellSize();
 		int width = int(mapSize.x / cellSize.x);
 		int height = int(mapSize.z / cellSize.z);
@@ -440,6 +443,7 @@ namespace battleship{
 		}
 
 		stbi_write_jpg(string(mapFolder + "minimap.jpg").c_str(), width, height, numChannels, imgData, 100);
+		*/
 	}
 
 	string MapEditorAppState::MapEditor::generatePlayerTableStr(Player* player){
@@ -486,6 +490,7 @@ namespace battleship{
 	}
 
 	void MapEditorAppState::MapEditor::generateMapScript(vector<Map::Cell> &cells){
+		/*
 		int numWaterBodies = map->getNodeParent()->getNumChildren() - 1;
 
 		string mapScript = "metadata = {\n\tlights = {";
@@ -588,6 +593,7 @@ namespace battleship{
 		outFile = std::ofstream(basePath + "cells.lua");
 		outFile << cellsScript;
 		outFile.close();
+		*/
 	}
 
 	void MapEditorAppState::MapEditor::exportMap(){
@@ -596,10 +602,12 @@ namespace battleship{
 		create_directory(mapFolder);
 		copy_file(assetsPath + DEFAULT_TEXTURE, mapFolder + map->getMapName() + ".jpg", filesystem::copy_options::overwrite_existing);
 
+		/*
 		vector<Map::Cell> cells = generateMapCells();
 		generateLandmassXml();
 		generateMapScript(cells);
 		generateMinimap(mapFolder, cells);
+		*/
 	}
 
 	void MapEditorAppState::MapEditor::togglePush(bool push){

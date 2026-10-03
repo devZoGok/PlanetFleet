@@ -216,8 +216,6 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<Map>(
 			"Map",
 			"getSingleton", &Map::getSingleton,
-			"getCell", &Map::getCell,
-			"getCells", &Map::getCells,
 			"getCellId", &Map::getCellId,
 			"getMapSize", &Map::getMapSize,
 			"getSpawnPoint", &Map::getSpawnPoint,
@@ -227,8 +225,7 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<Pathfinder>(
 			"Pathfinder",
 			"getSingleton", &Pathfinder::getSingleton,
-			"clampDestToSourceRegion", &Pathfinder::clampDestToSourceRegion,
-			"calcHeuristics", &Pathfinder::calcHeuristics,
+			//"clampDestToSourceRegion", &Pathfinder::clampDestToSourceRegion,
 			"findPath", &Pathfinder::findPath
 		);
 
