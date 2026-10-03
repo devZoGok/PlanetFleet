@@ -892,11 +892,11 @@ namespace battleship{
 	//TODO optimize horizontal and vertical id calculcation
 	CellId Map::getCellId(Vector3 pos, bool checkUnderwaterCells, int sx, int sy, int sz){
 		Vector3 cellSize = Vector3(CELL_SIZE.x * sx, CELL_SIZE.y, CELL_SIZE.z * sz);
-		int numHorCells = ceil(mapSize.x / cellSize.x), horId = -1;
-		int numVertCells = ceil(mapSize.z / cellSize.z), vertId = -1;
+		int numHorCells = ceil(mapSize.x / cellSize.x);
+		int numVertCells = ceil(mapSize.z / cellSize.z);
 
-		Vector3 cellGraphSize = Vector3(numHorCells * cellSize.x, 0, numVertCells * cellSize.z);
-		Vector3 startPos = .5 * Vector3(cellSize.x - cellGraphSize.x, 0, cellSize.z - cellGraphSize.z);
+		int horId = (pos.x + .5 * mapSize.x) / cellSize.x;
+		int vertId = (pos.z + .5 * mapSize.z) / cellSize.z;
 
 		if(horId == -1) vertId = -1;
 		if(vertId == -1) horId = -1;
@@ -905,14 +905,8 @@ namespace battleship{
 		Cell surfaceCell = getCell(sfId);
 
 		if(checkUnderwaterCells && surfaceCell.type == Cell::Type::WATER && surfaceCell.numUnderWaterCells > 0){
-			for(int i = 0; i <= surfaceCell.numUnderWaterCells; i++){
-				CellId cid = make_tuple(horId, i, vertId);
-				Cell cell = map->getCell(cid);
-
-				if(fabs(cell.pos.y - pos.y) < .5 * CELL_SIZE.y) return cid;
-			}
-
-			return sfId;
+			int depthId = (surfaceCell.pos.y - pos.y) / cellSize.y;
+			return make_tuple(horId, depthId, vertId);
 		}
 
 		else return sfId;
