@@ -26,21 +26,28 @@ gui = {
 		size = {x = 470, y = 20},
 		guiType = GuiType.LISTBOX,
 		listboxType = ListboxType.CONTROLS,
-		numMaxDisplay = 5
+		numMaxDisplay = 5,
+		option = {path = 'mappings'}
 	},
 	{
 		pos = {x = 20, y = 410, z = 0},
 		size = {x = 150, y = 20},
 		guiType = GuiType.BUTTON,
 		name = 'Ok',
-		buttonType = ButtonType.OK
+		buttonType = ButtonType.OK,
+		dependencies = {
+			{id = 2}
+		}
 	},
 	{
 		pos = {x = 180, y = 410, z = 0},
 		size = {x = 150, y = 20},
 		guiType = GuiType.BUTTON,
 		name = 'Restore defaults',
-		buttonType = ButtonType.DEFAULTS
+		buttonType = ButtonType.DEFAULTS,
+		dependencies = {
+			{id = 2}
+		}
 	},
 	{
 		pos = {x = 340, y = 410, z = 0},

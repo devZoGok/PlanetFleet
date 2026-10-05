@@ -48,7 +48,9 @@ namespace battleship{
 
             	if(isPressed)
 					guiManager->updateGui();
-							
+				else
+					guiManager->releaseSlider();
+
             	break;
 			case Bind::SCROLLING_UP:{
 				Listbox *l = getOpenListbox();

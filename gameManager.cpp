@@ -267,9 +267,34 @@ namespace battleship{
 		sol::table resTable = graphicsTable["resolution"]; 
 		width = resTable["x"];
 		height = resTable["y"];
+		exposeWindowSize();
 
 		string n = SOL_LUA_STATE["multiplayer"]["name"];
 		mainPlayerName = vb01::stringToWstring(n);
+	}
+
+	void GameManager::exposeWindowSize(){
+		generateView().script("windowSize = {x = " + to_string(width) + ", y = " + to_string(height) + "}");
+	}
+
+	//resizes the window if graphics.resolution or graphics.fullscreen changed, returns whether it did
+	bool GameManager::applyGraphicsOptions(){
+		sol::state_view SOL_LUA_STATE = generateView();
+		sol::table graphicsTable = SOL_LUA_STATE["graphics"];
+		sol::table resTable = graphicsTable["resolution"];
+		bool fs = graphicsTable["fullscreen"];
+		int w = resTable["x"], h = resTable["y"];
+
+		if(w == width && h == height && fs == fullscreen) return false;
+
+		Root *root = Root::getSingleton();
+		root->setResolution(w, h, fs);
+		width = root->getWidth();
+		height = root->getHeight();
+		fullscreen = fs;
+		exposeWindowSize();
+
+		return true;
 	}
 
 	void GameManager::start(string gameDir) {
