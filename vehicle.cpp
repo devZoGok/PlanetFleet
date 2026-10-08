@@ -507,24 +507,32 @@ namespace battleship{
 		}
 	}
 
+	/// @brief Builds/ Repairs a structure nearby with this vechicle based on the passed order
+	/// @param order Must be a structure
 	void Vehicle::build(Order order){
 		Structure *structure = (Structure*)order.targets[0].unit;
 		float offset = .5 * Map::getSingleton()->getCellSize().x;
 
+		// Build the structure if the vehicle is close enough to the location selected to build
 		if(pathPoints.empty() && closeEnough(structure, pos, offset)){
 			sol::table targTable = generateView()["units"][structure->getId()];
+			// Get the cost in resources deducted and the time ratw at which the structure can be built
 			int costRate = (int)targTable["cost"] / 100, buildRate = (int)targTable["buildTime"] / 100;
-
+			
+			// If the player is able is able to build economically and according to build rate and the structure is not yet complete
+			// Increment the build status, subtract the used resources and update the latest build time
 			if(!structure->isComplete() && player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastBuildTime > buildRate){
 				structure->incrementBuildStatus();
 				player->updateResource(ResourceType::REFINEDS, -costRate, true);
 				lastBuildTime = getTime();
 			}
+			// If the structure is complete delete the order and increment the number of strcutres built
 			else if(structure->isComplete()){
 				removeOrder(0);
 				player->incStructuresBuilt();
 			}
 		}
+		// If the vehicle is not close enough then navigate the vehicle toward the structure
 		else navigate(offset);
 	}
 
