@@ -26,6 +26,9 @@ namespace battleship{
 			inline int getMaxHealth(){return maxHealth;}
 			inline int getDeathHp(){return DEATH_HP;}
         	inline void takeDamage(int damage) {health -= damage * (1 + (freezeDmgFactor - 1) * freezeStatus * .01f);}
+			inline void regenHealth(int amount) {health += amount;}
+			inline void incrementHealth() {health++;}
+			bool atFullHealth();
 			inline GameObject* getGameObject(){return gameObject;}
 			inline std::vector<Armor> getArmorTypes(){return armorTypes;}
 			inline void setFreezeStatus(int fs){this->freezeStatus = std::clamp(fs, 0, 100);}

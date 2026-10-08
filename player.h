@@ -45,6 +45,10 @@ namespace battleship{
 		bool isObjectVisible(GameObject*, std::vector<Unit*>);
 		int getCpuPlayerId();
 		inline int getResource(ResourceType rt){return resources[(int)rt];}
+		/// @brief Updates the amount of resources by adding or setting the resources to the passed amount
+		/// @param rt 
+		/// @param amount 
+		/// @param add Add if true, sets if false
 		inline void updateResource(ResourceType rt, int amount, bool add){resources[(int)rt] = (add ? resources[(int)rt] + amount : amount);}
 		inline Trader* getTrader(){return trader;}
 		inline void deselectUnits(){selectedUnits.clear();}
