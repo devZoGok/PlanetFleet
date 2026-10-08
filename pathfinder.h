@@ -14,7 +14,6 @@ namespace battleship{
 	class Pathfinder{
 		public:
 			static Pathfinder* getSingleton();
-			//int clampDestToSourceRegion(int, int);
 			std::vector<CellId> findPath(
 				CellId, 
 				CellId, 
@@ -27,7 +26,7 @@ namespace battleship{
 			inline void setImpassibleNodeVal(vb01::u32 val){this->impassibleNodeVal = val;}
 		private:
 			Pathfinder(){}
-			float calcHeuristic(CellId, CellId);
+			inline float calcHeuristic(vb01::Vector3 cp, vb01::Vector3 dp){return 145 * dp.getDistanceFrom(cp);}
 
 			vb01::u32 impassibleNodeVal;
 	};

@@ -396,7 +396,19 @@ namespace battleship{
 		vector<CellId> path = pf->findPath(srcId, dest, (int)type);
 		Vector3 *truncPoint = nullptr;
 
-		if(targObj && origDest == dest && !garrisonOrder)
+		if(type != UnitType::HOVER)
+			for(int i = 0; i < path.size(); i++){
+				Map::Cell cell = map->getCell(path[i]);
+
+				if((!ship && cell.type == Map::Cell::WATER) || (ship && cell.type == Map::Cell::LAND)){
+					path = vector<CellId>(path.begin(), path.begin() + i);
+					truncPoint = new Vector3;
+					*truncPoint = cell.pos;
+					break;
+				}
+			}
+
+		if(targObj && !truncPoint && origDest == dest && !garrisonOrder)
 			for(int i = path.size() - 1; i >= 0; i--){
 				Vector3 targPos = targObj->getPos();
 				Vector3 pointDir = map->getCell(path[i]).pos - targPos;
