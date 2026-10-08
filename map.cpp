@@ -467,21 +467,39 @@ namespace battleship{
 		Vector2 ids = landQuad->getSubquadIds(configData::NUM_SUBDIVS, configData::NUM_SUBDIVS, meshPoint, mapSize);
 
 		Cell::Type type = Cell::Type::LAND;
+		int numUnderwaterCells = 0;
 
 		for(int i = 1; i < terrainNode->getNumChildren(); i++){
 			Vector3 waterPos = terrainNode->getChild(i)->getPosition();
 			Vector3 waterSize = ((Quad*)terrainNode->getChild(i)->getMesh(0))->getSize();
 
-			if(meshPoint.y <= waterPos.y && fabs(meshPoint.x - waterPos.x) < .5 * waterSize.x && fabs(meshPoint.z - waterPos.z) < .5 * waterSize.y){
+			if(fabs(meshPoint.x - waterPos.x) < .5 * waterSize.x && fabs(meshPoint.z - waterPos.z) < .5 * waterSize.y){
 				type = Cell::Type::WATER;
+				Vector3 topVert = waterPos;
+
+				vector<Vector3> vertPos = landQuad->getVertPosInQuad(configData::NUM_SUBDIVS, configData::NUM_SUBDIVS, mapSize, cellPos, cellSize);
+
+				for(Vector3 vp : vertPos){
+					if(topVert.y > waterPos.y){
+						type = Cell::Type::LAND;
+						cellPos.y = topVert.y;
+						break;
+					} 
+
+					if(vp.y > topVert.y) topVert = vp;
+				}
+
+				if(type == Cell::Type::WATER){
+					numUnderwaterCells = fabs(waterPos.y - topVert.y) / cellSize.y;
+					cellPos.y = waterPos.y + y * cellSize.y;
+				}
+
 				break;
 			}
 		}
 
-		//logic if vertices are above water quad
-		/*
-		*/
-		return Cell(cellPos, type, generateAdjacentNodeEdges(numHorCells, x, numVertCells, z, 0, 0, 10));
+		vector<Edge> edges = generateAdjacentNodeEdges(numHorCells, x, numVertCells, z, numUnderwaterCells, 0, 10);
+		return Cell(cellPos, type, edges, numUnderwaterCells);
 	}
 
 	void Map::loadSpawnPoints(){
