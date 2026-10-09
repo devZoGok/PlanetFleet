@@ -475,23 +475,25 @@ namespace battleship{
 
 			if(fabs(meshPoint.x - waterPos.x) < .5 * waterSize.x && fabs(meshPoint.z - waterPos.z) < .5 * waterSize.y){
 				type = Cell::Type::WATER;
-				Vector3 topVert = waterPos;
+				Vector3 topVert = Vector3(
+					meshPoint.x, 
+					landQuad->getHeightInSubquad(configData::NUM_SUBDIVS, configData::NUM_SUBDIVS, mapSize, cellPos), 
+					meshPoint.z
+				);
 
 				vector<Vector3> vertPos = landQuad->getVertPosInQuad(configData::NUM_SUBDIVS, configData::NUM_SUBDIVS, mapSize, cellPos, cellSize);
 
-				for(Vector3 vp : vertPos){
-					if(topVert.y > waterPos.y){
-						type = Cell::Type::LAND;
-						cellPos.y = topVert.y;
-						break;
-					} 
-
+				for(Vector3 vp : vertPos)
 					if(vp.y > topVert.y) topVert = vp;
-				}
 
-				if(type == Cell::Type::WATER){
-					numUnderwaterCells = fabs(waterPos.y - topVert.y) / cellSize.y;
-					cellPos.y = waterPos.y + y * cellSize.y;
+				if(topVert.y > waterPos.y){
+					type = Cell::Type::LAND;
+					cellPos.y = topVert.y;
+					break;
+				} 
+				else{
+					cellPos.y = waterPos.y - y * cellSize.y;
+					numUnderwaterCells = fabs(cellPos.y - topVert.y) / cellSize.y;
 				}
 
 				break;
