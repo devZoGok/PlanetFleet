@@ -428,6 +428,9 @@ namespace battleship{
 			cellPos.y,
 			clamp(cellPos.z, -.5f * mapSize.z, .5f * mapSize.z)
 		);
+		Quad *landQuad = (Quad*)terrainNode->getChild(0)->getMesh(0);
+		float height = landQuad->getHeightInSubquad(configData::NUM_SUBDIVS, configData::NUM_SUBDIVS, mapSize, cellPos);
+		meshPoint.y = height, cellPos.y = height;
 
 		auto pointWithin = [](Vector3 p1, Vector3 p2, Vector3 s){
 			return fabs(p1.x - p2.x) < .5 * s.x && fabs(p1.z - p2.z) < .5 * s.y;
@@ -435,7 +438,6 @@ namespace battleship{
 
 		Cell::Type type = Cell::Type::LAND;
 		int subCellArr[3][3], numTotalUnderwaterCells = 0, numUnderwaterCells = 0;
-		Quad *landQuad = (Quad*)terrainNode->getChild(0)->getMesh(0);
 
 		for(int i = 1; i < terrainNode->getNumChildren(); i++){
 			Vector3 waterPos = terrainNode->getChild(i)->getPosition();
@@ -443,11 +445,7 @@ namespace battleship{
 
 			if(pointWithin(meshPoint, waterPos, waterSize)){
 				type = Cell::Type::WATER;
-				Vector3 topVert = Vector3(
-					meshPoint.x, 
-					landQuad->getHeightInSubquad(configData::NUM_SUBDIVS, configData::NUM_SUBDIVS, mapSize, cellPos), 
-					meshPoint.z
-				);
+				Vector3 topVert = meshPoint;
 
 				if(topVert.y > waterPos.y){
 					type = Cell::Type::LAND;
