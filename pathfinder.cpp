@@ -31,7 +31,9 @@ namespace battleship{
 
 			for(int x = 0; x < numX; x++){
 				for(int z = 0; z < numZ; z++){
-					for(int y = 0; y < numY; y++){
+					int depth = map->getCell(x, 0, z).numUnderWaterCells + 1;
+
+					for(int y = 0; y < depth; y++){
 						paths[x][z].push_back(vector<CellId>{});
 						cellsByCheck[x][z].push_back(false);
 						distances[x][z].push_back(impassibleNodeVal);
@@ -62,7 +64,7 @@ namespace battleship{
 					float sum1 = distances[get<0>(pmc1)][get<2>(pmc1)][get<1>(pmc1)] + heurPmc1; 
 					float sum2 = distances[get<0>(pmc2)][get<2>(pmc2)][get<1>(pmc2)] + heurPmc2; 
 
-					if(sum1 < sum2 || (sum1 == sum2 && heurPmc1 < calcHeuristic(vertStrichCell.pos, destCell.pos))){
+					if(sum1 < sum2 || (sum1 == sum2 && heurPmc1 < heurPmc2)){
 						minCellId = i;
 						vertStrich = possibleMinCells[i].first;
 						vertStrichCell = map->getCell(vertStrich, cellScale, cellScale, cellScale);

@@ -277,6 +277,12 @@ namespace battleship{
 		if(checkDown && checkRight)
 			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), make_tuple(x + 1, y, z + 1)));
 
+		if(y > 0)
+			edges.push_back(Map::Edge(weight, make_tuple(x, y - 1, z)));
+
+		if(y < numDepthCells)
+			edges.push_back(Map::Edge(weight, make_tuple(x, y + 1, z)));
+
 		return edges;
 	}
 
@@ -500,7 +506,7 @@ namespace battleship{
 			}
 		}
 
-		vector<Edge> edges = generateAdjacentNodeEdges(numHorCells, x, numVertCells, z, numUnderwaterCells, 0, 10);
+		vector<Edge> edges = generateAdjacentNodeEdges(numHorCells, x, numVertCells, z, numUnderwaterCells, y, 10);
 		return Cell(cellPos, type, edges, numUnderwaterCells);
 	}
 
