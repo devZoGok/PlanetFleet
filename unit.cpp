@@ -390,21 +390,26 @@ namespace battleship{
 	void Unit::eject(Order order){
 		Map *map = Map::getSingleton();
 		Map::Cell currCell = map->getCell(map->getCellId(pos));
-		CellId adjWaterCellId = make_tuple(-1, -1, -1), adjLandCellId = make_tuple(-1, -1, -1);
+		bool awci = false, alci = false;
+		CellId adjWaterCellId, adjLandCellId;
 
 		for(Map::Edge edge : currCell.edges){
 			Map::Cell destCell = map->getCell(edge.destCellId);
 
-			if(adjLandCellId == make_tuple(-1, -1, -1) && destCell.type == Map::Cell::LAND)
+			if(!alci && destCell.type == Map::Cell::LAND){
 				adjLandCellId = edge.destCellId;
-			if(adjWaterCellId == make_tuple(-1, -1, -1) && destCell.type == Map::Cell::WATER)
+				alci = true;
+			}
+			if(!awci && destCell.type == Map::Cell::WATER){
 				adjWaterCellId = edge.destCellId;
+				awci = true;
+			}
 		}
 
 		for(GarrisonSlot &slot : garrisonSlots)
 			if(slot.vehicle){
-				bool exitToLandCell = (slot.vehicle->getType() == UnitType::LAND && adjLandCellId != make_tuple(-1, -1, -1));
-				bool exitToWaterCell = ((slot.vehicle->getType() == UnitType::SEA_LEVEL || slot.vehicle->getType() == UnitType::UNDERWATER) && adjWaterCellId != make_tuple(-1, -1, -1));
+				bool exitToLandCell = (alci && slot.vehicle->getType() == UnitType::LAND);
+				bool exitToWaterCell = (awci && (slot.vehicle->getType() == UnitType::SEA_LEVEL || slot.vehicle->getType() == UnitType::UNDERWATER));
 				
 				if(exitToLandCell || exitToWaterCell)
 					slot.vehicle->exitGarrisonable(map->getCell(exitToLandCell ? adjLandCellId : adjWaterCellId).pos);

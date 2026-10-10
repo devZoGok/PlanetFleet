@@ -45,8 +45,6 @@ namespace battleship{
 			paths[get<0>(source)][get<2>(source)][get<1>(source)].push_back(source);
 			distances[get<0>(source)][get<2>(source)][get<1>(source)] = 0;
 
-			CellId lastVertStrich = make_tuple(-1, -1, -1);
-
 			Map::Cell destCell = map->getCell(dest);
 
 			while(!cellsByCheck[get<0>(dest)][get<2>(dest)][get<1>(dest)]){
@@ -70,9 +68,6 @@ namespace battleship{
 						vertStrichCell = map->getCell(vertStrich, cellScale, cellScale, cellScale);
 					}
 				}
-
-				if(distances[get<0>(vertStrich)][get<2>(vertStrich)][get<1>(vertStrich)] == impassibleNodeVal)
-					return paths[get<0>(lastVertStrich)][get<2>(lastVertStrich)][get<1>(lastVertStrich)];
 
 				possibleMinCellIncludes[get<0>(possibleMinCells[minCellId].first)][get<2>(possibleMinCells[minCellId].first)][get<1>(possibleMinCells[minCellId].first)] = false;
 				possibleMinCells.erase(possibleMinCells.begin() + minCellId);
