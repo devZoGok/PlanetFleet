@@ -650,117 +650,6 @@ namespace battleship{
 		}
 	}
 
-	//TODO implement toggleable cell rendering
-	//TODO remove srcCellId from the Edge struct
-	void Map::loadCells(){
-		/*
-		sol::state_view SOL_LUA_VIEW = generateView();
-		sol::table cellsTable = SOL_LUA_VIEW["cells"];
-		int numCells = cellsTable.size();
-
-		for(int i = 0; i < numCells; i++){
-			sol::table cellTable = cellsTable[i + 1], posTable = cellTable["pos"];
-			int numEdges = cellTable["numEdges"];
-			vector<Edge> edges;
-
-			for(int j = 0; j < numEdges; j++){
-				sol::table edgeTable = cellTable["edges"][j + 1];
-				edges.push_back(Edge(edgeTable["weight"], edgeTable["srcCellId"], edgeTable["destCellId"]));
-			}
-
-			int numUnderWaterCells = cellTable["numUnderWaterCells"];
-			vector<int> underWaterCellIds;
-
-			for(int j = 0; j < numUnderWaterCells; j++)
-				underWaterCellIds.push_back((int)cellTable["underWaterCellId"][j + 1]);
-
-			Vector3 cellPos = Vector3(posTable["x"], posTable["y"], posTable["z"]);
-			Cell::Type cellType = (Cell::Type)cellTable["type"];
-
-			//
-			Quad *quad = new Quad(Vector3(CELL_SIZE.x, CELL_SIZE.z, 0));
-			quad->setWireframe(true);
-			quad->setMaterial(cellType == Cell::Type::LAND ? landCellMat : waterCellMat);
-
-			Node *node = new Node(cellPos + Vector3::VEC_J * .1);
-			node->attachMesh(quad);
-			//
-
-			cells.push_back(Cell(cellPos, cellType, edges, underWaterCellIds));
-		}
-		*/
-	}
-
-	void Map::fillRegion(vector<Map::Cell*>& regionCells, int cellId){
-		/*
-		Map::Cell::Type type = cells[cellId].type;
-
-		if(find(regionCells.begin(), regionCells.end(), &cells[cellId]) == regionCells.end())
-			regionCells.push_back(&cells[cellId]);
-
-		for(int i = 0; i < cells[cellId].edges.size(); i++){
-			int adjCellId = cells[cellId].edges[i].destCellId;
-			bool underwaterWaterCell = (
-					find(cells[cellId].underWaterCellIds.begin(), cells[cellId].underWaterCellIds.end(), adjCellId) 
-					!= 
-					cells[cellId].underWaterCellIds.end()
-			);
-
-			if(underwaterWaterCell || cells[adjCellId].type != type) continue;
-
-			bool adjCellInRegion = (find(regionCells.begin(), regionCells.end(), &cells[adjCellId]) == regionCells.end());
-
-			if(adjCellInRegion) fillRegion(regionCells, adjCellId);
-		}
-		*/
-	}
-
-	void Map::calculateRegions(){
-	/*
-		bool allCellsInRegions = false;
-		int nextCellId = 0, numSurfaceCells = (int(mapSize.x / CELL_SIZE.x)) * (int(mapSize.z / CELL_SIZE.z));
-
-		while(!allCellsInRegions){
-			vector<Map::Cell*> regionCells;
-			fillRegion(regionCells, nextCellId);
-			regions.push_back(make_pair(cells[nextCellId].type, regionCells));
-
-			int sumCellsInRegions = 0;
-
-			for(int i = 0; i < regions.size(); i++)
-				sumCellsInRegions += regions[i].second.size();
-
-			allCellsInRegions = (sumCellsInRegions == numSurfaceCells);
-
-			if(!allCellsInRegions)
-				for(int i = 0; i < cells.size(); i++){
-					bool inRegion = false;
-
-					for(int j = 0; j < regions.size(); j++)
-						if(find(regions[j].second.begin(), regions[j].second.end(), &cells[i]) != regions[j].second.end()){
-							inRegion = true;
-							break;
-						}
-
-					if(!inRegion){
-						nextCellId = i;
-						break;
-					}
-				}
-		}
-
-		for(pair<Map::Cell::Type, vector<Cell*>>& reg : regions){
-			if(reg.first != Cell::Type::WATER) continue;
-
-			int oldNumCells = reg.second.size();
-
-			for(int i = 0; i < oldNumCells; i++)
-				for(int ucId : reg.second[i]->underWaterCellIds)
-					reg.second.push_back(&cells[ucId]);
-		}
-	*/
-	}
-
     void Map::load(string mapName){
 		this->mapName = mapName;
 
@@ -778,8 +667,6 @@ namespace battleship{
 		preprareScene(false);
 		loadSpawnPoints();
 		loadSkybox();
-		loadCells();
-		//calculateRegions();
 		loadTerrainObject(-1);
 
 		sol::optional<sol::table> lightsOpt = SOL_LUA_STATE[mapTable]["lights"];
@@ -817,22 +704,6 @@ namespace battleship{
 		}
 	}
 
-	void Map::unloadCells(){
-		/*
-		while(cellNode->getNumChildren() > 0){
-			Node *node = cellNode->getChild(0);
-			node->getMesh(0)->setMaterial(nullptr);
-			cellNode->dettachChild(node);
-			delete node;
-		}
-
-		delete landCellMat;
-		delete waterCellMat;
-
-		cells.clear();
-		*/
-	}
-
 	//TODO unload terrain assets
 	void Map::unloadTerrainObjects(){
 		while(terrainNode->getNumChildren() > 0){
@@ -867,7 +738,6 @@ namespace battleship{
 		Minimap::getSingleton()->unload();
 
 		unloadPlayerObjects();
-		unloadCells();
 		unloadTerrainObjects();
 		destroyScene();
 		unloadLights();

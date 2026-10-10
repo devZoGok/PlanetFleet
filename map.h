@@ -89,8 +89,6 @@ namespace battleship{
 		CellId getNumCells(int = 1, int = 1, int = 1);
 		Map::Cell getCell(CellId, int = 1, int = 1, int = 1);
 		Map::Cell getCell(int, int, int, int = 1, int = 1, int = 1);
-		inline std::pair<Cell::Type, std::vector<Cell*>>& getRegion(int i){return regions[i];}
-		inline int getNumRegions(){return regions.size();}
 		inline std::string getMapName(){return mapName;}
 		inline vb01::Node* getNodeParent(){return terrainNode;}
 		inline vb01::Vector3 getCellSize(){return CELL_SIZE;}
@@ -112,20 +110,15 @@ namespace battleship{
 		std::vector<vb01::Vector3> spawnPoints;
 		float baseHeight;
 		std::vector<vb01::Node*> lights;
-		std::vector<std::pair<Cell::Type, std::vector<Cell*>>> regions;
 
         Map(){}
 		void preprareScene(bool);
 		void loadSpawnPoints();
 		void loadLights();
 		void loadSkybox();
-		void loadCells();
 		void loadPlayerGameObjects(Player*, sol::table);
 		void loadTerrainObject(int);
-		void fillRegion(std::vector<Cell*>&, int);
-		void calculateRegions();
 		void unloadTerrainObjects();
-		void unloadCells();
 		void unloadLights();
 		void unloadSkybox();
 		void unloadPlayerObjects();
