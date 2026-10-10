@@ -437,7 +437,7 @@ function Player:startHarvesting()
 	if #extractors == 0 then return BTNodeResult.FAILURE end
 
 	for i = #extractors, 1, -1 do
-		if extractors[i]:toExtractor():getDeposit():getAmmount() == 0 then
+		if extractors[i]:toExtractor():getDeposit():getAmount() == 0 then
 			table.remove(extractors, i)
 		end
 	end

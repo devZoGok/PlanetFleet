@@ -164,7 +164,7 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<ResourceDeposit>(
 			"ResourceDeposit", sol::constructors<ResourceDeposit(Player*, int, Vector3, Quaternion, int)>(),
 			"getExtractor", &ResourceDeposit::getExtractor,
-			"getAmmount", &ResourceDeposit::getAmmount,
+			"getAmount", &ResourceDeposit::getAmount,
 			"getPos", &GameObject::getPos,
 			"toGameObject", [](ResourceDeposit *rd){return (GameObject*)rd;}
 		);

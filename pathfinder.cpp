@@ -129,8 +129,6 @@ namespace battleship{
 						paths[get<0>(enId)][get<2>(enId)][get<1>(enId)].push_back(enId);
 					}
 				}
-
-				lastVertStrich = vertStrich;
 			}
 
 			return paths[get<0>(dest)][get<2>(dest)][get<1>(dest)];

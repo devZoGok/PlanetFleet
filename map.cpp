@@ -548,9 +548,9 @@ namespace battleship{
 
 				sol::table rotTable = npcObjTable["rot"];
 				Quaternion rot = Quaternion(rotTable["w"], rotTable["x"], rotTable["y"], rotTable["z"]);
-				int initAmmount = resDepTbl[j + 1]["initAmmount"];
+				int initAmount = resDepTbl[j + 1]["initAmount"];
 
-				player->addResourceDeposit(GameObjectFactory::createResourceDeposit(player, id, pos, rot, initAmmount));
+				player->addResourceDeposit(GameObjectFactory::createResourceDeposit(player, id, pos, rot, initAmount));
 			}
 		}
 
