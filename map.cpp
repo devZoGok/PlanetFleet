@@ -248,44 +248,6 @@ namespace battleship{
 		return map;
 	}
 
-	//TODO implement neighbouring depth cell edge inclusions
-	vector<Map::Edge> Map::generateAdjacentNodeEdges(int numHorCells, int x, int numVertCells, int z, int numDepthCells, int y, int weight){
-		vector<Map::Edge> edges;
-		bool checkUp = (z > 0), checkRight = (x < numHorCells - 1), checkDown = (z < numVertCells - 1), checkLeft = (x > 0);
-
-		if(checkLeft)
-			edges.push_back(Map::Edge(weight, make_tuple(x - 1, y, z)));
-
-		if(checkRight)
-			edges.push_back(Map::Edge(weight, make_tuple(x + 1, y, z)));
-
-		if(checkUp)
-			edges.push_back(Map::Edge(weight, make_tuple(x, y, z - 1)));
-
-		if(checkDown)
-			edges.push_back(Map::Edge(weight, make_tuple(x, y, z + 1)));
-
-		if(checkUp && checkLeft)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), make_tuple(x - 1, y, z - 1)));
-
-		if(checkUp && checkRight)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), make_tuple(x + 1, y, z - 1)));
-
-		if(checkDown && checkLeft)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), make_tuple(x - 1, y, z + 1)));
-
-		if(checkDown && checkRight)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), make_tuple(x + 1, y, z + 1)));
-
-		if(y > 0)
-			edges.push_back(Map::Edge(weight, make_tuple(x, y - 1, z)));
-
-		if(y < numDepthCells)
-			edges.push_back(Map::Edge(weight, make_tuple(x, y + 1, z)));
-
-		return edges;
-	}
-
 	void Map::update(){
 		Minimap::getSingleton()->update();
 	}
@@ -453,11 +415,9 @@ namespace battleship{
 		return getCell(get<0>(ci), get<1>(ci), get<2>(ci), sx, sy, sz);
 	}
 
-	//TODO implement logic to check if land vertices are above water quads
 	Map::Cell Map::getCell(int x, int y, int z, int sx, int sy, int sz){
 		Vector3 cellSize = Vector3(CELL_SIZE.x * sx, CELL_SIZE.y, CELL_SIZE.z * sz);
-		int numHorCells = ceil(mapSize.x / cellSize.x);
-		int numVertCells = ceil(mapSize.z / cellSize.z);
+		int numHorCells = ceil(mapSize.x / cellSize.x), numVertCells = ceil(mapSize.z / cellSize.z);
 
 		Vector3 cellGraphSize = Vector3(numHorCells * cellSize.x, 0, numVertCells * cellSize.z);
 		Vector3 startPos = .5 * Vector3(cellSize.x - cellGraphSize.x, 0, cellSize.z - cellGraphSize.z);
@@ -469,17 +429,19 @@ namespace battleship{
 			clamp(cellPos.z, -.5f * mapSize.z, .5f * mapSize.z)
 		);
 
-		Quad *landQuad = (Quad*)terrainNode->getChild(0)->getMesh(0);
-		Vector2 ids = landQuad->getSubquadIds(configData::NUM_SUBDIVS, configData::NUM_SUBDIVS, meshPoint, mapSize);
+		auto pointWithin = [](Vector3 p1, Vector3 p2, Vector3 s){
+			return fabs(p1.x - p2.x) < .5 * s.x && fabs(p1.z - p2.z) < .5 * s.y;
+		};
 
 		Cell::Type type = Cell::Type::LAND;
-		int numUnderwaterCells = 0;
+		int subCellArr[3][3], numTotalUnderwaterCells = 0, numUnderwaterCells = 0;
+		Quad *landQuad = (Quad*)terrainNode->getChild(0)->getMesh(0);
 
 		for(int i = 1; i < terrainNode->getNumChildren(); i++){
 			Vector3 waterPos = terrainNode->getChild(i)->getPosition();
 			Vector3 waterSize = ((Quad*)terrainNode->getChild(i)->getMesh(0))->getSize();
 
-			if(fabs(meshPoint.x - waterPos.x) < .5 * waterSize.x && fabs(meshPoint.z - waterPos.z) < .5 * waterSize.y){
+			if(pointWithin(meshPoint, waterPos, waterSize)){
 				type = Cell::Type::WATER;
 				Vector3 topVert = Vector3(
 					meshPoint.x, 
@@ -487,26 +449,75 @@ namespace battleship{
 					meshPoint.z
 				);
 
-				vector<Vector3> vertPos = landQuad->getVertPosInQuad(configData::NUM_SUBDIVS, configData::NUM_SUBDIVS, mapSize, cellPos, cellSize);
-
-				for(Vector3 vp : vertPos)
-					if(vp.y > topVert.y) topVert = vp;
-
 				if(topVert.y > waterPos.y){
 					type = Cell::Type::LAND;
 					cellPos.y = topVert.y;
-					break;
 				} 
 				else{
 					cellPos.y = waterPos.y - y * cellSize.y;
-					numUnderwaterCells = fabs(cellPos.y - topVert.y) / cellSize.y;
+					numTotalUnderwaterCells = max(int((waterPos.y - topVert.y) / cellSize.y), 0);
+					numUnderwaterCells = max(int((cellPos.y - topVert.y) / cellSize.y), 0);
+
+					for(int j = 0; j < 3; j++)
+						for(int k = 0; k < 3; k++){
+							Vector3 point = Vector3(meshPoint.x + cellSize.x * (k - 1), 0, meshPoint.z + cellSize.z * (j - 1));
+							bool within = pointWithin(point, waterPos, waterSize);
+
+							if(!within || (j == 1 && k == 1)){
+								subCellArr[j][k] = -1;
+								continue;
+							}
+
+							float height = landQuad->getHeightInSubquad(configData::NUM_SUBDIVS, configData::NUM_SUBDIVS, mapSize, point);
+							subCellArr[j][k] = max(int((waterPos.y - height) / cellSize.y), 0);
+						}
 				}
 
 				break;
 			}
 		}
 
-		vector<Edge> edges = generateAdjacentNodeEdges(numHorCells, x, numVertCells, z, numUnderwaterCells, y, 10);
+		bool checkUp = (z > 0), upDeep = (y == 0 || subCellArr[0][1] >= y);
+		bool checkRight = (x < numHorCells - 1), rightDeep = (y == 0 || subCellArr[1][2] >= y);
+		bool checkDown = (z < numVertCells - 1), downDeep = (y == 0 || subCellArr[2][1] >= y);
+		bool checkLeft = (x > 0), leftDeep = (y == 0 || subCellArr[1][0] >= y);
+		bool upLeftDeep = (y == 0 || subCellArr[0][0] >= y);
+		bool upRightDeep = (y == 0 || subCellArr[0][2] >= y);
+		bool downRightDeep = (y == 0 || subCellArr[2][2] >= y);
+		bool downLeftDeep = (y == 0 || subCellArr[2][0] >= y);
+		vector<Edge> edges;
+		int weight = 10;
+
+		if(checkLeft && leftDeep)
+			edges.push_back(Map::Edge(weight, make_tuple(x - 1, y, z)));
+
+		if(checkRight && rightDeep)
+			edges.push_back(Map::Edge(weight, make_tuple(x + 1, y, z)));
+
+		if(checkUp && upDeep)
+			edges.push_back(Map::Edge(weight, make_tuple(x, y, z - 1)));
+
+		if(checkDown && downDeep)
+			edges.push_back(Map::Edge(weight, make_tuple(x, y, z + 1)));
+
+		if(checkUp && checkLeft && upLeftDeep)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), make_tuple(x - 1, y, z - 1)));
+
+		if(checkUp && checkRight && upRightDeep)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), make_tuple(x + 1, y, z - 1)));
+
+		if(checkDown && checkRight && downRightDeep)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), make_tuple(x + 1, y, z + 1)));
+
+		if(checkDown && checkLeft && downLeftDeep)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), make_tuple(x - 1, y, z + 1)));
+
+		if(y > 0)
+			edges.push_back(Map::Edge(weight, make_tuple(x, y - 1, z)));
+
+		if(y < numTotalUnderwaterCells)
+			edges.push_back(Map::Edge(weight, make_tuple(x, y + 1, z)));
+
 		return Cell(cellPos, type, edges, numUnderwaterCells);
 	}
 

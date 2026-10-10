@@ -209,7 +209,7 @@ namespace battleship{
 			CellId cid = map->getCellId(placementPos, false);
 			Map::Cell cell = map->getCell(cid);
 			maxDepth = cell.pos.y;
-			minDepth = (cell.numUnderWaterCells > 0 ? map->getCell(make_tuple(get<0>(cid), cell.numUnderWaterCells - 1, get<2>(cid))).pos.y : maxDepth) - .5 * cellSize.y;
+			minDepth = (cell.numUnderWaterCells > 0 ? map->getCell(make_tuple(get<0>(cid), cell.numUnderWaterCells, get<2>(cid))).pos.y : maxDepth) - .5 * cellSize.y;
 			minDepthCalculated = true;
 		}
 		else{

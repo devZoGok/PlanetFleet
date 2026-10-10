@@ -74,7 +74,6 @@ namespace battleship{
 
 		static Map* getSingleton();
         ~Map(){}
-		static std::vector<Edge> generateAdjacentNodeEdges(int, int, int, int, int, int, int);
         void update();
         void load(std::string);
         void create(std::string, vb01::Vector3);
