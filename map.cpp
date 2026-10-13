@@ -408,11 +408,11 @@ namespace battleship{
 		Vector3 cellSize = Vector3(CELL_SIZE.x * sx, CELL_SIZE.y, CELL_SIZE.z * sz);
 		int numHorCells = ceil(mapSize.x / cellSize.x);
 		int numVertCells = ceil(mapSize.z / cellSize.z);
-		return make_tuple(numHorCells, 1, numVertCells);
+		return CellId(numHorCells, 1, numVertCells);
 	}
 
 	Map::Cell Map::getCell(CellId ci, int sx, int sy, int sz){
-		return getCell(get<0>(ci), get<1>(ci), get<2>(ci), sx, sy, sz);
+		return getCell(ci.x, ci.y, ci.z, sx, sy, sz);
 	}
 
 	Map::Cell Map::getCell(int x, int y, int z, int sx, int sy, int sz){
@@ -487,34 +487,34 @@ namespace battleship{
 		int weight = 10;
 
 		if(checkLeft && leftDeep)
-			edges.push_back(Map::Edge(weight, make_tuple(x - 1, y, z)));
+			edges.push_back(Map::Edge(weight, CellId(x - 1, y, z)));
 
 		if(checkRight && rightDeep)
-			edges.push_back(Map::Edge(weight, make_tuple(x + 1, y, z)));
+			edges.push_back(Map::Edge(weight, CellId(x + 1, y, z)));
 
 		if(checkUp && upDeep)
-			edges.push_back(Map::Edge(weight, make_tuple(x, y, z - 1)));
+			edges.push_back(Map::Edge(weight, CellId(x, y, z - 1)));
 
 		if(checkDown && downDeep)
-			edges.push_back(Map::Edge(weight, make_tuple(x, y, z + 1)));
+			edges.push_back(Map::Edge(weight, CellId(x, y, z + 1)));
 
 		if(checkUp && checkLeft && upLeftDeep)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), make_tuple(x - 1, y, z - 1)));
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), CellId(x - 1, y, z - 1)));
 
 		if(checkUp && checkRight && upRightDeep)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), make_tuple(x + 1, y, z - 1)));
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), CellId(x + 1, y, z - 1)));
 
 		if(checkDown && checkRight && downRightDeep)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), make_tuple(x + 1, y, z + 1)));
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), CellId(x + 1, y, z + 1)));
 
 		if(checkDown && checkLeft && downLeftDeep)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), make_tuple(x - 1, y, z + 1)));
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), CellId(x - 1, y, z + 1)));
 
 		if(y > 0)
-			edges.push_back(Map::Edge(weight, make_tuple(x, y - 1, z)));
+			edges.push_back(Map::Edge(weight, CellId(x, y - 1, z)));
 
 		if(y < numTotalUnderwaterCells)
-			edges.push_back(Map::Edge(weight, make_tuple(x, y + 1, z)));
+			edges.push_back(Map::Edge(weight, CellId(x, y + 1, z)));
 
 		return Cell(cellPos, type, edges, numUnderwaterCells);
 	}
@@ -806,12 +806,12 @@ namespace battleship{
 		if(horId == -1) vertId = -1;
 		if(vertId == -1) horId = -1;
 
-		CellId sfId = make_tuple(horId, 0, vertId);
+		CellId sfId = CellId(horId, 0, vertId);
 		Cell surfaceCell = getCell(sfId);
 
 		if(checkUnderwaterCells && surfaceCell.type == Cell::Type::WATER && surfaceCell.numUnderWaterCells > 0){
 			int depthId = (surfaceCell.pos.y - pos.y) / cellSize.y;
-			return make_tuple(horId, depthId, vertId);
+			return CellId(horId, depthId, vertId);
 		}
 
 		else return sfId;

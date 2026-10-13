@@ -92,7 +92,7 @@ namespace battleship{
 			Vector3 cornerPos = (s.getPos() + s.getDirVec() * .5 * dirMult[i][0] * s.getLength() + s.getLeftVec() * .5 * dirMult[i][1] * s.getWidth());
 			CellId cellId = map->getCellId(cornerPos, false);
 
-			if(get<0>(cellId) < 0 || !(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <= .5  * mapSize.z)){
+			if(cellId.x < 0 || !(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <= .5  * mapSize.z)){
 				s.status = GameObjectFrame::BLOCKED_BY_MAP_BOUNDS;
 				return;
 			}
@@ -209,7 +209,7 @@ namespace battleship{
 			CellId cid = map->getCellId(placementPos, false);
 			Map::Cell cell = map->getCell(cid);
 			maxDepth = cell.pos.y;
-			minDepth = (cell.numUnderWaterCells > 0 ? map->getCell(make_tuple(get<0>(cid), cell.numUnderWaterCells, get<2>(cid))).pos.y : maxDepth) - .5 * cellSize.y;
+			minDepth = (cell.numUnderWaterCells > 0 ? map->getCell(cid.x, cell.numUnderWaterCells, cid.z).pos.y : maxDepth) - .5 * cellSize.y;
 			minDepthCalculated = true;
 		}
 		else{

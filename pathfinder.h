@@ -14,14 +14,7 @@ namespace battleship{
 	class Pathfinder{
 		public:
 			static Pathfinder* getSingleton();
-			std::vector<CellId> findPath(
-				CellId, 
-				CellId, 
-				int = -1,
-				CellId = std::make_tuple(0, 0, 0), 
-				CellId = std::make_tuple(-1, -1, -1), 
-				int = 1
-			);
+			std::vector<CellId> findPath(CellId, CellId, int = -1);
 			inline vb01::u32 getImpassibleNodeVal(){return impassibleNodeVal;}
 			inline void setImpassibleNodeVal(vb01::u32 val){this->impassibleNodeVal = val;}
 		private:

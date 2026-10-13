@@ -17,10 +17,11 @@ namespace battleship{
 			return pathfinder;
 		}
 
-		vector<CellId> Pathfinder::findPath(CellId source, CellId dest, int vehicleType, CellId graphOrigin, CellId graphEnd, int cellScale){
+		vector<CellId> Pathfinder::findPath(CellId source, CellId dest, int vehicleType){
 			CellId numCells = Map::getSingleton()->getNumCells();
+			int cellScale = 1;
 
-			const u16 numX = (const u16)get<0>(numCells), numY = (const u16)get<1>(numCells), numZ = (const u16)get<2>(numCells);
+			const u16 numX = numCells.x, numY = numCells.y, numZ = numCells.z;
 			vector<u32> distances[numX][numZ];
 			vector<vector<CellId>> paths[numX][numZ];
 			vector<bool> cellsByCheck[numX][numZ];
@@ -42,12 +43,12 @@ namespace battleship{
 				}
 			}
 
-			paths[get<0>(source)][get<2>(source)][get<1>(source)].push_back(source);
-			distances[get<0>(source)][get<2>(source)][get<1>(source)] = 0;
+			paths[source.x][source.z][source.y].push_back(source);
+			distances[source.x][source.z][source.y] = 0;
 
 			Map::Cell destCell = map->getCell(dest);
 
-			while(!cellsByCheck[get<0>(dest)][get<2>(dest)][get<1>(dest)]){
+			while(!cellsByCheck[dest.x][dest.z][dest.y]){
 				int minCellId = 0;
 				CellId vertStrich = possibleMinCells[minCellId].first;
 				Map::Cell vertStrichCell = map->getCell(vertStrich, cellScale, cellScale, cellScale);
@@ -59,8 +60,8 @@ namespace battleship{
 					float heurPmc1 = calcHeuristic(possibleMinCells[i].second.pos, destCell.pos);
 					float heurPmc2 = calcHeuristic(possibleMinCells[minCellId].second.pos, destCell.pos);
 
-					float sum1 = distances[get<0>(pmc1)][get<2>(pmc1)][get<1>(pmc1)] + heurPmc1; 
-					float sum2 = distances[get<0>(pmc2)][get<2>(pmc2)][get<1>(pmc2)] + heurPmc2; 
+					float sum1 = distances[pmc1.x][pmc1.z][pmc1.y] + heurPmc1; 
+					float sum2 = distances[pmc2.x][pmc2.z][pmc2.y] + heurPmc2; 
 
 					if(sum1 < sum2 || (sum1 == sum2 && heurPmc1 < heurPmc2)){
 						minCellId = i;
@@ -69,10 +70,10 @@ namespace battleship{
 					}
 				}
 
-				possibleMinCellIncludes[get<0>(possibleMinCells[minCellId].first)][get<2>(possibleMinCells[minCellId].first)][get<1>(possibleMinCells[minCellId].first)] = false;
+				possibleMinCellIncludes[possibleMinCells[minCellId].first.x][possibleMinCells[minCellId].first.z][possibleMinCells[minCellId].first.y] = false;
 				possibleMinCells.erase(possibleMinCells.begin() + minCellId);
 
-				cellsByCheck[get<0>(vertStrich)][get<2>(vertStrich)][get<1>(vertStrich)] = true;
+				cellsByCheck[vertStrich.x][vertStrich.z][vertStrich.y] = true;
 
 				int numEdges = vertStrichCell.edges.size();
 
@@ -80,10 +81,10 @@ namespace battleship{
 					CellId enId = vertStrichCell.edges[i].destCellId;
 					Map::Cell edgeNode = map->getCell(enId, cellScale, cellScale, cellScale);
 
-					if(cellsByCheck[get<0>(enId)][get<2>(enId)][get<1>(enId)]) continue;
+					if(cellsByCheck[enId.x][enId.z][enId.y]) continue;
 
-					if(!possibleMinCellIncludes[get<0>(enId)][get<2>(enId)][get<1>(enId)]){
-						possibleMinCellIncludes[get<0>(enId)][get<2>(enId)][get<1>(enId)] = true;
+					if(!possibleMinCellIncludes[enId.x][enId.z][enId.y]){
+						possibleMinCellIncludes[enId.x][enId.z][enId.y] = true;
 						possibleMinCells.push_back(make_pair(enId, edgeNode));
 					}
 
@@ -123,14 +124,14 @@ namespace battleship{
 					}
 					*/
 
-					if(distances[get<0>(vertStrich)][get<2>(vertStrich)][get<1>(vertStrich)] + vertStrichCell.edges[i].weight * weightMult < distances[get<0>(enId)][get<2>(enId)][get<1>(enId)]){
-						distances[get<0>(enId)][get<2>(enId)][get<1>(enId)] = distances[get<0>(vertStrich)][get<2>(vertStrich)][get<1>(vertStrich)] + vertStrichCell.edges[i].weight * weightMult;
-						paths[get<0>(enId)][get<2>(enId)][get<1>(enId)] = paths[get<0>(vertStrich)][get<2>(vertStrich)][get<1>(vertStrich)];
-						paths[get<0>(enId)][get<2>(enId)][get<1>(enId)].push_back(enId);
+					if(distances[vertStrich.x][vertStrich.z][vertStrich.y] + vertStrichCell.edges[i].weight * weightMult < distances[enId.x][enId.z][enId.y]){
+						distances[enId.x][enId.z][enId.y] = distances[vertStrich.x][vertStrich.z][vertStrich.y] + vertStrichCell.edges[i].weight * weightMult;
+						paths[enId.x][enId.z][enId.y] = paths[vertStrich.x][vertStrich.z][vertStrich.y];
+						paths[enId.x][enId.z][enId.y].push_back(enId);
 					}
 				}
 			}
 
-			return paths[get<0>(dest)][get<2>(dest)][get<1>(dest)];
+			return paths[dest.x][dest.z][dest.y];
 		}
 }

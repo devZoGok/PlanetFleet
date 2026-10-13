@@ -213,6 +213,13 @@ namespace battleship{
 			"edges", &Map::Cell::edges
 		);
 
+		SOL_LUA_STATE.new_usertype<CellId>(
+			"CellId", sol::constructors<CellId(), CellId(u16, u16, u16)>(),
+			"x", &CellId::x,
+			"y", &CellId::y,
+			"z", &CellId::z
+		);
+
 		SOL_LUA_STATE.new_usertype<Map>(
 			"Map",
 			"getSingleton", &Map::getSingleton,
@@ -225,7 +232,6 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<Pathfinder>(
 			"Pathfinder",
 			"getSingleton", &Pathfinder::getSingleton,
-			//"clampDestToSourceRegion", &Pathfinder::clampDestToSourceRegion,
 			"findPath", &Pathfinder::findPath
 		);
 

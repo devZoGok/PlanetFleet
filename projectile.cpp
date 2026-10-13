@@ -112,7 +112,7 @@ namespace battleship{
 		CellId cellId = map->getCellId(pos, false);
 		Vector3 mapSize = map->getMapSize();
 
-		if(get<0>(cellId) < 0 || fabs(pos.x) > .5 * mapSize.x || fabs(pos.z) > .5 * mapSize.z){
+		if(cellId.x < 0 || fabs(pos.x) > .5 * mapSize.x || fabs(pos.z) > .5 * mapSize.z){
 			remove = true;
 			return;
 		}
@@ -120,7 +120,7 @@ namespace battleship{
 		Map::Cell cell = map->getCell(cellId);
 
 		if(useBottomCell && cell.numUnderWaterCells > 0)
-			cellId = make_tuple(get<0>(cellId), cell.numUnderWaterCells, get<2>(cellId));
+			cellId = CellId(cellId.x, cell.numUnderWaterCells, cellId.z);
 
 		if((pos + dirVec * rayLength).y <= map->getCell(cellId).pos.y)
 			detonate();

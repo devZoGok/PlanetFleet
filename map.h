@@ -25,9 +25,13 @@ namespace battleship{
 	class Unit;
 	class ResourceDeposit;
 
-	struct Cell;
+	struct CellId{
+		CellId(){}
+		CellId(vb01::u16 xx, vb01::u16 yy, vb01::u16 zz) : x(xx), y(yy), z(zz){}
+		bool operator==(const CellId &cid){return x == cid.x && y == cid.y && z == cid.z;}
 
-	typedef std::tuple<vb01::u16, vb01::u16, vb01::u16> CellId;
+		vb01::u16 x, y, z;
+	};
 
     class Map {
     public:
