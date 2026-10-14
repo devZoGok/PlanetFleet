@@ -131,7 +131,7 @@ namespace battleship{
 			"getBuildStatus", &Structure::getBuildStatus,
 			"getNumQueueUnitsById", &Factory::getNumQueueUnitsById,
 			"getRallyPoint", &Factory::getRallyPoint,
-			"setRallyPoint", &Factory::setRallyPoint,
+			"updateRallyPoint", &Factory::updateRallyPoint,
 			"getQueue", &Factory::getQueue
 		);
 

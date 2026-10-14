@@ -129,6 +129,7 @@ function Player:landRouteToSpawnpoint_(mapPoint)
 
 	if dest ~= forwPath[#forwPath] then
 		navalRallyCellId = forwPath[#forwPath]
+		self.navalFactoryCellId = navalRallyCellId
 		embarkCellId = forwPath[#forwPath - 1]
 
 		backPath = pf:findPath(dest, source, UnitType.LAND)
@@ -319,7 +320,7 @@ function Player:buildLandFactory(arguments)
 	if pos then
 		self:buildStructure(engi, factId, pos, self.baseQuat:getAngle())
 		factory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]:toFactory()
-		factory:setRallyPoint(factory:getPos():add(factory:getDirVec():mult(100)))
+		factory:updateRallyPoint(factory:getPos():add(factory:getDirVec():mult(100)))
 		return BTNodeResult.RUNNING
 	else return BTNodeResult.FAILURE end
 end
