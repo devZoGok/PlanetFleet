@@ -108,11 +108,10 @@ namespace battleship{
 	//TODO fix map boundary checks
 	void Projectile::checkSurfaceCollision(bool useBottomCell){
 		Map *map = Map::getSingleton();
-		//vector<Map::Cell> &cells = map->getCells();
 		CellId cellId = map->getCellId(pos, false);
 		Vector3 mapSize = map->getMapSize();
 
-		if(cellId.x < 0 || fabs(pos.x) > .5 * mapSize.x || fabs(pos.z) > .5 * mapSize.z){
+		if(cellId.x >= configData::NUM_MAX_SIDE_CELLS || fabs(pos.x) > .5 * mapSize.x || fabs(pos.z) > .5 * mapSize.z){
 			remove = true;
 			return;
 		}

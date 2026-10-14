@@ -92,7 +92,7 @@ namespace battleship{
 			Vector3 cornerPos = (s.getPos() + s.getDirVec() * .5 * dirMult[i][0] * s.getLength() + s.getLeftVec() * .5 * dirMult[i][1] * s.getWidth());
 			CellId cellId = map->getCellId(cornerPos, false);
 
-			if(cellId.x < 0 || !(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <= .5  * mapSize.z)){
+			if(cellId.x >= configData::NUM_MAX_SIDE_CELLS || !(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <= .5  * mapSize.z)){
 				s.status = GameObjectFrame::BLOCKED_BY_MAP_BOUNDS;
 				return;
 			}
