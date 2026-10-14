@@ -29,6 +29,7 @@ namespace battleship{
 		CellId(){}
 		CellId(vb01::u16 xx, vb01::u16 yy, vb01::u16 zz) : x(xx), y(yy), z(zz){}
 		bool operator==(const CellId &cid){return x == cid.x && y == cid.y && z == cid.z;}
+		bool operator!=(const CellId &cid){return !(x == cid.x && y == cid.y && z == cid.z);}
 
 		vb01::u16 x, y, z;
 	};

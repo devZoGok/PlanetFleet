@@ -47,6 +47,8 @@ namespace battleship{
 			distances[source.x][source.z][source.y] = 0;
 
 			Map::Cell destCell = map->getCell(dest);
+			UnitType unitType = (UnitType)vehicleType;
+			bool ship = (unitType == UnitType::UNDERWATER || unitType == UnitType::SEA_LEVEL);
 
 			while(!cellsByCheck[dest.x][dest.z][dest.y]){
 				int minCellId = 0;
@@ -70,6 +72,9 @@ namespace battleship{
 					}
 				}
 
+				if((vertStrichCell.type == Map::Cell::WATER && unitType == UnitType::LAND) || (vertStrichCell.type == Map::Cell::LAND && ship))
+					return paths[vertStrich.x][vertStrich.z][vertStrich.y];
+
 				possibleMinCellIncludes[possibleMinCells[minCellId].first.x][possibleMinCells[minCellId].first.z][possibleMinCells[minCellId].first.y] = false;
 				possibleMinCells.erase(possibleMinCells.begin() + minCellId);
 
@@ -88,12 +93,10 @@ namespace battleship{
 						possibleMinCells.push_back(make_pair(enId, edgeNode));
 					}
 
-					UnitType ut = (UnitType)vehicleType;
 					Map::Cell::Type ct = edgeNode.type;
-					bool ship = (ut == UnitType::UNDERWATER || ut == UnitType::SEA_LEVEL);
 					int weightMult = 1;
 
-					if((ut == UnitType::LAND && ct == Map::Cell::WATER) || (ship && ct == Map::Cell::LAND))
+					if((unitType == UnitType::LAND && ct == Map::Cell::WATER) || (ship && ct == Map::Cell::LAND))
 						weightMult = 1000;
 					/*
 					if(vehicleType != -1){

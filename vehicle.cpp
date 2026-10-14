@@ -350,8 +350,6 @@ namespace battleship{
 
 		Pathfinder *pf = Pathfinder::getSingleton();
 
-		//if(type != UnitType::HOVER) dest = pf->clampDestToSourceRegion(source, origDest);
-
 		GameObject *targObj = order.targets[0].unit;
 		bool garrisonOrder = (order.type == Order::TYPE::GARRISON);
 		/*
@@ -396,17 +394,10 @@ namespace battleship{
 		vector<CellId> path = pf->findPath(srcId, dest, (int)type);
 		Vector3 *truncPoint = nullptr;
 
-		if(type != UnitType::HOVER)
-			for(int i = 0; i < path.size(); i++){
-				Map::Cell cell = map->getCell(path[i]);
-
-				if((!ship && cell.type == Map::Cell::WATER) || (ship && cell.type == Map::Cell::LAND)){
-					path = vector<CellId>(path.begin(), path.begin() + i);
-					truncPoint = new Vector3;
-					*truncPoint = cell.pos;
-					break;
-				}
-			}
+		if(type != UnitType::HOVER && path[path.size() - 1] != dest){
+			truncPoint = new Vector3;
+			*truncPoint = map->getCell(path[path.size() - 1]).pos;
+		}
 
 		if(targObj && !truncPoint && origDest == dest && !garrisonOrder)
 			for(int i = path.size() - 1; i >= 0; i--){

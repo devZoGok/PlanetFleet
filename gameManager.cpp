@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <tuple>
 
 #include <stateManager.h>
 #include <inputManager.h>
@@ -223,7 +224,8 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<Map>(
 			"Map",
 			"getSingleton", &Map::getSingleton,
-			"getCellId", &Map::getCellId,
+			"getCell", [](Map *map, CellId cid){return map->getCell(cid);},
+			"getCellId", [](Map *map, Vector3 pos, bool depth){return map->getCellId(pos, depth);},
 			"getMapSize", &Map::getMapSize,
 			"getSpawnPoint", &Map::getSpawnPoint,
 			"getNumSpawnPoints", &Map::getNumSpawnPoints

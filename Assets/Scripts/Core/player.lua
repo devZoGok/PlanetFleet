@@ -119,48 +119,23 @@ function Player:updatePdSpots()
 	pdFrame:destroy()
 end
 
---TODO remove heuristics
 function Player:landRouteToSpawnpoint_(mapPoint)
 	map = Map.getSingleton()
 	dest = map:getCellId(mapPoint, false)
 	source = map:getCellId(map:getSpawnPoint(self:getSpawnPointId()), false)
 
 	pf = Pathfinder.getSingleton()
-	forwClampedDest = pf:clampDestToSourceRegion(source, dest)
+	forwPath = pf:findPath(source, dest, UnitType.LAND)
 
-	if dest ~= forwClampedDest then
-		cells = map:getCells()
+	if dest ~= forwPath[#forwPath] then
+		navalRallyCellId = forwPath[#forwPath]
+		embarkCellId = forwPath[#forwPath - 1]
 
-		embarkCellId = nil
-		navalRallyCellId = nil
-		embarkCellId = forwClampedDest
+		backPath = pf:findPath(dest, source, UnitType.LAND)
 
-		for i = 1, #cells[embarkCellId + 1].edges do
-			destCellId = cells[embarkCellId + 1].edges[i].destCellId
+		disembarkCellId = backPath[#backPath - 1]
+		navalSupportCellId = backPath[#backPath]
 
-			if cells[destCellId + 1].type == 1 then
-				if not self.navalFactoryCellId then self.navalFactoryCellId = destCellId end
-
-				navalRallyCellId = destCellId
-				break
-			end
-		end
-
-		disembarkCellId = nil
-		navalSupportCellId = nil
-		backwClampedDest = pf:clampDestToSourceRegion(dest, embarkCellId)
-		disembarkCellId = backwClampedDest
-
-		for i = 1, #cells[disembarkCellId + 1].edges do
-			destCellId = cells[disembarkCellId + 1].edges[i].destCellId
-
-			if cells[destCellId + 1].type == 1 then
-				navalSupportCellId = destCellId
-				break
-			end
-		end
-		
-		
 		return {
 			reachable = false, 
 			embarkCellId = embarkCellId, 
