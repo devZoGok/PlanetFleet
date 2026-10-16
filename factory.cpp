@@ -7,6 +7,7 @@
 
 #include <stateManager.h>
 #include <solUtil.h>
+#include <box.h>
 
 #include <vector>
 
@@ -15,7 +16,15 @@ namespace battleship{
 	using namespace std;
 	using namespace gameBase;
 
-	Factory::Factory(Player *player, int id, Vector3 pos, Quaternion rot, int buildStatus, Unit::State state) : Structure(player, id, pos, rot, buildStatus, state), rallyPoint(pos + 30 * dirVec){}
+	Factory::Factory(Player *player, int id, Vector3 pos, Quaternion rot, int buildStatus, Unit::State state) : Structure(player, id, pos, rot, buildStatus, state), rallyPoint(pos + 30 * dirVec)
+	{
+		displayRallyPoint();
+	}
+
+	Factory::~Factory()
+	{
+		removeRallyPoint();
+	}
 
 	void Factory::update(){
 		Structure::update();
@@ -45,6 +54,25 @@ namespace battleship{
 			unitQueue.push_back(buildableUnits[buId].id);
 	}
 
+	void Factory::displayRallyPoint()
+	{
+		Box *b = new Box(Vector3(5,5,5));
+		b->setMaterial(player->getColorMaterial());
+
+		Node *n = new Node(rallyPoint);
+		n->attachMesh(b);
+		Root::getSingleton()->getRootNode()->attachChild(n);
+		rallyNode = n;
+	}
+
+	void Factory::removeRallyPoint()
+	{
+		Root::getSingleton()->getRootNode()->dettachChild(rallyNode);
+		Mesh *mesh = rallyNode->getMesh(0);
+		mesh->setMaterial(nullptr);
+		delete rallyNode;
+	}
+
 	void Factory::train(){
 		bool training = !unitQueue.empty();
 		buildStatusForeground->setVisible(training);
@@ -62,7 +90,7 @@ namespace battleship{
 			int costRate = (int)targTable["cost"] / 100, trainRate = (int)targTable["buildTime"] / 100;
 
 			if(player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastTrainTime > trainRate){
-				trainingStatus++;
+				trainingStatus++; //build status for unit being produced by factory
 				player->updateResource(ResourceType::REFINEDS, -costRate, true);
 				lastTrainTime = getTime();
 			}
