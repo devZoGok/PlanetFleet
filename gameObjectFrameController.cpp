@@ -90,13 +90,13 @@ namespace battleship{
 
 		for(int i = 0; i < 4; i++){
 			Vector3 cornerPos = (s.getPos() + s.getDirVec() * .5 * dirMult[i][0] * s.getLength() + s.getLeftVec() * .5 * dirMult[i][1] * s.getWidth());
-			CellId cellId = map->getCellId(cornerPos, false);
 
-			if(cellId.x >= configData::NUM_MAX_SIDE_CELLS || !(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <= .5  * mapSize.z)){
+			if(!(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <= .5  * mapSize.z)){
 				s.status = GameObjectFrame::BLOCKED_BY_MAP_BOUNDS;
 				return;
 			}
 
+			CellId cellId = map->getCellId(cornerPos, false);
 			Map::Cell cell = map->getCell(cellId);
 			bool landUnitOnWater = (ut == UnitType::LAND && cell.type == Map::Cell::Type::WATER);
 			bool waterUnitOnLand = ((ut == UnitType::SEA_LEVEL || ut == UnitType::UNDERWATER) && cell.type == Map::Cell::Type::LAND);

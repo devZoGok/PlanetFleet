@@ -264,7 +264,7 @@ namespace battleship{
 	}
 
     void Vehicle::move(Order order) {
-		navigate(0.5 * Map::getSingleton()->getCellSize().x);
+		navigate(.25 * Map::getSingleton()->getCellSize().x);
 
 		if(pathPoints.empty())
 			removeOrder(0);

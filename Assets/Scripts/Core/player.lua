@@ -128,9 +128,9 @@ function Player:landRouteToSpawnpoint_(mapPoint)
 	forwPath = pf:findPath(source, dest, UnitType.LAND)
 
 	if dest ~= forwPath[#forwPath] then
+		embarkCellId = forwPath[#forwPath - 1]
 		navalRallyCellId = forwPath[#forwPath]
 		self.navalFactoryCellId = navalRallyCellId
-		embarkCellId = forwPath[#forwPath - 1]
 
 		backPath = pf:findPath(dest, source, UnitType.LAND)
 
@@ -139,10 +139,10 @@ function Player:landRouteToSpawnpoint_(mapPoint)
 
 		return {
 			reachable = false, 
-			embarkCellId = embarkCellId, 
-			navalRallyCellId = navalRallyCellId, 
-			navalSupportCellId = navalSupportCellId, 
-			disembarkCellId = disembarkCellId
+			embarkCellId = CellId:new(embarkCellId.x, embarkCellId.y, embarkCellId.z), 
+			navalRallyCellId = CellId:new(navalRallyCellId.x, navalRallyCellId.y, navalRallyCellId.z), 
+			navalSupportCellId = CellId:new(navalSupportCellId.x, navalSupportCellId.y, navalSupportCellId.z), 
+			disembarkCellId = CellId:new(disembarkCellId.x, disembarkCellId.y, disembarkCellId.z)
 		}
 	else
 		return {reachable = true}
@@ -165,12 +165,11 @@ function Player:init()
 			taskForce.arrived = true
 			taskForce.landed = true
 			self.spawnPointData[i] = {reachable = true}
+		else
+			self.spawnPointData[i] = self:landRouteToSpawnpoint_(Map.getSingleton():getSpawnPoint(i - 1))
 		end
 
 		self.taskForces[i] = taskForce
-		spawnPoint = Map.getSingleton():getSpawnPoint(i - 1)
-		self.spawnPointData[i] = self:landRouteToSpawnpoint_(spawnPoint)
-
 	end
 end
 
@@ -779,7 +778,6 @@ function Player:generateTaskForceActions()
 		{type = BTNodeType.PARALLEL, children = {}}, 
 	}
 	numSpawnPoints = Map.getSingleton():getNumSpawnPoints()
-	tfId = 1
 
 	for i = 1, numSpawnPoints do
 		arguments = {taskForceId = i}
@@ -807,7 +805,6 @@ function Player:generateTaskForceActions()
 		)
 		table.insert(children[2].children, {type = BTNodeType.FUNCTION, func = self.occupySpawnPoint, args = arguments})
 
-		tfId = tfId + 1
 		::continue::
 	end
 
