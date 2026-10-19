@@ -24,15 +24,24 @@ namespace battleship{
 	class Player;
 	class Unit;
 	class ResourceDeposit;
-	struct Cell;
+
+	struct CellId{
+		CellId(){}
+		CellId(vb01::u16 xx, vb01::u16 yy, vb01::u16 zz) : x(xx), y(yy), z(zz){}
+		bool operator==(const CellId &cid){return x == cid.x && y == cid.y && z == cid.z;}
+		bool operator!=(const CellId &cid){return !(x == cid.x && y == cid.y && z == cid.z);}
+
+		vb01::u16 x, y, z;
+	};
 
     class Map {
     public:
 		struct Cell;
 		
 		struct Edge{
-			Edge(vb01::s64 w, vb01::s64 src, vb01::s64 dest) : weight(w), srcCellId(src), destCellId(dest){}
-			vb01::s64 weight, srcCellId, destCellId;
+			Edge(vb01::s64 w, CellId dest) : weight(w), destCellId(dest){}
+			vb01::s64 weight;
+			CellId destCellId;
 		};
 		
 		struct Cell{
@@ -42,10 +51,10 @@ namespace battleship{
 			vb01::Vector3 pos;
 			std::vector<Edge> edges;
 			Unit *blockedBy = nullptr;
-			std::vector<int> underWaterCellIds;
+			int numUnderWaterCells = 0;
 		
 			Cell(){}
-			Cell(vb01::Vector3 p, Type t, std::vector<Edge> e = std::vector<Edge>{}, std::vector<int> uc = std::vector<int>{}) : pos(p), type(t), edges(e), underWaterCellIds(uc){}
+			Cell(vb01::Vector3 p, Type t, std::vector<Edge> e = std::vector<Edge>{}, int nuwc = 0) : pos(p), type(t), edges(e), numUnderWaterCells(nuwc){}
 		};
 
 		class Minimap{
@@ -70,22 +79,21 @@ namespace battleship{
 
 		static Map* getSingleton();
         ~Map(){}
-		static std::vector<Edge> generateAdjacentNodeEdges(int, int, int, int, int);
         void update();
         void load(std::string);
         void create(std::string, vb01::Vector3);
         void unload();
 		std::vector<vb01::RayCaster::CollisionResult> raycastTerrain(vb01::Vector3, vb01::Vector3, bool);
-		int getCellId(vb01::Vector3, bool = true);
+		CellId getCellId(vb01::Vector3, bool = true, int = 1, int = 1, int = 1);
 		bool isPointWithinTerrainObject(vb01::Vector3, int);
 		void loadPlayersGameObjects();
 		int getNumMapSpawnPoints(std::string = "");
 		std::vector<int> getSurroundingCells(vb01::Vector3, int);
 		void blockCells(Unit*);
 		void unblockCells(Unit*);
-		inline std::pair<Cell::Type, std::vector<Cell*>>& getRegion(int i){return regions[i];}
-		inline int getNumRegions(){return regions.size();}
-		inline Map::Cell getCell(int i){return cells[i];}
+		CellId getNumCells(int = 1, int = 1, int = 1);
+		Map::Cell getCell(CellId, int = 1, int = 1, int = 1);
+		Map::Cell getCell(int, int, int, int = 1, int = 1, int = 1);
 		inline std::string getMapName(){return mapName;}
 		inline vb01::Node* getNodeParent(){return terrainNode;}
 		inline vb01::Vector3 getCellSize(){return CELL_SIZE;}
@@ -94,7 +102,6 @@ namespace battleship{
 		inline void setMapSize(vb01::Vector3 s){this->mapSize = s;}
 		inline vb01::Vector3 getMapSize(){return mapSize;}
 		inline void addSpawnPoint(vb01::Vector3 sp){spawnPoints.push_back(sp);}
-		inline std::vector<Map::Cell>& getCells(){return cells;}
 		inline vb01::Node* getLight(int i){return lights[i];}
 		inline std::vector<vb01::Node*> getLights(){return lights;}
 		inline float getBaseHeight(){return baseHeight;}
@@ -106,23 +113,17 @@ namespace battleship{
 		std::string mapName;
 		vb01::Vector3 CELL_SIZE = vb01::Vector3(7, 7, 7), mapSize;
 		std::vector<vb01::Vector3> spawnPoints;
-		std::vector<Cell> cells;
 		float baseHeight;
 		std::vector<vb01::Node*> lights;
-		std::vector<std::pair<Cell::Type, std::vector<Cell*>>> regions;
 
         Map(){}
 		void preprareScene(bool);
 		void loadSpawnPoints();
 		void loadLights();
 		void loadSkybox();
-		void loadCells();
 		void loadPlayerGameObjects(Player*, sol::table);
 		void loadTerrainObject(int);
-		void fillRegion(std::vector<Cell*>&, int);
-		void calculateRegions();
 		void unloadTerrainObjects();
-		void unloadCells();
 		void unloadLights();
 		void unloadSkybox();
 		void unloadPlayerObjects();

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <tuple>
 
 #include <stateManager.h>
 #include <inputManager.h>
@@ -130,7 +131,7 @@ namespace battleship{
 			"getBuildStatus", &Structure::getBuildStatus,
 			"getNumQueueUnitsById", &Factory::getNumQueueUnitsById,
 			"getRallyPoint", &Factory::getRallyPoint,
-			"setRallyPoint", &Factory::setRallyPoint,
+			"updateRallyPoint", &Factory::updateRallyPoint,
 			"getQueue", &Factory::getQueue
 		);
 
@@ -164,7 +165,7 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<ResourceDeposit>(
 			"ResourceDeposit", sol::constructors<ResourceDeposit(Player*, int, Vector3, Quaternion, int)>(),
 			"getExtractor", &ResourceDeposit::getExtractor,
-			"getAmmount", &ResourceDeposit::getAmmount,
+			"getAmount", &ResourceDeposit::getAmount,
 			"getPos", &GameObject::getPos,
 			"toGameObject", [](ResourceDeposit *rd){return (GameObject*)rd;}
 		);
@@ -213,12 +214,18 @@ namespace battleship{
 			"edges", &Map::Cell::edges
 		);
 
+		SOL_LUA_STATE.new_usertype<CellId>(
+			"CellId", sol::constructors<CellId(), CellId(u16, u16, u16)>(),
+			"x", &CellId::x,
+			"y", &CellId::y,
+			"z", &CellId::z
+		);
+
 		SOL_LUA_STATE.new_usertype<Map>(
 			"Map",
 			"getSingleton", &Map::getSingleton,
-			"getCell", &Map::getCell,
-			"getCells", &Map::getCells,
-			"getCellId", &Map::getCellId,
+			"getCell", [](Map *map, CellId cid){return map->getCell(cid);},
+			"getCellId", [](Map *map, Vector3 pos, bool depth){return map->getCellId(pos, depth);},
 			"getMapSize", &Map::getMapSize,
 			"getSpawnPoint", &Map::getSpawnPoint,
 			"getNumSpawnPoints", &Map::getNumSpawnPoints
@@ -227,8 +234,6 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<Pathfinder>(
 			"Pathfinder",
 			"getSingleton", &Pathfinder::getSingleton,
-			"clampDestToSourceRegion", &Pathfinder::clampDestToSourceRegion,
-			"calcHeuristics", &Pathfinder::calcHeuristics,
 			"findPath", &Pathfinder::findPath
 		);
 
