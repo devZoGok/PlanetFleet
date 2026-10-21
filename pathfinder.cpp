@@ -17,20 +17,48 @@ namespace battleship{
 			return pathfinder;
 		}
 
+		vector<CellId> Pathfinder::returnPath(CellId dest, int numRows){
+			vector<CellId> path = paths[dest.x][dest.z][dest.y];
+
+			for(int x = 0; x < numRows; x++) {
+				delete[] distances[x];
+				delete[] paths[x];
+				delete[] cellsByCheck[x];
+				delete[] possibleMinCellIncludes[x];
+			}
+
+			delete[] distances;
+			delete[] paths;
+			delete[] cellsByCheck;
+			delete[] possibleMinCellIncludes;
+
+			distances = nullptr;
+			paths = nullptr;
+			cellsByCheck = nullptr;
+			possibleMinCellIncludes = nullptr;
+
+			return path;
+		}
+
 		vector<CellId> Pathfinder::findPath(CellId source, CellId dest, int vehicleType){
 			CellId numCells = Map::getSingleton()->getNumCells();
 			int cellScale = 1;
 
 			const u16 numX = numCells.x, numY = numCells.y, numZ = numCells.z;
-			vector<u32> distances[numX][numZ];
-			vector<vector<CellId>> paths[numX][numZ];
-			vector<bool> cellsByCheck[numX][numZ];
+			distances = new vector<u32>*[numX];
+			paths = new vector<vector<CellId>>*[numX];
+			cellsByCheck = new vector<bool>*[numX];
+			possibleMinCellIncludes = new vector<bool>*[numX];
 
-			vector<bool> possibleMinCellIncludes[numX][numZ];
 			Map *map = Map::getSingleton();
 			vector<pair<CellId, Map::Cell>> possibleMinCells = vector<pair<CellId, Map::Cell>>{make_pair(source, map->getCell(source))};
 
 			for(int x = 0; x < numX; x++){
+				distances[x] = new vector<u32>[numZ];
+				paths[x] = new vector<vector<CellId>>[numZ];
+				cellsByCheck[x] = new vector<bool>[numZ];
+				possibleMinCellIncludes[x] = new vector<bool>[numZ];
+
 				for(int z = 0; z < numZ; z++){
 					int depth = map->getCell(x, 0, z).numUnderWaterCells + 1;
 
@@ -73,7 +101,7 @@ namespace battleship{
 				}
 
 				if((vertStrichCell.type == Map::Cell::WATER && unitType == UnitType::LAND) || (vertStrichCell.type == Map::Cell::LAND && ship))
-					return paths[vertStrich.x][vertStrich.z][vertStrich.y];
+					return returnPath(vertStrich, numX);
 
 				possibleMinCellIncludes[possibleMinCells[minCellId].first.x][possibleMinCells[minCellId].first.z][possibleMinCells[minCellId].first.y] = false;
 				possibleMinCells.erase(possibleMinCells.begin() + minCellId);
@@ -135,6 +163,6 @@ namespace battleship{
 				}
 			}
 
-			return paths[dest.x][dest.z][dest.y];
+			return returnPath(dest, numX);
 		}
 }
