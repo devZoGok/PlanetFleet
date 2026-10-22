@@ -1,4 +1,5 @@
 game = {cpuPlayers = {}}
+
 GameObjectFrameStatus = {
 	PLACEABLE = 0, 
 	BLOCKED_BY_FOG_OF_WAR = 1,

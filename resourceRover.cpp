@@ -117,7 +117,7 @@ namespace battleship{
 		vector<Structure*> extractors, refineries;
 
 		for(Unit *unit : units){
-			if(unit->getUnitClass() == UnitClass::EXTRACTOR && ((Extractor*)unit)->getDeposit()->getAmmount() > 0)
+			if(unit->getUnitClass() == UnitClass::EXTRACTOR && ((Extractor*)unit)->getDeposit()->getAmount() > 0)
 				extractors.push_back((Structure*)unit);
 			else if(unit->getUnitClass() == UnitClass::REFINERY)
 				refineries.push_back((Structure*)unit);
@@ -129,7 +129,7 @@ namespace battleship{
 		if(nearestExtractor && closeEnough(nearestExtractor, pos, destinationOffset)){
 			ResourceDeposit *deposit = nearestExtractor->getDeposit();
 
-			if(canLoad() && deposit->getAmmount() > 0){
+			if(canLoad() && deposit->getAmount() > 0){
 				if(nearestExtractor->canDraw()){
 					nearestExtractor->draw();
 					cargo[(int)ResourceType::REFINEDS] += loadSpeed;
