@@ -38,6 +38,8 @@ namespace battleship{
 		void addTradeOffer(Player*, TradeOffer*);
 		std::vector<TradeOffer*> getTradeOffers(Player*);
 		void deselectUnit(Unit*);
+		void deselectUnit(int i);
+		void deselectUnits();
 		std::vector<GameObject*> getDestructables();
 		void updateGameStats(Unit*);
 		std::vector<Unit*> getFriendlyUnits(bool = true);
@@ -47,10 +49,8 @@ namespace battleship{
 		inline int getResource(ResourceType rt){return resources[(int)rt];}
 		inline void updateResource(ResourceType rt, int amount, bool add){resources[(int)rt] = (add ? resources[(int)rt] + amount : amount);}
 		inline Trader* getTrader(){return trader;}
-		inline void deselectUnits(){selectedUnits.clear();}
 		inline Unit* getSelectedUnit(int id){return selectedUnits[id];}
 		inline std::vector<Unit*> getSelectedUnits(){return selectedUnits;}
-		inline void deselectUnit(int i){selectedUnits.erase(selectedUnits.begin() + i);}
 		inline int getNumSelectedUnits(){return getSelectedUnits().size();}
 		inline void selectUnit(Unit *u){selectUnits(std::vector<Unit*>{u});}
         inline void addUnit(Unit *u){units.push_back(u);}

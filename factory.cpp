@@ -16,15 +16,7 @@ namespace battleship{
 	using namespace std;
 	using namespace gameBase;
 
-	Factory::Factory(Player *player, int id, Vector3 pos, Quaternion rot, int buildStatus, Unit::State state) : Structure(player, id, pos, rot, buildStatus, state), rallyPoint(pos + 30 * dirVec)
-	{
-		displayRallyPoint();
-	}
-
-	Factory::~Factory()
-	{
-		removeRallyPoint();
-	}
+	Factory::Factory(Player *player, int id, Vector3 pos, Quaternion rot, int buildStatus, Unit::State state) : Structure(player, id, pos, rot, buildStatus, state), rallyPoint(pos + 30 * dirVec){}
 
 	void Factory::update(){
 		Structure::update();
