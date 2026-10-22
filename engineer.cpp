@@ -78,4 +78,53 @@ namespace battleship{
 			removeOrder(0);
 		}
 	}
+
+	/// @brief Build/Repair structures and vehicles based on the passed order
+	/// @param order Must be a structure or vehicle
+	void Engineer::build(Order order)
+	{
+		// By saving the target as a unit it includes vehicles not just structures as vechicle::build only includes
+		Unit *targ = (Unit*)order.targets[0].unit;
+
+		// If target is a vehicle or completed structure, then repair the vehicle's/structure's health
+		if(targ->isVehicle() || ((Structure*)targ)->isComplete())
+		{
+			// Check if the engineer is close enough to the vehicle/structure
+			// This is the offset between the engineer and vehicle/structure
+			float offset = .5 * Map::getSingleton()->getCellSize().x;
+
+			if(pathPoints.empty() && closeEnough(targ, pos, offset))
+			{
+				sol::table targTable = generateView()["units"][targ->getId()];
+				// Is there a different costRate and buildTime (repairTime) for repairing a structure/vehicle instead of building one?
+				int costRate = (int)targTable["cost"] / 100, buildRate = (int)targTable["buildTime"] / 100;
+				// For if there will be a specific amount of health added
+				// int healthAddAmount = (int)targTable["healthRegen"];
+			
+				// If the player is able is able to rebuild economically and according to build rate and the vehicle/structure is not at full health
+				// Increment the health, subtract the used resources and update the latest repair time
+				if(!targ->getDestructable()->atFullHealth() && player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastRepairTime > buildRate){
+					targ->getDestructable()->incrementHealth();
+					player->updateResource(ResourceType::REFINEDS, -costRate, true);
+					lastRepairTime = getTime();
+				}
+				// If the vehicle/structure is at full health delete the order
+				else if(targ->getDestructable()->atFullHealth() )
+				{
+					removeOrder(0);
+				}
+			}
+			// If the vehicle/structure is not close enough then navigate the engineer toward the vehicle/structure
+			else navigate(offset);
+		}
+		// If the target is a structure and its not completely built, continue building it
+		else if(!((Structure*)targ)->isComplete())
+		{
+			Vehicle::build(order);
+		}
+		else
+		{
+			return;
+		}
+	}
 }

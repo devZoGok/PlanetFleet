@@ -42,7 +42,7 @@ namespace battleship{
 		restartTime(2000)
 	{
 		selectable = true;
-
+		// Assign a destructable for the unit, so all unit's are destructable
 		destructable = new Destructable(this);
 		// Initiate the properties from the Lua table
 		Unit::initProperties();
@@ -475,6 +475,7 @@ namespace battleship{
 				bool destructTarg = (!target || (target && target->getDestructable()));
 				return destructTarg && !getWeaponsByOrder(Order::TYPE::ATTACK).empty();
 			}
+			// The only units that can build are engineers (robo or cyborg) and freezers
 		    case Order::TYPE::BUILD:
 				return (unitClass == UnitClass::ROBO_ENGINEER || unitClass == UnitClass::CYBORG_ENGINEER || unitClass == UnitClass::FREEZER);
 		    case Order::TYPE::PATROL:
@@ -523,21 +524,27 @@ namespace battleship{
 		return weaps;
 	}
 
+    /// @brief Receive a passed order to the unit
+    /// @param order 
+    /// @param add Whether to add the order or remove the order
     void Unit::receiveOrder(Order order, bool add) {
 		if(!validateOrder(order)) return;
 
+		// If removing the order, remove it and get the time for the order dispatch
 		if(!add){
 			while (!orders.empty())
 				removeOrder(0);
 			
 			orderLineDispTime = getTime();
 		}
-
+		// If adding thr order add it to the orders vector
 		orders.push_back(order);
 
+		// If the order is type build and its unit exists, add it to the player units
 		if(order.type == Order::TYPE::BUILD && order.targets[0].unit)
 			player->addUnit((Unit*)order.targets[0].unit);
 
+		// Exeute the vector of orders
         executeOrders();
     }
 
