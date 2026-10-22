@@ -81,7 +81,6 @@ namespace battleship{
 		Vector3 mapSize = map->getMapSize();
 		Vector3 cellSize = map->getCellSize();
 		int dirMult[][2]{{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
-		vector<Map::Cell> &cells = map->getCells();
 
 		sol::table tbl = generateView()["units"][s.getId() + 1];
 		UnitType ut = (UnitType)tbl["unitType"];
@@ -91,14 +90,14 @@ namespace battleship{
 
 		for(int i = 0; i < 4; i++){
 			Vector3 cornerPos = (s.getPos() + s.getDirVec() * .5 * dirMult[i][0] * s.getLength() + s.getLeftVec() * .5 * dirMult[i][1] * s.getWidth());
-			int cellId = map->getCellId(cornerPos, false);
 
-			if(cellId < 0 || !(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <= .5  * mapSize.z)){
+			if(!(fabs(cornerPos.x) <= .5 * mapSize.x && fabs(cornerPos.z) <= .5  * mapSize.z)){
 				s.status = GameObjectFrame::BLOCKED_BY_MAP_BOUNDS;
 				return;
 			}
 
-			Map::Cell cell = cells[cellId];
+			CellId cellId = map->getCellId(cornerPos, false);
+			Map::Cell cell = map->getCell(cellId);
 			bool landUnitOnWater = (ut == UnitType::LAND && cell.type == Map::Cell::Type::WATER);
 			bool waterUnitOnLand = ((ut == UnitType::SEA_LEVEL || ut == UnitType::UNDERWATER) && cell.type == Map::Cell::Type::LAND);
 			bool withinCell = (fabs(cell.pos.x - cornerPos.x) < .5 * cellSize.x && fabs(cell.pos.z - cornerPos.z) < .5 * cellSize.z);
@@ -207,11 +206,10 @@ namespace battleship{
 				false
 			);
 		
-			vector<Map::Cell> &cells = map->getCells();
-			int cid = map->getCellId(placementPos, false);
-			int numSubmarineCells = cells[cid].underWaterCellIds.size();
-			maxDepth = cells[cid].pos.y;
-			minDepth = (numSubmarineCells > 0 ? cells[cells[cid].underWaterCellIds[numSubmarineCells - 1]].pos.y : maxDepth) - .5 * cellSize.y;
+			CellId cid = map->getCellId(placementPos, false);
+			Map::Cell cell = map->getCell(cid);
+			maxDepth = cell.pos.y;
+			minDepth = (cell.numUnderWaterCells > 0 ? map->getCell(cid.x, cell.numUnderWaterCells, cid.z).pos.y : maxDepth) - .5 * cellSize.y;
 			minDepthCalculated = true;
 		}
 		else{
