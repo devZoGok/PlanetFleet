@@ -52,7 +52,6 @@ namespace battleship{
 		Material* rpMaterial = player->getColorMaterial();
 		rpMaterial->setTransparent(true);
 		b->setMaterial(rpMaterial);
-		// b->setMaterial(player->getColorMaterial());
 		vb01::Vector3 pointOffset(0,15,0);
 		Node *n = new Node(rallyPoint + pointOffset);
 		n->attachMesh(b);
