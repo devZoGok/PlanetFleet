@@ -16,11 +16,13 @@ namespace battleship{
 	class Factory : public Structure{
 		public:
 			Factory(Player*, int, vb01::Vector3, vb01::Quaternion, int = 0, Unit::State = Unit::State::STAND_GROUND);
-			~Factory(){}
+			~Factory(){};
 			void update();
 			int getNumQueueUnitsById(int);
 			void appendToQueue(int);
-			vb01::Vector3 updateRallyPoint(vb01::Vector3);
+			void displayRallyPoint();
+			void removeRallyPoint();
+			inline void setRallyPoint(vb01::Vector3 rp){this->rallyPoint = rp;}
 			inline vb01::Vector3 getRallyPoint(){return rallyPoint;}
 			inline std::vector<int> getQueue(){return unitQueue;}
 		private:
@@ -28,6 +30,7 @@ namespace battleship{
 			int maxLenQueue, trainingStatus = 0;
 			vb01::s64 lastTrainTime = 0;
 			vb01::Vector3 rallyPoint;
+			vb01::Node* rallyNode;
 
 			void initProperties();
 			void train();

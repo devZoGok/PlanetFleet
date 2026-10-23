@@ -7,6 +7,7 @@
 
 #include <stateManager.h>
 #include <solUtil.h>
+#include <box.h>
 
 #include <vector>
 
@@ -15,9 +16,7 @@ namespace battleship{
 	using namespace std;
 	using namespace gameBase;
 
-	Factory::Factory(Player *player, int id, Vector3 pos, Quaternion rot, int buildStatus, Unit::State state) : 
-		Structure(player, id, pos, rot, buildStatus, state), 
-		rallyPoint(updateRallyPoint(pos + 30 * dirVec)) {}
+	Factory::Factory(Player *player, int id, Vector3 pos, Quaternion rot, int buildStatus, Unit::State state) : Structure(player, id, pos, rot, buildStatus, state), rallyPoint(pos + 30 * dirVec){}
 
 	void Factory::update(){
 		Structure::update();
@@ -47,9 +46,25 @@ namespace battleship{
 			unitQueue.push_back(buildableUnits[buId].id);
 	}
 
-	Vector3 Factory::updateRallyPoint(Vector3 rp){
-		Map *map = Map::getSingleton();
-		return map->getCell(map->getCellId(pos + 30 * dirVec, false)).pos;
+	void Factory::displayRallyPoint()
+	{
+		Box *b = new Box(Vector3(5,5,5));
+		Material* rpMaterial = player->getColorMaterial();
+		rpMaterial->setTransparent(true);
+		b->setMaterial(rpMaterial);
+		vb01::Vector3 pointOffset(0,15,0);
+		Node *n = new Node(rallyPoint + pointOffset);
+		n->attachMesh(b);
+		Root::getSingleton()->getRootNode()->attachChild(n);
+		rallyNode = n;
+	}
+
+	void Factory::removeRallyPoint()
+	{
+		Root::getSingleton()->getRootNode()->dettachChild(rallyNode);
+		Mesh *mesh = rallyNode->getMesh(0);
+		mesh->setMaterial(nullptr);
+		delete rallyNode;
 	}
 
 	void Factory::train(){
@@ -69,7 +84,7 @@ namespace battleship{
 			int costRate = (int)targTable["cost"] / 100, trainRate = (int)targTable["buildTime"] / 100;
 
 			if(player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastTrainTime > trainRate){
-				trainingStatus++;
+				trainingStatus++; //build status for unit being produced by factory
 				player->updateResource(ResourceType::REFINEDS, -costRate, true);
 				lastTrainTime = getTime();
 			}

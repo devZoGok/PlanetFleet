@@ -10,6 +10,7 @@
 #include "destructable.h"
 #include "activeGameState.h"
 #include "resourceDeposit.h"
+#include "factory.h"
 
 namespace battleship{
 	using namespace vb01;
@@ -196,6 +197,11 @@ namespace battleship{
 			if(garrisonable && !selected){
 				selectedUnits.push_back(u);
 				u->select();
+				// If the unit is a factory, display the rally point
+				if(u->getUnitClass() == UnitClass::LAND_FACTORY || u->getUnitClass() == UnitClass::NAVAL_FACTORY)
+				{
+					((Factory*)u)->displayRallyPoint();
+				}
 			}
 		}
 	}
@@ -276,9 +282,37 @@ namespace battleship{
 	void Player::deselectUnit(Unit *unit){
 		for(int i = 0; i < selectedUnits.size(); i++)
 			if(selectedUnits[i] == unit){
+				// If the unit is a factory then remove the rally point 
+				if(selectedUnits[i]->getUnitClass() == UnitClass::LAND_FACTORY || selectedUnits[i]->getUnitClass() == UnitClass::NAVAL_FACTORY)
+				{
+					((Factory*)selectedUnits[i])->removeRallyPoint();
+				}
 				selectedUnits.erase(selectedUnits.begin() + i);
 				break;
 			}
+	}
+
+	void Player::deselectUnit(int i)
+	{
+		// If the unit is a factory then remove the rally point 
+		if(selectedUnits[i]->getUnitClass() == UnitClass::LAND_FACTORY || selectedUnits[i]->getUnitClass() == UnitClass::NAVAL_FACTORY)
+		{
+			((Factory*)selectedUnits[i])->removeRallyPoint();
+		}
+		selectedUnits.erase(selectedUnits.begin() + i);
+	}
+
+	void Player::deselectUnits()
+	{
+		// Remove the rally points for factory untis
+		for(const auto& sUnit: selectedUnits)
+		{
+			if(sUnit->getUnitClass() == UnitClass::LAND_FACTORY || sUnit->getUnitClass() == UnitClass::NAVAL_FACTORY)
+			{
+				((Factory*)sUnit)->removeRallyPoint();
+			}
+		}
+		selectedUnits.clear();
 	}
 
 	/// @brief Returns all the destructables for the player

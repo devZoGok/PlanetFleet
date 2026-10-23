@@ -248,6 +248,37 @@ namespace battleship{
 		return map;
 	}
 
+	vector<Map::Edge> Map::generateAdjacentNodeEdges(int numVertCells, int i, int numHorCells, int j, int weight){
+		vector<Map::Edge> edges;
+		bool checkUp = (i > 0), checkRight = (j < numHorCells - 1), checkDown = (i < numVertCells - 1), checkLeft = (j > 0);
+
+		if(checkLeft)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * i + j - 1));
+
+		if(checkRight)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * i + j + 1));
+
+		if(checkUp)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * (i - 1) + j));
+
+		if(checkDown)
+			edges.push_back(Map::Edge(weight, numHorCells * i + j, numHorCells * (i + 1) + j));
+
+		if(checkUp && checkLeft)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i - 1) + j - 1));
+
+		if(checkUp && checkRight)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i - 1) + j + 1));
+
+		if(checkDown && checkLeft)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i + 1) + j - 1));
+
+		if(checkDown && checkRight)
+			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), numHorCells * i + j, numHorCells * (i + 1) + j + 1));
+
+		return edges;
+	}
+
 	void Map::update(){
 		Minimap::getSingleton()->update();
 	}
@@ -382,7 +413,6 @@ namespace battleship{
 	}
 
 	void Map::blockCells(Unit *unit){
-		/*
 		vector<int> surroundingCellIds = getSurroundingCells(unit->getPos(), 0);
 
 		for(int scid : surroundingCellIds){
@@ -391,132 +421,14 @@ namespace battleship{
 			bool within = unit->pointWithinObj(cells[scid].pos);
 			cells[scid].blockedBy = (within ? unit : nullptr);
 		}
-		*/
 	}
 
 	void Map::unblockCells(Unit *unit){
-		/*
 		vector<int> surroundingCellIds = getSurroundingCells(unit->getPos(), 0);
 
 		for(int scid : surroundingCellIds)
 			if(cells[scid].blockedBy == unit)
 				cells[scid].blockedBy = nullptr;
-				*/
-	}
-
-	CellId Map::getNumCells(int sx, int sy, int sz){
-		Vector3 cellSize = Vector3(CELL_SIZE.x * sx, CELL_SIZE.y, CELL_SIZE.z * sz);
-		int numHorCells = ceil(mapSize.x / cellSize.x);
-		int numVertCells = ceil(mapSize.z / cellSize.z);
-		return CellId(numHorCells, 1, numVertCells);
-	}
-
-	Map::Cell Map::getCell(CellId ci, int sx, int sy, int sz){
-		return getCell(ci.x, ci.y, ci.z, sx, sy, sz);
-	}
-
-	Map::Cell Map::getCell(int x, int y, int z, int sx, int sy, int sz){
-		Vector3 cellSize = Vector3(CELL_SIZE.x * sx, CELL_SIZE.y, CELL_SIZE.z * sz);
-		int numHorCells = ceil(mapSize.x / cellSize.x), numVertCells = ceil(mapSize.z / cellSize.z);
-
-		Vector3 cellGraphSize = Vector3(numHorCells * cellSize.x, 0, numVertCells * cellSize.z);
-		Vector3 startPos = .5 * Vector3(cellSize.x - cellGraphSize.x, 0, cellSize.z - cellGraphSize.z);
-		Vector3 cellPos = startPos + Vector3(x * cellSize.x, 0, z * cellSize.z);
-
-		Vector3 meshPoint = Vector3(
-			clamp(cellPos.x, -.5f * mapSize.x, .5f * mapSize.x),
-			cellPos.y,
-			clamp(cellPos.z, -.5f * mapSize.z, .5f * mapSize.z)
-		);
-		Quad *landQuad = (Quad*)terrainNode->getChild(0)->getMesh(0);
-		float height = landQuad->getHeightInSubquad(configData::NUM_SUBDIVS, configData::NUM_SUBDIVS, mapSize, cellPos);
-		meshPoint.y = height, cellPos.y = height;
-
-		auto pointWithin = [](Vector3 p1, Vector3 p2, Vector3 s){
-			return fabs(p1.x - p2.x) < .5 * s.x && fabs(p1.z - p2.z) < .5 * s.y;
-		};
-
-		Cell::Type type = Cell::Type::LAND;
-		int subCellArr[3][3], numTotalUnderwaterCells = 0, numUnderwaterCells = 0;
-
-		for(int i = 1; i < terrainNode->getNumChildren(); i++){
-			Vector3 waterPos = terrainNode->getChild(i)->getPosition();
-			Vector3 waterSize = ((Quad*)terrainNode->getChild(i)->getMesh(0))->getSize();
-
-			if(pointWithin(meshPoint, waterPos, waterSize)){
-				type = Cell::Type::WATER;
-				Vector3 topVert = meshPoint;
-
-				if(topVert.y > waterPos.y){
-					type = Cell::Type::LAND;
-					cellPos.y = topVert.y;
-				} 
-				else{
-					cellPos.y = waterPos.y - y * cellSize.y;
-					numTotalUnderwaterCells = max(int((waterPos.y - topVert.y) / cellSize.y), 0);
-					numUnderwaterCells = max(int((cellPos.y - topVert.y) / cellSize.y), 0);
-
-					for(int j = 0; j < 3; j++)
-						for(int k = 0; k < 3; k++){
-							Vector3 point = Vector3(meshPoint.x + cellSize.x * (k - 1), 0, meshPoint.z + cellSize.z * (j - 1));
-							bool within = pointWithin(point, waterPos, waterSize);
-
-							if(!within || (j == 1 && k == 1)){
-								subCellArr[j][k] = -1;
-								continue;
-							}
-
-							float height = landQuad->getHeightInSubquad(configData::NUM_SUBDIVS, configData::NUM_SUBDIVS, mapSize, point);
-							subCellArr[j][k] = max(int((waterPos.y - height) / cellSize.y), 0);
-						}
-				}
-
-				break;
-			}
-		}
-
-		bool checkUp = (z > 0), upDeep = (y == 0 || subCellArr[0][1] >= y);
-		bool checkRight = (x < numHorCells - 1), rightDeep = (y == 0 || subCellArr[1][2] >= y);
-		bool checkDown = (z < numVertCells - 1), downDeep = (y == 0 || subCellArr[2][1] >= y);
-		bool checkLeft = (x > 0), leftDeep = (y == 0 || subCellArr[1][0] >= y);
-		bool upLeftDeep = (y == 0 || subCellArr[0][0] >= y);
-		bool upRightDeep = (y == 0 || subCellArr[0][2] >= y);
-		bool downRightDeep = (y == 0 || subCellArr[2][2] >= y);
-		bool downLeftDeep = (y == 0 || subCellArr[2][0] >= y);
-		vector<Edge> edges;
-		int weight = 10;
-
-		if(checkLeft && leftDeep)
-			edges.push_back(Map::Edge(weight, CellId(x - 1, y, z)));
-
-		if(checkRight && rightDeep)
-			edges.push_back(Map::Edge(weight, CellId(x + 1, y, z)));
-
-		if(checkUp && upDeep)
-			edges.push_back(Map::Edge(weight, CellId(x, y, z - 1)));
-
-		if(checkDown && downDeep)
-			edges.push_back(Map::Edge(weight, CellId(x, y, z + 1)));
-
-		if(checkUp && checkLeft && upLeftDeep)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), CellId(x - 1, y, z - 1)));
-
-		if(checkUp && checkRight && upRightDeep)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), CellId(x + 1, y, z - 1)));
-
-		if(checkDown && checkRight && downRightDeep)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), CellId(x + 1, y, z + 1)));
-
-		if(checkDown && checkLeft && downLeftDeep)
-			edges.push_back(Map::Edge(int(sqrt(2 * weight * weight)), CellId(x - 1, y, z + 1)));
-
-		if(y > 0)
-			edges.push_back(Map::Edge(weight, CellId(x, y - 1, z)));
-
-		if(y < numTotalUnderwaterCells)
-			edges.push_back(Map::Edge(weight, CellId(x, y + 1, z)));
-
-		return Cell(cellPos, type, edges, numUnderwaterCells);
 	}
 
 	void Map::loadSpawnPoints(){
@@ -548,9 +460,9 @@ namespace battleship{
 
 				sol::table rotTable = npcObjTable["rot"];
 				Quaternion rot = Quaternion(rotTable["w"], rotTable["x"], rotTable["y"], rotTable["z"]);
-				int initAmount = resDepTbl[j + 1]["initAmount"];
+				int initAmmount = resDepTbl[j + 1]["initAmmount"];
 
-				player->addResourceDeposit(GameObjectFactory::createResourceDeposit(player, id, pos, rot, initAmount));
+				player->addResourceDeposit(GameObjectFactory::createResourceDeposit(player, id, pos, rot, initAmmount));
 			}
 		}
 
@@ -650,6 +562,111 @@ namespace battleship{
 		}
 	}
 
+	//TODO implement toggleable cell rendering
+	//TODO remove srcCellId from the Edge struct
+	void Map::loadCells(){
+		sol::state_view SOL_LUA_VIEW = generateView();
+		sol::table cellsTable = SOL_LUA_VIEW["cells"];
+		int numCells = cellsTable.size();
+
+		for(int i = 0; i < numCells; i++){
+			sol::table cellTable = cellsTable[i + 1], posTable = cellTable["pos"];
+			int numEdges = cellTable["numEdges"];
+			vector<Edge> edges;
+
+			for(int j = 0; j < numEdges; j++){
+				sol::table edgeTable = cellTable["edges"][j + 1];
+				edges.push_back(Edge(edgeTable["weight"], edgeTable["srcCellId"], edgeTable["destCellId"]));
+			}
+
+			int numUnderWaterCells = cellTable["numUnderWaterCells"];
+			vector<int> underWaterCellIds;
+
+			for(int j = 0; j < numUnderWaterCells; j++)
+				underWaterCellIds.push_back((int)cellTable["underWaterCellId"][j + 1]);
+
+			Vector3 cellPos = Vector3(posTable["x"], posTable["y"], posTable["z"]);
+			Cell::Type cellType = (Cell::Type)cellTable["type"];
+
+			/*
+			Quad *quad = new Quad(Vector3(CELL_SIZE.x, CELL_SIZE.z, 0));
+			quad->setWireframe(true);
+			quad->setMaterial(cellType == Cell::Type::LAND ? landCellMat : waterCellMat);
+
+			Node *node = new Node(cellPos + Vector3::VEC_J * .1);
+			node->attachMesh(quad);
+			 */
+
+			cells.push_back(Cell(cellPos, cellType, edges, underWaterCellIds));
+		}
+	}
+
+	void Map::fillRegion(vector<Map::Cell*>& regionCells, int cellId){
+		Map::Cell::Type type = cells[cellId].type;
+
+		if(find(regionCells.begin(), regionCells.end(), &cells[cellId]) == regionCells.end())
+			regionCells.push_back(&cells[cellId]);
+
+		for(int i = 0; i < cells[cellId].edges.size(); i++){
+			int adjCellId = cells[cellId].edges[i].destCellId;
+			bool underwaterWaterCell = (
+					find(cells[cellId].underWaterCellIds.begin(), cells[cellId].underWaterCellIds.end(), adjCellId) 
+					!= 
+					cells[cellId].underWaterCellIds.end()
+			);
+
+			if(underwaterWaterCell || cells[adjCellId].type != type) continue;
+
+			bool adjCellInRegion = (find(regionCells.begin(), regionCells.end(), &cells[adjCellId]) == regionCells.end());
+
+			if(adjCellInRegion) fillRegion(regionCells, adjCellId);
+		}
+	}
+
+	void Map::calculateRegions(){
+		bool allCellsInRegions = false;
+		int nextCellId = 0, numSurfaceCells = (int(mapSize.x / CELL_SIZE.x)) * (int(mapSize.z / CELL_SIZE.z));
+
+		while(!allCellsInRegions){
+			vector<Map::Cell*> regionCells;
+			fillRegion(regionCells, nextCellId);
+			regions.push_back(make_pair(cells[nextCellId].type, regionCells));
+
+			int sumCellsInRegions = 0;
+
+			for(int i = 0; i < regions.size(); i++)
+				sumCellsInRegions += regions[i].second.size();
+
+			allCellsInRegions = (sumCellsInRegions == numSurfaceCells);
+
+			if(!allCellsInRegions)
+				for(int i = 0; i < cells.size(); i++){
+					bool inRegion = false;
+
+					for(int j = 0; j < regions.size(); j++)
+						if(find(regions[j].second.begin(), regions[j].second.end(), &cells[i]) != regions[j].second.end()){
+							inRegion = true;
+							break;
+						}
+
+					if(!inRegion){
+						nextCellId = i;
+						break;
+					}
+				}
+		}
+
+		for(pair<Map::Cell::Type, vector<Cell*>>& reg : regions){
+			if(reg.first != Cell::Type::WATER) continue;
+
+			int oldNumCells = reg.second.size();
+
+			for(int i = 0; i < oldNumCells; i++)
+				for(int ucId : reg.second[i]->underWaterCellIds)
+					reg.second.push_back(&cells[ucId]);
+		}
+	}
+
     void Map::load(string mapName){
 		this->mapName = mapName;
 
@@ -659,7 +676,7 @@ namespace battleship{
 
 		sol::state_view SOL_LUA_STATE = generateView();
 		SOL_LUA_STATE.script_file(path + "Models/Maps/" + mapName + "/" + mapName + ".lua");
-		//SOL_LUA_STATE.script_file(path + "Models/Maps/" + mapName + "/cells.lua");
+		SOL_LUA_STATE.script_file(path + "Models/Maps/" + mapName + "/cells.lua");
 
 		sol::table sizeTable = SOL_LUA_STATE[mapTable]["size"];
 		mapSize = Vector3(sizeTable["x"], sizeTable["y"], sizeTable["z"]);
@@ -667,6 +684,8 @@ namespace battleship{
 		preprareScene(false);
 		loadSpawnPoints();
 		loadSkybox();
+		loadCells();
+		calculateRegions();
 		loadTerrainObject(-1);
 
 		sol::optional<sol::table> lightsOpt = SOL_LUA_STATE[mapTable]["lights"];
@@ -704,6 +723,20 @@ namespace battleship{
 		}
 	}
 
+	void Map::unloadCells(){
+		while(cellNode->getNumChildren() > 0){
+			Node *node = cellNode->getChild(0);
+			node->getMesh(0)->setMaterial(nullptr);
+			cellNode->dettachChild(node);
+			delete node;
+		}
+
+		delete landCellMat;
+		delete waterCellMat;
+
+		cells.clear();
+	}
+
 	//TODO unload terrain assets
 	void Map::unloadTerrainObjects(){
 		while(terrainNode->getNumChildren() > 0){
@@ -738,6 +771,7 @@ namespace battleship{
 		Minimap::getSingleton()->unload();
 
 		unloadPlayerObjects();
+		unloadCells();
 		unloadTerrainObjects();
 		destroyScene();
 		unloadLights();
@@ -795,25 +829,37 @@ namespace battleship{
 
 	//TODO replace search with binary search
 	//TODO optimize horizontal and vertical id calculcation
-	CellId Map::getCellId(Vector3 pos, bool checkUnderwaterCells, int sx, int sy, int sz){
-		Vector3 cellSize = Vector3(CELL_SIZE.x * sx, CELL_SIZE.y, CELL_SIZE.z * sz);
-		int numHorCells = ceil(mapSize.x / cellSize.x);
-		int numVertCells = ceil(mapSize.z / cellSize.z);
+	int Map::getCellId(Vector3 pos, bool checkUnderwaterCells){
+		int numHorCells = int(mapSize.x / CELL_SIZE.x), horId = -1;
 
-		int horId = (pos.x + .5 * mapSize.x) / cellSize.x;
-		int vertId = (pos.z + .5 * mapSize.z) / cellSize.z;
+		for(int i = 0; i < numHorCells; i++)
+			if(fabs(cells[i].pos.x - pos.x) <= .5 * CELL_SIZE.x){
+				horId = i;
+				break;
+			}
 
-		if(horId == -1) vertId = -1;
-		if(vertId == -1) horId = -1;
+		int numVertCells = int(mapSize.z / CELL_SIZE.z), vertId = -1;
 
-		CellId sfId = CellId(horId, 0, vertId);
-		Cell surfaceCell = getCell(sfId);
+		for(int i = 0; i < numVertCells; i++)
+			if(fabs(cells[i * numHorCells].pos.z - pos.z) <= .5 * CELL_SIZE.z){
+				vertId = i;
+				break;
+			}
 
-		if(checkUnderwaterCells && surfaceCell.type == Cell::Type::WATER && surfaceCell.numUnderWaterCells > 0){
-			int depthId = (surfaceCell.pos.y - pos.y) / cellSize.y;
-			return CellId(horId, depthId, vertId);
+		int surfaceCellId = vertId * numHorCells + horId;
+
+		if(checkUnderwaterCells && cells[surfaceCellId].type == Cell::Type::WATER && !cells[surfaceCellId].underWaterCellIds.empty()){
+			int cellId = surfaceCellId;
+
+			for(int i = 0; i <= cells[surfaceCellId].underWaterCellIds.size(); i++){
+				cellId = (i == 0 ? surfaceCellId : cells[surfaceCellId].underWaterCellIds[i - 1]);
+
+				if(fabs(cells[cellId].pos.y - pos.y) < .5 * CELL_SIZE.y)
+					return cellId;
+			}
+
+			return surfaceCellId;
 		}
-
-		else return sfId;
+		else return surfaceCellId;
 	}
 }
