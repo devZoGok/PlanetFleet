@@ -389,30 +389,24 @@ namespace battleship{
 
 	void Unit::eject(Order order){
 		Map *map = Map::getSingleton();
-		Map::Cell currCell = map->getCell(map->getCellId(pos));
-		bool awci = false, alci = false;
-		CellId adjWaterCellId, adjLandCellId;
+		int currCellId = map->getCellId(pos);
+		vector<Map::Cell> &cells = map->getCells(); 
+		int adjWaterCellId = -1, adjLandCellId = -1;
 
-		for(Map::Edge edge : currCell.edges){
-			Map::Cell destCell = map->getCell(edge.destCellId);
-
-			if(!alci && destCell.type == Map::Cell::LAND){
+		for(Map::Edge edge : cells[currCellId].edges){
+			if(adjLandCellId == -1 && cells[edge.destCellId].type == Map::Cell::LAND)
 				adjLandCellId = edge.destCellId;
-				alci = true;
-			}
-			if(!awci && destCell.type == Map::Cell::WATER){
+			if(adjWaterCellId == -1 && cells[edge.destCellId].type == Map::Cell::WATER)
 				adjWaterCellId = edge.destCellId;
-				awci = true;
-			}
 		}
 
 		for(GarrisonSlot &slot : garrisonSlots)
 			if(slot.vehicle){
-				bool exitToLandCell = (alci && slot.vehicle->getType() == UnitType::LAND);
-				bool exitToWaterCell = (awci && (slot.vehicle->getType() == UnitType::SEA_LEVEL || slot.vehicle->getType() == UnitType::UNDERWATER));
+				bool exitToLandCell = (slot.vehicle->getType() == UnitType::LAND && adjLandCellId != -1);
+				bool exitToWaterCell = ((slot.vehicle->getType() == UnitType::SEA_LEVEL || slot.vehicle->getType() == UnitType::UNDERWATER) && adjWaterCellId != -1);
 				
 				if(exitToLandCell || exitToWaterCell)
-					slot.vehicle->exitGarrisonable(map->getCell(exitToLandCell ? adjLandCellId : adjWaterCellId).pos);
+					slot.vehicle->exitGarrisonable(cells[exitToLandCell ? adjLandCellId : adjWaterCellId].pos);
 			}
 
 		removeOrder(0);
@@ -565,11 +559,11 @@ namespace battleship{
 		Map *map = Map::getSingleton();
 
 		//check twice in case the unit is warped over a long distance
-		//if(activeState) map->blockCells(this);
+		if(activeState) map->blockCells(this);
 		GameObject::placeAt(p);
 
 		if(activeState){
-			//map->blockCells(this);
+			map->blockCells(this);
 
 			//if(activeState->getPlayer()) Map::Minimap::getSingleton()->updateImage();
 		}

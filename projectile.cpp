@@ -108,20 +108,21 @@ namespace battleship{
 	//TODO fix map boundary checks
 	void Projectile::checkSurfaceCollision(bool useBottomCell){
 		Map *map = Map::getSingleton();
-		CellId cellId = map->getCellId(pos, false);
+		vector<Map::Cell> &cells = map->getCells();
+		int cellId = map->getCellId(pos, false);
 		Vector3 mapSize = map->getMapSize();
 
-		if(cellId.x >= configData::NUM_MAX_SIDE_CELLS || fabs(pos.x) > .5 * mapSize.x || fabs(pos.z) > .5 * mapSize.z){
+		if(cellId < 0 || fabs(pos.x) > .5 * mapSize.x || fabs(pos.z) > .5 * mapSize.z){
 			remove = true;
 			return;
 		}
 
-		Map::Cell cell = map->getCell(cellId);
+		if(useBottomCell && !cells[cellId].underWaterCellIds.empty()){
+			int numUnderwaterCells = cells[cellId].underWaterCellIds.size();
+			cellId = cells[cellId].underWaterCellIds[numUnderwaterCells - 1];
+		}
 
-		if(useBottomCell && cell.numUnderWaterCells > 0)
-			cellId = CellId(cellId.x, cell.numUnderWaterCells, cellId.z);
-
-		if((pos + dirVec * rayLength).y <= map->getCell(cellId).pos.y)
+		if((pos + dirVec * rayLength).y <= cells[cellId].pos.y)
 			detonate();
 	}
 

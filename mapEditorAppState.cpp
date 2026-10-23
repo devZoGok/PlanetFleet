@@ -101,7 +101,7 @@ namespace battleship{
 	}
 
 	void MapEditorAppState::MapEditor::castSelectionRay(){
-		/*
+	/*
 		Camera *cam = Root::getSingleton()->getCamera();
 		Vector3 startPos = cam->getPosition();
 		Vector3 endPos = screenToSpace(getCursorPos());
@@ -119,7 +119,7 @@ namespace battleship{
 					break;
 				}
 		}
-		*/
+	*/
 	}
 
 	void MapEditorAppState::MapEditor::createWaterbody(){
@@ -339,29 +339,107 @@ namespace battleship{
 		doc->SaveFile(name.c_str());
 	}
 
-	void MapEditorAppState::MapEditor::generateMinimap(string mapFolder){
+	//TODO add diagnally adjacent edges to underwater cells 
+	vector<Map::Cell> MapEditorAppState::MapEditor::generateMapCells(){
+		Vector3 mapSize = map->getMapSize();
+		Vector3 cellSize = map->getCellSize();
+		Vector3 startPos = -.5 * (Vector3(mapSize.x, 0, mapSize.z) - Vector3(cellSize.x, 0, cellSize.z));
+
+		int numHorCells = int(mapSize.x / cellSize.x);
+		int numVertCells = int(mapSize.z / cellSize.z);
+		vector<Map::Cell> cells;
+		vector<pair<int, float>> waterBodyBedPoints;
+		Node *terrainNode = map->getNodeParent();
+
+
+		for(int i = 0; i < numVertCells; i++)
+			for(int j = 0; j < numHorCells; j++){
+				Vector3 rayPos = startPos + Vector3(cellSize.x * j, 100, cellSize.z * i);
+				vector<RayCaster::CollisionResult> res = RayCaster::cast(rayPos, -Vector3::VEC_J, terrainNode->getChild(0), 0, configData::DIST_FROM_RAY);
+				
+				Map::Cell::Type type = Map::Cell::Type::LAND;
+				Vector3 pos = res[0].pos;
+
+				for(int k = 1; k < terrainNode->getNumChildren(); k++){
+					Vector3 waterPos = terrainNode->getChild(k)->getPosition();
+					Vector3 waterSize = ((Quad*)terrainNode->getChild(k)->getMesh(0))->getSize();
+
+					if(pos.y < waterPos.y && fabs(res[0].pos.x - waterPos.x) < .5 * waterSize.x && fabs(res[0].pos.z - waterPos.z) < .5 * waterSize.y){
+						type = Map::Cell::Type::WATER;
+						pos.y = waterPos.y;
+						waterBodyBedPoints.push_back(pair(numHorCells * i + j, res[0].pos.y));
+						break;
+					}
+				}
+
+				vector<Map::Edge> edges = Map::generateAdjacentNodeEdges(numVertCells, i, numHorCells, j, 10);
+				Map::Cell cell = Map::Cell(pos, type, edges);
+				cells.push_back(cell);
+			}
+
+		vector<Map::Cell> surfaceWaterCells;
+		int currUnderWaterCellId = cells.size();
+		int weight = 20;
+
+		for(pair<int, float> p : waterBodyBedPoints){
+			int numUnderWaterCells = (int)((cells[p.first].pos.y - p.second) / cellSize.y);
+
+			if(numUnderWaterCells > 0){
+				cells[p.first].edges.push_back(Map::Edge(weight, p.first, currUnderWaterCellId));
+
+				for(int i = 0; i < numUnderWaterCells; i++, currUnderWaterCellId++)
+					cells[p.first].underWaterCellIds.push_back(currUnderWaterCellId);
+
+				surfaceWaterCells.push_back(cells[p.first]);
+			}
+		}
+
+		for(int i = 0; i < surfaceWaterCells.size(); i++){
+			for(int j = 0; j < surfaceWaterCells[i].underWaterCellIds.size(); j++){
+				int aboveCellId = (j == 0 ? surfaceWaterCells[i].edges[0].srcCellId : surfaceWaterCells[i].underWaterCellIds[j - 1]);
+				vector<Map::Edge> edges = vector<Map::Edge>{Map::Edge(weight, surfaceWaterCells[i].underWaterCellIds[j], aboveCellId)};
+
+				if(surfaceWaterCells[i].underWaterCellIds.size() > j + 1)
+					edges.push_back(Map::Edge(weight, surfaceWaterCells[i].underWaterCellIds[j], surfaceWaterCells[i].underWaterCellIds[j + 1]));
+
+				for(int k = 0; k < surfaceWaterCells[i].edges.size() - 1; k++){
+					Map::Cell adjacentUnderwaterCell = cells[surfaceWaterCells[i].edges[k].destCellId]; 
+
+					if(adjacentUnderwaterCell.underWaterCellIds.size() >= j + 1){
+						edges.push_back(Map::Edge(weight, surfaceWaterCells[i].underWaterCellIds[j], adjacentUnderwaterCell.underWaterCellIds[j]));
+					}
+				}
+
+				Vector3 cellPos = surfaceWaterCells[i].pos - Vector3::VEC_J * cellSize.y * (j + 1);
+				cells.push_back(Map::Cell(cellPos, Map::Cell::Type::WATER, edges));
+			}
+		}
+
+		return cells;
+	}
+
+	void MapEditorAppState::MapEditor::generateMinimap(string mapFolder, vector<Map::Cell> &cells){
 		Vector3 mapSize = map->getMapSize(), cellSize = map->getCellSize();
-		int width = int(mapSize.x / cellSize.x), height = int(mapSize.z / cellSize.z);
-		int numChannels = 3, size = width * height * numChannels;
+		int width = int(mapSize.x / cellSize.x);
+		int height = int(mapSize.z / cellSize.z);
+		int cellId = 0, numChannels = 3;
+		int size = width * height * numChannels;
+		float baseHeight = map->getBaseHeight();
 
 		u8 *imgData = new u8[size];
 
-		for(int z = 0, i = 0; z < height; z++)
-			for(int x = 0; x < width; x++, i++){
-				Map::Cell cell = map->getCell(x, 0, z);
+		for(u8 *p = imgData; p != imgData + size; p+= numChannels, cellId++){
+			float min = .6, max = 1.;
+			float bottomCellHeight = cells[cellId].pos.y - map->getCellSize().y * cells[cellId].underWaterCellIds.size();
+			float heightFactor = min + (max - min) * (bottomCellHeight - baseHeight) / mapSize.y;
+			Vector3 color = (cells[cellId].type == Map::Cell::Type::WATER ? Vector3::VEC_K : Vector3::VEC_J);
 
-				float min = .6, max = 1.;
-				float bottomCellHeight = cell.pos.y - cellSize.y * cell.numUnderWaterCells;
-				float heightFactor = min + (max - min) * (bottomCellHeight - map->getBaseHeight()) / mapSize.y;
-				Vector3 color = (cell.type == Map::Cell::Type::WATER ? Vector3::VEC_K : Vector3::VEC_J);
-
-				imgData[i * numChannels + 0] = color.x * heightFactor * 255.f;
-				imgData[i * numChannels + 1] = color.y * heightFactor * 255.f;
-				imgData[i * numChannels + 2] = color.z * heightFactor * 255.f;
-			}
+			*p = color.x * heightFactor * 255.f;
+			*(p + 1) = color.y * heightFactor * 255.f;
+			*(p + 2) = color.z * heightFactor * 255.f;
+		}
 
 		stbi_write_jpg(string(mapFolder + "minimap.jpg").c_str(), width, height, numChannels, imgData, 100);
-		delete imgData;
 	}
 
 	string MapEditorAppState::MapEditor::generatePlayerTableStr(Player* player){
@@ -378,7 +456,7 @@ namespace battleship{
 				Quaternion rot = rd->getRot();
 				string rotStr = "w = " + to_string(rot.w) + ", x = " + to_string(rot.x) + ", y = " + to_string(rot.y) + ", z = " + to_string(rot.z);
 
-				mapScript += "\t\t\t\t{id = " + to_string(rd->getId()) + ", pos = {" + posStr + "}, rot = {" + rotStr + "}, initAmount = 20000},\n";
+				mapScript += "\t\t\t\t{id = " + to_string(rd->getId()) + ", pos = {" + posStr + "}, rot = {" + rotStr + "}},\n";
 			}
 
 			mapScript += "\t\t\t},\n";
@@ -407,7 +485,7 @@ namespace battleship{
 		return mapScript;
 	}
 
-	void MapEditorAppState::MapEditor::generateMapScript(){
+	void MapEditorAppState::MapEditor::generateMapScript(vector<Map::Cell> &cells){
 		int numWaterBodies = map->getNodeParent()->getNumChildren() - 1;
 
 		string mapScript = "metadata = {\n\tlights = {";
@@ -475,10 +553,40 @@ namespace battleship{
 
 		mapScript += "\t}\n}";
 
+		string cellsScript = "cells = {\n";
+
+		for(Map::Cell cell : cells){
+			Vector3 p = cell.pos;
+			cellsScript += "\t\t{type = " + to_string((int)cell.type) + ", pos = {x = " + to_string(p.x) + ", y = " + to_string(p.y) + ", z = " + to_string(p.z) + "}, numEdges = " + to_string(cell.edges.size()) + ", edges = {";
+
+			for(Map::Edge edge : cell.edges)
+				cellsScript += "{srcCellId = " + to_string(edge.srcCellId) + ", destCellId = "  + to_string(edge.destCellId) + ", weight = "  + to_string(edge.weight) + "}, ";
+
+			int numSubCells = cell.underWaterCellIds.size();
+			cellsScript += "}, numUnderWaterCells = " + to_string(numSubCells) + ",";
+
+			if(numSubCells > 0){
+				cellsScript += "underWaterCellId = {";
+
+				for(int subCellId : cell.underWaterCellIds)
+					cellsScript += to_string(subCellId) + ", ";
+
+				cellsScript += "}";
+			}
+
+			cellsScript += "\t\t},\n";
+		}
+
+		cellsScript += "\t}";
+
 		string basePath = GameManager::getSingleton()->getPath() + "Models/Maps/" + map->getMapName() + "/";
 
 		std::ofstream outFile(basePath + map->getMapName() + ".lua");
 		outFile << mapScript;
+		outFile.close();
+
+		outFile = std::ofstream(basePath + "cells.lua");
+		outFile << cellsScript;
 		outFile.close();
 	}
 
@@ -488,9 +596,10 @@ namespace battleship{
 		create_directory(mapFolder);
 		copy_file(assetsPath + DEFAULT_TEXTURE, mapFolder + map->getMapName() + ".jpg", filesystem::copy_options::overwrite_existing);
 
+		vector<Map::Cell> cells = generateMapCells();
 		generateLandmassXml();
-		generateMapScript();
-		generateMinimap(mapFolder);
+		generateMapScript(cells);
+		generateMinimap(mapFolder, cells);
 	}
 
 	void MapEditorAppState::MapEditor::togglePush(bool push){
