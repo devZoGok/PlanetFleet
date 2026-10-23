@@ -53,18 +53,18 @@ namespace battleship{
 
 		vector<Player*> selectingPlayers = getSelectingPlayers();
 		bool mainPlayerSelecting = (activeState && find(selectingPlayers.begin(), selectingPlayers.end(), mainPlayer) != selectingPlayers.end());
-		int ammount = 0, initAmount = 0;
+		int ammount = 0, initAmmount = 0;
 
 		if(deposit){
-			ammount = deposit->getAmount();
-			initAmount = deposit->getInitAmount();
+			ammount = deposit->getAmmount();
+			initAmmount = deposit->getInitAmmount();
 		}
 
-		destructable->displayStats(ammountForeground, ammountBackground, ammount, initAmount, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
+		destructable->displayStats(ammountForeground, ammountBackground, ammount, initAmmount, mainPlayer == player && mainPlayerSelecting, Vector2(0, -10));
 	}
 
 	void Extractor::draw(){
-		deposit->decreaseAmount(drawSpeed);
+		deposit->decreaseAmmount(drawSpeed);
 		lastDrawTime = getTime();
 	}
 }

@@ -192,7 +192,7 @@ namespace battleship{
 					cursorState = CursorState::GARRISON;
 				}
 				else if(roverSelected && ownExtractor){
-					orderPossible = (((Extractor*)gameObjHoveredOn)->getDeposit()->getAmount() > 0);
+					orderPossible = (((Extractor*)gameObjHoveredOn)->getDeposit()->getAmmount() > 0);
 					cursorState = CursorState::SUPPLY;
 				}
 				else if(roverSelected && (tradeCenter || refinery || lab) && (ownGameObj || (alliedGameObj && trade))){

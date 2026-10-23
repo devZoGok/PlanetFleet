@@ -15,9 +15,7 @@ namespace battleship{
 	using namespace std;
 	using namespace gameBase;
 
-	Factory::Factory(Player *player, int id, Vector3 pos, Quaternion rot, int buildStatus, Unit::State state) : 
-		Structure(player, id, pos, rot, buildStatus, state), 
-		rallyPoint(updateRallyPoint(pos + 30 * dirVec)) {}
+	Factory::Factory(Player *player, int id, Vector3 pos, Quaternion rot, int buildStatus, Unit::State state) : Structure(player, id, pos, rot, buildStatus, state), rallyPoint(pos + 30 * dirVec){}
 
 	void Factory::update(){
 		Structure::update();
@@ -45,11 +43,6 @@ namespace battleship{
 	void Factory::appendToQueue(int buId){
 		if(buId < buildableUnits.size() && buildableUnits[buId].buildable)
 			unitQueue.push_back(buildableUnits[buId].id);
-	}
-
-	Vector3 Factory::updateRallyPoint(Vector3 rp){
-		Map *map = Map::getSingleton();
-		return map->getCell(map->getCellId(pos + 30 * dirVec, false)).pos;
 	}
 
 	void Factory::train(){

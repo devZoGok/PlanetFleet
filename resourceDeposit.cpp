@@ -5,7 +5,7 @@ namespace battleship{
 
 	ResourceDeposit::ResourceDeposit(Player *player, int id, Vector3 pos, Quaternion rot, int ia) : 
 		GameObject(GameObject::Type::RESOURCE_DEPOSIT, id, player, pos, rot),
-		initAmount(ia),
+		initAmmount(ia),
 		ammount(ia)
 	{
 		initProperties();
