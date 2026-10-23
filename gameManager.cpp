@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <tuple>
 
 #include <stateManager.h>
 #include <inputManager.h>
@@ -131,7 +130,7 @@ namespace battleship{
 			"getBuildStatus", &Structure::getBuildStatus,
 			"getNumQueueUnitsById", &Factory::getNumQueueUnitsById,
 			"getRallyPoint", &Factory::getRallyPoint,
-			"updateRallyPoint", &Factory::updateRallyPoint,
+			"setRallyPoint", &Factory::setRallyPoint,
 			"getQueue", &Factory::getQueue
 		);
 
@@ -165,7 +164,7 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<ResourceDeposit>(
 			"ResourceDeposit", sol::constructors<ResourceDeposit(Player*, int, Vector3, Quaternion, int)>(),
 			"getExtractor", &ResourceDeposit::getExtractor,
-			"getAmount", &ResourceDeposit::getAmount,
+			"getAmmount", &ResourceDeposit::getAmmount,
 			"getPos", &GameObject::getPos,
 			"toGameObject", [](ResourceDeposit *rd){return (GameObject*)rd;}
 		);
@@ -214,18 +213,12 @@ namespace battleship{
 			"edges", &Map::Cell::edges
 		);
 
-		SOL_LUA_STATE.new_usertype<CellId>(
-			"CellId", sol::constructors<CellId(), CellId(u16, u16, u16)>(),
-			"x", &CellId::x,
-			"y", &CellId::y,
-			"z", &CellId::z
-		);
-
 		SOL_LUA_STATE.new_usertype<Map>(
 			"Map",
 			"getSingleton", &Map::getSingleton,
-			"getCell", [](Map *map, CellId cid){return map->getCell(cid);},
-			"getCellId", [](Map *map, Vector3 pos, bool depth){return map->getCellId(pos, depth);},
+			"getCell", &Map::getCell,
+			"getCells", &Map::getCells,
+			"getCellId", &Map::getCellId,
 			"getMapSize", &Map::getMapSize,
 			"getSpawnPoint", &Map::getSpawnPoint,
 			"getNumSpawnPoints", &Map::getNumSpawnPoints
@@ -234,6 +227,8 @@ namespace battleship{
 		SOL_LUA_STATE.new_usertype<Pathfinder>(
 			"Pathfinder",
 			"getSingleton", &Pathfinder::getSingleton,
+			"clampDestToSourceRegion", &Pathfinder::clampDestToSourceRegion,
+			"calcHeuristics", &Pathfinder::calcHeuristics,
 			"findPath", &Pathfinder::findPath
 		);
 
@@ -256,6 +251,8 @@ namespace battleship{
 		);
 	}
 
+	/// @brief Sets the name of the directory where all the files are located as the passed game directory
+	/// @param gameDir 
 	void GameManager::initLua(string gameDir){
 		sol::state_view SOL_LUA_STATE = generateView();
 
@@ -264,7 +261,8 @@ namespace battleship{
 
 		for(string f : configData::scripts)
 			SOL_LUA_STATE.script_file(path + f);
-
+		
+		// Gets the minimap Lua script
 		SOL_LUA_STATE.script_file(path + "Scripts/Gui/_minimap.lua");
 
 		sol::table graphicsTable = SOL_LUA_STATE["graphics"];
@@ -277,11 +275,14 @@ namespace battleship{
 		mainPlayerName = vb01::stringToWstring(n);
 	}
 
+	/// @brief Starts game execution
+	/// @param gameDir is the game directory all the game files are stored in
 	void GameManager::start(string gameDir) {
 		running = true;
 		registerMembers();
 		initLua(gameDir);
 
+		// I beliieve this sets the game window width and height and name (last variable), I'm not for sure about the path
 		Root *root = Root::getSingleton();
 		root->start(width, height, path + "../external/vb01/", "Planet Fleet", fullscreen);
 
@@ -289,6 +290,7 @@ namespace battleship{
     	inputManager = new InputManager(stateManager, root->getWindow());
 	}
 
+    /// @brief Updates the sound, input, and state manager along with the root of the game engine
     void GameManager::update() {
 		Root::getSingleton()->update();
 		SoundManager::getSingleton()->update();
