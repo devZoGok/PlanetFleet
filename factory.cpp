@@ -49,9 +49,12 @@ namespace battleship{
 	void Factory::displayRallyPoint()
 	{
 		Box *b = new Box(Vector3(5,5,5));
-		b->setMaterial(player->getColorMaterial());
-
-		Node *n = new Node(rallyPoint);
+		Material* rpMaterial = player->getColorMaterial();
+		rpMaterial->setTransparent(true);
+		b->setMaterial(rpMaterial);
+		// b->setMaterial(player->getColorMaterial());
+		vb01::Vector3 pointOffset(0,15,0);
+		Node *n = new Node(rallyPoint + pointOffset);
 		n->attachMesh(b);
 		Root::getSingleton()->getRootNode()->attachChild(n);
 		rallyNode = n;
