@@ -22,8 +22,10 @@ namespace battleship{
 			float hackRange;
 			vb01::s64 lastHackTime = 0;
 			vb01::Node *hackStatusBackground = nullptr, *hackStatusForeground = nullptr;
+			vb01::s64 lastRepairTime = 0;
 
 			void hack(Order);
+			void build(Order);
 	};
 }
 

@@ -28,6 +28,7 @@ namespace battleship{
 		sol::table objTable = SOL_LUA_VIEW[objType][gameObject->getId() + 1];
 
 		vector<int> currTechs = gameObject->getPlayer()->getTechnologies();
+		// The health is taken from a lua file containing the ability stats for the various game objects
         health += Game::getSingleton()->calcAbilFromTech(Ability::Type::HEALTH, currTechs, (int)gameObject->getType(), id);
 		maxHealth = objTable["health"];
 
@@ -48,6 +49,7 @@ namespace battleship{
 		}
 	}
 
+	/// @brief Updates by checking if the destructable's health is less than its death health points and if so it completes death logic for the unit
 	void Destructable::update(){
         if (health <= DEATH_HP){
 			gameObject->setRemove(true);
@@ -99,6 +101,12 @@ namespace battleship{
 			foreground->setPosition(Vector3(shiftedX, screenPos.y, .01) + offset3d);
 		}
     }
+
+	bool Destructable::atFullHealth()
+	{
+		if(health == maxHealth) {return true;}
+		else {return false;}
+	}
 
 	void Destructable::removeBar(Node *node){
 		Root::getSingleton()->getGuiNode()->dettachChild(node);
