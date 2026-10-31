@@ -1,14 +1,14 @@
 #ifndef PLAY_BUTTON_H
 #define PLAY_BUTTON_H
 
-#include <button.h>
+#include "pfButtonBase.h"
 
 namespace vb01Gui{
 	class Listbox;
 }
 
 namespace battleship{
-	class PlayButton : public vb01Gui::Button {
+	class PlayButton : public PfButtonBase {
 	public:
 	    PlayButton(vb01Gui::Listbox*, vb01::Vector3, vb01::Vector2, std::string, bool);
 	    void onClick();

@@ -45,17 +45,12 @@ namespace battleship{
 		}
 	}
 
-	void Trader::trade(Player *tradingPlayer, int rt, int ammount, bool buying){
-		int tradeResRate;
+	int Trader::getResourceRate(int rt){
+		return (ResourceType)rt == ResourceType::REFINEDS ? refinedsRate : researchRate;
+	}
 
-		switch((ResourceType)rt){
-			case ResourceType::REFINEDS:
-				tradeResRate = refinedsRate;
-				break;
-			case ResourceType::RESEARCH:
-				tradeResRate = researchRate;
-				break;
-		}
+	void Trader::trade(Player *tradingPlayer, int rt, int ammount, bool buying){
+		int tradeResRate = getResourceRate(rt);
 
 		if(buying && ammount * tradeResRate <= tradingPlayer->getResource(ResourceType::WEALTH)){
 			tradingPlayer->updateResource((ResourceType)rt, ammount, true);

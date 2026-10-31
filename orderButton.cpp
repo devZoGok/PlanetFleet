@@ -13,7 +13,7 @@ namespace battleship{
 	using namespace gameBase;
 
 	OrderButton::OrderButton(Vector3 pos, Vector2 size, string name, int trigger, string imagePath, int oid) :
-	   	Button(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, true, imagePath),
+	   	PfButtonBase(pos, size, name, GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", trigger, true, imagePath),
 		orderId(oid)
 	{}
 

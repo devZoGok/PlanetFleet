@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <map>
 
 #include "pathfinder.h"
 #include "vehicle.h"
@@ -16,115 +17,115 @@ namespace battleship{
 			return pathfinder;
 		}
 
-		int Pathfinder::clampDestToSourceRegion(int source, int dest){
+		vector<CellId> Pathfinder::returnPath(CellId dest, int numRows){
+			vector<CellId> path = paths[dest.x][dest.z][dest.y];
+
+			for(int x = 0; x < numRows; x++) {
+				delete[] distances[x];
+				delete[] paths[x];
+				delete[] cellsByCheck[x];
+				delete[] possibleMinCellIncludes[x];
+			}
+
+			delete[] distances;
+			delete[] paths;
+			delete[] cellsByCheck;
+			delete[] possibleMinCellIncludes;
+
+			distances = nullptr;
+			paths = nullptr;
+			cellsByCheck = nullptr;
+			possibleMinCellIncludes = nullptr;
+
+			return path;
+		}
+
+		vector<CellId> Pathfinder::findPath(CellId source, CellId dest, int vehicleType){
+			CellId numCells = Map::getSingleton()->getNumCells();
+			int cellScale = 1;
+
+			const u16 numX = numCells.x, numY = numCells.y, numZ = numCells.z;
+			distances = new vector<u32>*[numX];
+			paths = new vector<vector<CellId>>*[numX];
+			cellsByCheck = new vector<bool>*[numX];
+			possibleMinCellIncludes = new vector<bool>*[numX];
+
 			Map *map = Map::getSingleton();
-			vector<Map::Cell> &cells = map->getCells();
-			pair<Map::Cell::Type, vector<Map::Cell*>> srcRegion;
+			vector<pair<CellId, Map::Cell>> possibleMinCells = vector<pair<CellId, Map::Cell>>{make_pair(source, map->getCell(source))};
 
-			for(int i = 0; i < map->getNumRegions(); i++){
-				pair<Map::Cell::Type, vector<Map::Cell*>> region = map->getRegion(i);
+			for(int x = 0; x < numX; x++){
+				distances[x] = new vector<u32>[numZ];
+				paths[x] = new vector<vector<CellId>>[numZ];
+				cellsByCheck[x] = new vector<bool>[numZ];
+				possibleMinCellIncludes[x] = new vector<bool>[numZ];
 
-				if(find(region.second.begin(), region.second.end(), &cells[source]) != region.second.end()){
-					srcRegion = map->getRegion(i);
-					break;
+				for(int z = 0; z < numZ; z++){
+					int depth = map->getCell(x, 0, z).numUnderWaterCells + 1;
+
+					for(int y = 0; y < depth; y++){
+						paths[x][z].push_back(vector<CellId>{});
+						cellsByCheck[x][z].push_back(false);
+						distances[x][z].push_back(impassibleNodeVal);
+						possibleMinCellIncludes[x][z].push_back(false);
+					}
 				}
 			}
 
-			if(find(srcRegion.second.begin(), srcRegion.second.end(), &cells[dest]) == srcRegion.second.end()){
-				int minDistId = 0;
+			paths[source.x][source.z][source.y].push_back(source);
+			distances[source.x][source.z][source.y] = 0;
 
-				for(int i = 0; i < srcRegion.second.size(); i++){
-					float currDist = cells[dest].pos.getDistanceFrom(srcRegion.second[i]->pos);
-					float minDist = cells[dest].pos.getDistanceFrom(srcRegion.second[minDistId]->pos);
+			Map::Cell destCell = map->getCell(dest);
+			UnitType unitType = (UnitType)vehicleType;
+			bool ship = (unitType == UnitType::UNDERWATER || unitType == UnitType::SEA_LEVEL);
 
-					if(currDist < minDist) minDistId = i;
-				}
-
-				dest = map->getCellId(srcRegion.second[minDistId]->pos);
-			}
-
-			return dest;
-		}
-
-		vector<float> Pathfinder::calcHeuristics(vector<Map::Cell> &cells, int dest){
-			vector<float> heuristics;
-
-			for(Map::Cell &cell : cells)
-				heuristics.push_back(145 * (cells[dest].pos.getDistanceFrom(cell.pos)));
-
-			return heuristics;
-		}
-
-		vector<int> Pathfinder::findPath(vector<Map::Cell> &cells, vector<float> &heuristics, int source, int dest, int vehicleType){
-			if(heuristics.empty() || (heuristics.size() == 1 && heuristics[0] == 0.0))
-				heuristics = calcHeuristics(cells, dest);
-
-			bool useHeur = !heuristics.empty();
-
-			const int size = cells.size();
-			u32 *distances = new u32[size];
-			vector<int> *paths = new vector<int>[size];
-			vector<pair<int, bool>> cellsByCheck;
-			vector<bool> posMinCellChecked;
-			vector<int> possibleMinCells = vector<int>{source};
-
-			for(int i = 0; i < size; i++){
-				cellsByCheck.push_back(pair(i, false));
-				distances[i] = impassibleNodeVal;
-				posMinCellChecked.push_back(false);
-			}
-
-			paths[source].push_back(source);
-			distances[source] = 0;
-			posMinCellChecked[source] = true;
-
-			int lastVertStrich = -1;
-
-			while(!cellsByCheck[dest].second){
-				int posMinCellId = 0, vertStrich = possibleMinCells[posMinCellId];
+			while(!cellsByCheck[dest.x][dest.z][dest.y]){
+				int minCellId = 0;
+				CellId vertStrich = possibleMinCells[minCellId].first;
+				Map::Cell vertStrichCell = map->getCell(vertStrich, cellScale, cellScale, cellScale);
 
 				for(int i = 0; i < possibleMinCells.size(); i++){
-					float sum1 = distances[possibleMinCells[i]] + (useHeur ? heuristics[possibleMinCells[i]] : 0); 
-					float sum2 = distances[possibleMinCells[posMinCellId]] + (useHeur ? heuristics[possibleMinCells[posMinCellId]] : 0); 
+					CellId pmc1 = possibleMinCells[i].first;
+					CellId pmc2 = possibleMinCells[minCellId].first;
 
-					if(sum1 < sum2 || (useHeur && sum1 == sum2 && heuristics[i] < heuristics[vertStrich])){
-						posMinCellId = i;
-						vertStrich = possibleMinCells[i];
+					float heurPmc1 = calcHeuristic(possibleMinCells[i].second.pos, destCell.pos);
+					float heurPmc2 = calcHeuristic(possibleMinCells[minCellId].second.pos, destCell.pos);
+
+					float sum1 = distances[pmc1.x][pmc1.z][pmc1.y] + heurPmc1; 
+					float sum2 = distances[pmc2.x][pmc2.z][pmc2.y] + heurPmc2; 
+
+					if(sum1 < sum2 || (sum1 == sum2 && heurPmc1 < heurPmc2)){
+						minCellId = i;
+						vertStrich = possibleMinCells[i].first;
+						vertStrichCell = map->getCell(vertStrich, cellScale, cellScale, cellScale);
 					}
 				}
 
-				if(distances[vertStrich] == impassibleNodeVal){
-					vector<int> path = paths[lastVertStrich];
+				if((vertStrichCell.type == Map::Cell::WATER && unitType == UnitType::LAND) || (vertStrichCell.type == Map::Cell::LAND && ship))
+					return returnPath(vertStrich, numX);
 
-					delete[] paths;
-					delete[] distances;
+				possibleMinCellIncludes[possibleMinCells[minCellId].first.x][possibleMinCells[minCellId].first.z][possibleMinCells[minCellId].first.y] = false;
+				possibleMinCells.erase(possibleMinCells.begin() + minCellId);
 
-					return path;
-				}
+				cellsByCheck[vertStrich.x][vertStrich.z][vertStrich.y] = true;
 
-				posMinCellChecked[possibleMinCells[posMinCellId]] = false;
-				possibleMinCells.erase(possibleMinCells.begin() + posMinCellId);
-
-				cellsByCheck[vertStrich].second = true;
-
-				int numEdges = cells[vertStrich].edges.size();
+				int numEdges = vertStrichCell.edges.size();
 
 				for(int i = 0; i < numEdges; i++){
-					int edgeNode = cells[vertStrich].edges[i].destCellId;
+					CellId enId = vertStrichCell.edges[i].destCellId;
+					Map::Cell edgeNode = map->getCell(enId, cellScale, cellScale, cellScale);
 
-					if(cellsByCheck[edgeNode].second) continue;
+					if(cellsByCheck[enId.x][enId.z][enId.y]) continue;
 
-					if(!posMinCellChecked[edgeNode]){
-						posMinCellChecked[edgeNode] = true;
-						possibleMinCells.push_back(edgeNode);
+					if(!possibleMinCellIncludes[enId.x][enId.z][enId.y]){
+						possibleMinCellIncludes[enId.x][enId.z][enId.y] = true;
+						possibleMinCells.push_back(make_pair(enId, edgeNode));
 					}
 
-					UnitType ut = (UnitType)vehicleType;
-					Map::Cell::Type ct = cells[edgeNode].type;
-					bool ship = (ut == UnitType::UNDERWATER || ut == UnitType::SEA_LEVEL);
+					Map::Cell::Type ct = edgeNode.type;
+					int weightMult = 1;
 
-					if((ut == UnitType::LAND && ct == Map::Cell::WATER) || (ship && ct == Map::Cell::LAND))
-						continue;
+					if((unitType == UnitType::LAND && ct == Map::Cell::WATER) || (ship && ct == Map::Cell::LAND))
+						weightMult = 1000;
 					/*
 					if(vehicleType != -1){
 						UnitType unitType = vehicle->getType();
@@ -154,21 +155,14 @@ namespace battleship{
 					}
 					*/
 
-					if(distances[vertStrich] + cells[vertStrich].edges[i].weight < distances[edgeNode]){
-						distances[edgeNode] = distances[vertStrich] + cells[vertStrich].edges[i].weight;
-						paths[edgeNode] = paths[vertStrich];
-						paths[edgeNode].push_back(edgeNode);
+					if(distances[vertStrich.x][vertStrich.z][vertStrich.y] + vertStrichCell.edges[i].weight * weightMult < distances[enId.x][enId.z][enId.y]){
+						distances[enId.x][enId.z][enId.y] = distances[vertStrich.x][vertStrich.z][vertStrich.y] + vertStrichCell.edges[i].weight * weightMult;
+						paths[enId.x][enId.z][enId.y] = paths[vertStrich.x][vertStrich.z][vertStrich.y];
+						paths[enId.x][enId.z][enId.y].push_back(enId);
 					}
 				}
-
-				lastVertStrich = vertStrich;
 			}
 
-			vector<int> path = paths[dest];
-
-			delete[] paths;
-			delete[] distances;
-
-			return path;
+			return returnPath(dest, numX);
 		}
 }

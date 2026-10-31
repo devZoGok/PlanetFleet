@@ -148,12 +148,16 @@ namespace battleship{
 		// y = ax + b
 		float a = hypVec.z / hypVec.x;
 		float b = pos.z - a * pos.x;
+		Vector3 c1 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, true, false); //top left
+		Vector3 c2 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, true, true); //top right
+		Vector3 c3 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, false, false); //bottom left
+		Vector3 c4 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, false, true); //bottom right
 
 		while(!(sqIds[0] == (int)sqIdsEndVec.x && sqIds[1] == (int)sqIdsEndVec.y)){
-			Vector3 c1 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, true, false); //top left
-			Vector3 c2 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, true, true); //top right
-			Vector3 c3 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, false, false); //bottom left
-			Vector3 c4 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, false, true); //bottom right
+			c1 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, true, false); //top left
+			c2 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, true, true); //top right
+			c3 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, false, false); //bottom left
+			c4 = terrQuad->getSubquadCorner(sqIds[0], sqIds[1], numVertDiv, numHorDiv, false, true); //bottom right
 
 			float minX = c1.x, maxX = c2.x, minY = c1.z, maxY = c3.z;
 			bool bottom = (hypVec.z > 0), left = (hypVec.x < 0);
@@ -208,6 +212,12 @@ namespace battleship{
 
 		placeAt(endPos);
 
+		if(alignToSurface){
+			Vector3 normal = (c3 - c1).norm().cross((c2 - c1).norm());
+			float angle = upVec.getAngleBetween(normal);
+			model->lookAt(leftVec.cross(normal), normal);
+	   	}
+
 		if(fabs(pathPoints[0].x - pos.x) <= destOffset && fabs(pathPoints[0].z - pos.z) <= destOffset)
 			arrivedAtPathpoint(false);
 	}
@@ -254,7 +264,7 @@ namespace battleship{
 	}
 
     void Vehicle::move(Order order) {
-		navigate(0.5 * Map::getSingleton()->getCellSize().x);
+		navigate(.25 * Map::getSingleton()->getCellSize().x);
 
 		if(pathPoints.empty())
 			removeOrder(0);
@@ -323,27 +333,27 @@ namespace battleship{
 		removeAllPathpoints();
 
 		Map *map = Map::getSingleton();
-		vector<Map::Cell> &cells = map->getCells();
+		//vector<Map::Cell> &cells = map->getCells();
 
-		int source = map->getCellId(pos);
+		CellId srcId = map->getCellId(pos);
+		Map::Cell source = map->getCell(srcId);
 		bool ship = (type == UnitType::UNDERWATER || type == UnitType::SEA_LEVEL);
-		bool waterVehCanMove = (ship && cells[source].type == Map::Cell::WATER);
-		bool landVehCanMove = (type == UnitType::LAND && cells[source].type == Map::Cell::LAND);
+		bool waterVehCanMove = (ship && source.type == Map::Cell::WATER);
+		bool landVehCanMove = (type == UnitType::LAND && source.type == Map::Cell::LAND);
 
 		if(type != UnitType::HOVER && !(waterVehCanMove || landVehCanMove)) return;
 
-		int origDest = map->getCellId(destPos), dest = origDest;
+		CellId origDest = map->getCellId(destPos), dest = origDest;
+		Map::Cell destination = map->getCell(dest);
 
-		if(type == UnitType::SEA_LEVEL && fabs(destPos.y - cells[origDest].pos.y) > .1) return;
+		if(type == UnitType::SEA_LEVEL && fabs(destPos.y - destination.pos.y) > .1) return;
 
 		Pathfinder *pf = Pathfinder::getSingleton();
 
-		if(type != UnitType::HOVER)
-			dest = pf->clampDestToSourceRegion(source, origDest);
-
 		GameObject *targObj = order.targets[0].unit;
-		Unit *blockingUnit = cells[dest].blockedBy;
 		bool garrisonOrder = (order.type == Order::TYPE::GARRISON);
+		/*
+		Unit *blockingUnit = cells[dest].blockedBy;
 		bool buildOrder = (order.type == Order::TYPE::BUILD);
 		bool resourceOrder = (order.type == Order::TYPE::LOAD || order.type == Order::TYPE::UNLOAD || order.type == Order::TYPE::SUPPLY);
 
@@ -379,15 +389,20 @@ namespace battleship{
 
 			if(altDest == -1) return;
 		}
+		*/
 
-		vector<float> heurs;
-		vector<int> path = pf->findPath(cells, heurs, source, dest, (int)type);
+		vector<CellId> path = pf->findPath(srcId, dest, (int)type);
 		Vector3 *truncPoint = nullptr;
 
-		if(targObj && origDest == dest && !garrisonOrder)
+		if(type != UnitType::HOVER && path[path.size() - 1] != dest){
+			truncPoint = new Vector3;
+			*truncPoint = map->getCell(path[path.size() - 1]).pos;
+		}
+
+		if(targObj && !truncPoint && origDest == dest && !garrisonOrder)
 			for(int i = path.size() - 1; i >= 0; i--){
 				Vector3 targPos = targObj->getPos();
-				Vector3 pointDir = cells[path[i]].pos - targPos;
+				Vector3 pointDir = map->getCell(path[i]).pos - targPos;
 				pointDir = Vector3(pointDir.x, 0, pointDir.z);
 
 				float dirAngle = targObj->getDirVec().getAngleBetween(pointDir.norm());
@@ -423,7 +438,7 @@ namespace battleship{
 				else path.pop_back();
 			}
 
-		for(int p : path) addPathpoint(cells[p].pos);
+		for(CellId p : path) addPathpoint(map->getCell(p).pos);
 
 		if(appendDestPos && !truncPoint && origDest == dest)
 			addPathpoint(destPos);

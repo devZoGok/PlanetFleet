@@ -12,7 +12,10 @@ namespace battleship{
 	using namespace vb01Gui;
 	using namespace gameBase;
 
-	LoadMapButton::OkButton::OkButton(vb01::Vector3 pos, vb01::Vector2 size, vb01Gui::Listbox *listbox) : Button(pos, size, "Ok", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf"){ this->listbox = listbox; }
+	LoadMapButton::OkButton::OkButton(Vector3 pos, Vector2 size, Listbox *lb) : 
+		PfButtonBase(pos, size, "Ok", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true), 
+		listbox(lb)
+	{}
 
 	void LoadMapButton::OkButton::onClick(){
 		StateManager *sm = GameManager::getSingleton()->getStateManager();
@@ -20,7 +23,7 @@ namespace battleship{
 		handleLoadingGui(new LoadingAppState(new MapEditorAppState(name, Vector2::VEC_ZERO, false), "mapEditor.lua"));
 	}
 
-	LoadMapButton::LoadMapButton(Vector3 pos, Vector2 size) : Button(pos, size, "Load map", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf"){}
+	LoadMapButton::LoadMapButton(Vector3 pos, Vector2 size) : PfButtonBase(pos, size, "Load map", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true){}
 
 	void LoadMapButton::onClick(){
 		ConcreteGuiManager::getSingleton()->readLuaScreenScript("loadMap.lua");

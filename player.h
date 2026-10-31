@@ -95,7 +95,7 @@ namespace battleship{
 		bool cpuPlayer = false;
 		std::vector<int> technologies;
 		int luaPlayerId;
-        int resources[3]{0, 0, 0};
+        int resources[3]{0, 0, 0}; // refined, wealth and research resources respectively
 		int faction, difficulty, team;
 		int vehiclesBuilt = 0, vehiclesDestroyed = 0, vehiclesLost = 0;
 		int structuresBuilt = 0, structuresDestroyed = 0, structuresLost = 0;

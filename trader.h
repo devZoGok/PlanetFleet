@@ -11,6 +11,7 @@ namespace battleship{
 			Trader();
 			void update();
 			void trade(Player*, int, int, bool);
+			int getResourceRate(int);
 		private:
 			void initProperties();
 

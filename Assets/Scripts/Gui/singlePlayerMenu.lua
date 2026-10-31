@@ -10,7 +10,62 @@ MAIN_PLAYER_ID = 0
 
 gui = {
 	{
-		pos = {x = 110, y = 310, z = 0},
+		guiType = GuiType.TEXT,
+		name = '',
+		text = 'Singleplayer',
+		pos = {x = 20, y = 50, z = 0},
+		scale = .5,
+		font = 'batang.ttf',
+		fontFirstChar = 0,
+		fontLastChar = 256,
+		color = {x = 1, y = 1, z = 1, w = 1}
+	},
+	{
+		guiType = GuiType.TEXT,
+		name = '',
+		text = 'Player',
+		pos = {x = 20, y = 100, z = 0},
+		scale = .2,
+		font = 'batang.ttf',
+		fontFirstChar = 0,
+		fontLastChar = 256,
+		color = {x = 1, y = 1, z = 1, w = 1}
+	},
+	{
+		guiType = GuiType.TEXT,
+		name = '',
+		text = 'Faction',
+		pos = {x = 180, y = 100, z = 0},
+		scale = .2,
+		font = 'batang.ttf',
+		fontFirstChar = 0,
+		fontLastChar = 256,
+		color = {x = 1, y = 1, z = 1, w = 1}
+	},
+	{
+		guiType = GuiType.TEXT,
+		name = '',
+		text = 'Color',
+		pos = {x = 460, y = 100, z = 0},
+		scale = .2,
+		font = 'batang.ttf',
+		fontFirstChar = 0,
+		fontLastChar = 256,
+		color = {x = 1, y = 1, z = 1, w = 1}
+	},
+	{
+		guiType = GuiType.TEXT,
+		name = '',
+		text = 'Team',
+		pos = {x = 620, y = 100, z = 0},
+		scale = .2,
+		font = 'batang.ttf',
+		fontFirstChar = 0,
+		fontLastChar = 256,
+		color = {x = 1, y = 1, z = 1, w = 1}
+	},
+	{
+		pos = {x = 20, y = 310, z = 0},
 		size = Size,
 		guiType = GuiType.LISTBOX,
 		addPlayerGui = true,
@@ -18,16 +73,16 @@ gui = {
 		numMaxDisplay = 5
 	},
 	{
-		pos = {x = 110, y = 460, z = 0},
+		pos = {x = 20, y = 460, z = 0},
 		size = Size,
 		guiType = GuiType.BUTTON,
 		buttonType = ButtonType.PLAY,
 		name = 'Play',
 		numDependencies = 4,
-		dependencies = {{id = 0}}
+		dependencies = {{id = 5}}
 	},
 	{
-		pos = {x = 110 + Size.x + 10, y = 460, z = 0},
+		pos = {x = 20 + Size.x + 10, y = 460, z = 0},
 		size = Size,
 		guiType = GuiType.BUTTON,
 		buttonType = ButtonType.BACK,

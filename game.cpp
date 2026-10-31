@@ -49,7 +49,6 @@ namespace battleship{
 		for(int i = 0; i < getCpuPlayers().size(); i++) {
 			string plStr = "game.cpuPlayers[" + to_string(i + 1) + "]";
 			SOL_LUA_VIEW.script("executeBtNode(" + plStr + ", " + plStr + ".behaviour)");
-			SOL_LUA_VIEW.collect_garbage();
 		}
 
 		int numPlayersWithUnits = 0;

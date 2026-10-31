@@ -10,7 +10,7 @@ namespace battleship{
 	using namespace vb01Gui;
 	using namespace gameBase;
 
-	ExportButton::ExportButton(Vector3 pos, Vector2 size) : Button(pos, size, "Export", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf"){}
+	ExportButton::ExportButton(Vector3 pos, Vector2 size) : PfButtonBase(pos, size, "Export", GameManager::getSingleton()->getPath() + "Fonts/batang.ttf", -1, true){}
 
 	void ExportButton::onClick(){
 		StateManager *sm = GameManager::getSingleton()->getStateManager();

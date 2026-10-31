@@ -129,6 +129,9 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100,
+				ammoConsumption = 1, --Just a test
+				maxAmmo = 100, -- Just a test
+				ammo = 50, -- Just a test
 				maxRange = 40,
 				damage = 50,
 				maxFireAngle = .1,
@@ -186,6 +189,7 @@ units = {
 		hitboxOffset = {x = 0, y = 4.5, z = 0},
 		lineOfSight = 25,
 		name = 'Mech',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Mechs/',
 		meshPath = 'acsMech.xml',
 		albedoPath = 'mech.jpg',
@@ -205,6 +209,9 @@ units = {
 				rateOfFire = 100,
 				maxRange = 40,
 				damage = 50,
+				ammoConsumption = 1,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxFireAngle = .1,
 				nodes = {{name = 'turret', rotationSpeed = 1, angleConstraints = {min = -1.5, max = 1.5}, vertical = true}},
 				fireFx = {
@@ -261,6 +268,7 @@ units = {
 		hitboxOffset = {x = 0, y = 3.02, z = .16},
 		lineOfSight = 25,
 		name = 'Mech',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Mechs/',
 		meshPath = 'aincMech.xml',
 		albedoPath = 'mech.jpg',
@@ -280,6 +288,9 @@ units = {
 				rateOfFire = 250,
 				maxRange = 40,
 				damage = 50,
+				ammoConsumption = 1,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxFireAngle = .1,
 				nodes = {{name = 'turret', rotationSpeed = 1, angleConstraints = {min = -1.5, max = 1.5}, vertical = true}},
 				fireFx = {
@@ -336,6 +347,7 @@ units = {
 		hitboxOffset = {x = 0, y = 4.27, z = .13},
 		lineOfSight = 25,
 		name = 'Mech',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Mechs/',
 		meshPath = 'erMech.xml',
 		albedoPath = 'mech.jpg',
@@ -354,6 +366,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				damage = 900, 
+				ammoConsumption = 1,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 50,
 				maxFireAngle = .1,
 				nodes = {{name = 'TankASHead', rotationSpeed = .05, vertical = false}, {name = 'barell', rotationSpeed = .05, angleConstraints = {min = 0, max = .349}, vertical = true}},
@@ -394,6 +409,7 @@ units = {
 		hitboxOffset = {x = 0, y = 5.46, z = .86},
 		lineOfSight = 75,
 		name = 'Tank',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Tanks/',
 		meshPath = 'acsTank.xml',
 		albedoPath = 'tank.jpg',
@@ -412,6 +428,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				damage = 200, 
+				ammoConsumption = 1, 
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 50,
 				maxFireAngle = .1,
 				nodes = {{name = 'TankGun_AM', rotationSpeed = .05, vertical = false}, {name = 'barell', rotationSpeed = .05, angleConstraints = {min = -.2, max = .74}, vertical = true}},
@@ -452,6 +471,7 @@ units = {
 		hitboxOffset = {x = 0, y = 3.31, z = 0},
 		lineOfSight = 75,
 		name = 'Tank',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Tanks/',
 		meshPath = 'aincTank.xml',
 		albedoPath = 'tank.jpg',
@@ -470,6 +490,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
 				damage = 200, 
+				ammoConsumption = 1,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 50,
 				maxFireAngle = .1,
 				nodes = {
@@ -513,6 +536,7 @@ units = {
 		hitboxOffset = {x = 0, y = 5.27, z = .26},
 		lineOfSight = 75,
 		name = 'Tank',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Tanks/',
 		meshPath = 'erTank.xml',
 		albedoPath = 'tank.jpg',
@@ -572,6 +596,7 @@ units = {
 		hitboxOffset = {x = 0, y = 7.69, z = .71},
 		lineOfSight = 90,
 		name = 'Artillery',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Artillery/',
 		meshPath = 'acsArtillery.xml',
 		albedoPath = 'artillery.jpg',
@@ -590,6 +615,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 2000, 
 				damage = 5000, 
+				ammoConsumption = 2,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 70,
 				maxFireAngle = .1,
 				nodes = {
@@ -630,6 +658,7 @@ units = {
 		hitboxOffset = {x = 0, y = 7, z = 1.3},
 		lineOfSight = 90,
 		name = 'Artillery',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Artillery/',
 		meshPath = 'aincArtillery.xml',
 		albedoPath = 'artillery.jpg',
@@ -647,7 +676,10 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 2000, 
-				damage = 5000, 
+				damage = 5000,
+				ammoConsumption = 2,
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 70,
 				maxFireAngle = .1,
 				nodes = {
@@ -689,6 +721,7 @@ units = {
 		hitboxOffset = {x = 0, y = 1, z = 0},
 		lineOfSight = 30,
 		name = 'Artillery',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Artillery/',
 		meshPath = 'artillery.xml',
 		albedoPath = 'artillery.jpg',
@@ -725,6 +758,7 @@ units = {
 		hitboxOffset = {x = 0, y = 1.21, z = 0},
 		lineOfSight = 200,
 		name = 'Engineer',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Engineers/',
 		albedoPath = 'engineer.jpg',
 		colorNodes = {'Cube'},
@@ -755,7 +789,21 @@ units = {
 			{id = UnitId.POINT_DEFENSE, iconPath = 'Icons/Buttons/GameObjects/pointDefense.png',  buildable = true, trigger = 80},
 			{id = UnitId.EXTRACTOR, iconPath = 'Icons/Buttons/GameObjects/extractor.png',  buildable = true, trigger = 69},
 		},
-		abilityButtons = {{buttonType = ButtonType.ORDER, name = 'Hack', orderType = OrderType.HACK}},
+		abilityButtons = {
+			{
+				buttonType = ButtonType.ORDER, 
+				name = 'Hack', 
+				orderType = OrderType.HACK,
+				tooltip = {
+					size = {x = 220, y = 60},
+					lines = {
+						{entry = {text = 'Hack'}},
+						{entry = {text = 'Hack into a hostile unit'}},
+						{entry = {text = 'to turn it over to your side'}},
+					}
+				}
+			}
+		},
 		unitClass = UnitClass.CYBORG_ENGINEER,
 		unitType = UnitType.LAND,
 		armor = {ArmorType.MECHANIC},
@@ -770,6 +818,7 @@ units = {
 		hitboxOffset = {x = .178, y = 3.27, z = 0},
 		lineOfSight = 150,
 		name = 'Engineer',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Engineers/',
 		albedoPath = 'engineer.jpg',
 		colorNodes = {'Engineer_Asia.001'},
@@ -806,6 +855,7 @@ units = {
 		hitboxOffset = {x = 0, y = 1.02, z = .19},
 		lineOfSight = 200,
 		name = 'Engineer',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Engineers/',
 		albedoPath = 'engineer.jpg',
 		colorNodes = {'EngineerAM.001'},
@@ -836,7 +886,21 @@ units = {
 			{id = UnitId.POINT_DEFENSE, iconPath = 'Icons/Buttons/GameObjects/pointDefense.png',  buildable = true, trigger = 80},
 			{id = UnitId.EXTRACTOR, iconPath = 'Icons/Buttons/GameObjects/extractor.png',  buildable = true, trigger = 69},
 		},
-		abilityButtons = {{buttonType = ButtonType.ORDER, name = 'Hack', orderType = OrderType.HACK}},
+		abilityButtons = {
+			{
+				buttonType = ButtonType.ORDER, 
+				name = 'Hack', 
+				orderType = OrderType.HACK,
+				tooltip = {
+					size = {x = 220, y = 60},
+					lines = {
+						{entry = {text = 'Hack'}},
+						{entry = {text = 'Hack into a hostile unit'}},
+						{entry = {text = 'to turn it over to your side'}},
+					}
+				}
+			}
+		},
 		unitClass = UnitClass.CYBORG_ENGINEER,
 		unitType = UnitType.LAND,
 		armor = {ArmorType.MECHANIC},
@@ -851,6 +915,7 @@ units = {
 		hitboxOffset = {x = 0, y = 2.83, z = .4},
 		lineOfSight = 150,
 		name = 'Engineer',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Engineers/',
 		albedoPath = 'engineer.jpg',
 		colorNodes = {'Cube.001'},
@@ -887,6 +952,7 @@ units = {
 		hitboxOffset = {x = 0, y = 1.41, z = 1},
 		lineOfSight = 200,
 		name = 'Engineer',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Engineers/',
 		albedoPath = 'engineer.jpg',
 		colorNodes = {'Cube.001'},
@@ -917,7 +983,21 @@ units = {
 			{id = UnitId.POINT_DEFENSE, iconPath = 'Icons/Buttons/GameObjects/pointDefense.png',  buildable = true, trigger = 80},
 			{id = UnitId.EXTRACTOR, iconPath = 'Icons/Buttons/GameObjects/extractor.png',  buildable = true, trigger = 69},
 		},
-		abilityButtons = {{buttonType = ButtonType.ORDER, name = 'Hack', orderType = OrderType.HACK}},
+		abilityButtons = {
+			{
+				buttonType = ButtonType.ORDER, 
+				name = 'Hack', 
+				orderType = OrderType.HACK,
+				tooltip = {
+					size = {x = 220, y = 60},
+					lines = {
+						{entry = {text = 'Hack'}},
+						{entry = {text = 'Hack into a hostile unit'}},
+						{entry = {text = 'to turn it over to your side'}},
+					}
+				}
+			}
+		},
 		unitClass = UnitClass.CYBORG_ENGINEER,
 		unitType = UnitType.LAND,
 		armor = {ArmorType.MECHANIC},
@@ -932,6 +1012,7 @@ units = {
 		hitboxOffset = {x = 0, y = 2.9, z = .55},
 		lineOfSight = 150,
 		name = 'Engineer',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Engineers/',
 		albedoPath = 'engineer.jpg',
 		colorNodes = {'Rig.001'},
@@ -1024,6 +1105,7 @@ units = {
 		lineOfSight = 5,
 		colorNodes = {'Cube.002'},
 		name = 'Transport',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Transports/',
 		meshPath = 'acsTransport.xml',
 		albedoPath = 'transport.jpg',
@@ -1103,6 +1185,7 @@ units = {
 		lineOfSight = 5,
 		colorNodes = {'turret'},
 		name = 'Transport',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Transports/',
 		meshPath = 'aincTransport.xml',
 		albedoPath = 'transport.jpg',
@@ -1196,9 +1279,51 @@ units = {
 	{
 		weapons = {},
 		abilityButtons = {
-			{buttonType = ButtonType.ORDER, name = 'Supply', orderType = OrderType.SUPPLY},
-			{buttonType = ButtonType.ORDER, name = 'Load', orderType = OrderType.LOAD},
-			{buttonType = ButtonType.ORDER, name = 'Unload', orderType = OrderType.UNLOAD},
+			{
+				buttonType = ButtonType.ORDER, 
+				name = 'Supply', 
+				orderType = OrderType.SUPPLY,
+				tooltip = {
+					size = {x = 210, y = 60},
+					lines = {
+						{entry = {text = 'Supply'}},
+						{entry = {text = 'Begin collecting refineds'}},
+						{entry = {text = 'from an extractor'}},
+					}
+				}
+			},
+			{
+				buttonType = ButtonType.ORDER, 
+				name = 'Load', 
+				orderType = OrderType.LOAD,
+				tooltip = {
+					size = {x = 290, y = 120},
+					lines = {
+						{entry = {text = 'Load'}},
+						{entry = {text = 'Load the cargo ship with the'}},
+						{entry = {text = 'corresponding resource. Can load:'}},
+						{entry = {text = 'from refineries'}, icons = {{charId = 0, path = 'Resources/refineds.png'}}},
+						{entry = {text = 'from trade centers'}, icons = {{charId = 0, path = 'Resources/wealth.png'}}},
+						{entry = {text = 'from labs'}, icons = {{charId = 0, path = 'Resources/research.png'}}},
+					}
+				}
+			},
+			{
+				buttonType = ButtonType.ORDER, 
+				name = 'Unload', 
+				orderType = OrderType.UNLOAD,
+				tooltip = {
+					size = {x = 320, y = 120},
+					lines = {
+						{entry = {text = 'Unload'}},
+						{entry = {text = 'Unload the cargo ship with the'}},
+						{entry = {text = 'corresponding resource. Can unload:'}},
+						{entry = {text = 'to refineries'}, icons = {{charId = 0, path = 'Resources/refineds.png'}}},
+						{entry = {text = 'to trade centers'}, icons = {{charId = 0, path = 'Resources/wealth.png'}}},
+						{entry = {text = 'to labs'}, icons = {{charId = 0, path = 'Resources/research.png'}}},
+					}
+				}
+			}
 		},
 		unitClass = UnitClass.RESOURCE_ROVER,
 		unitType = UnitType.HOVER,
@@ -1216,6 +1341,7 @@ units = {
 		hitboxOffset = {x = 0, y = 2.65, z = 0},
 		lineOfSight = 5,
 		name = 'Cargo ship',
+		description = '',
 		colorNodes = {'Cargo'},
 		basePath = PATH .. vehiclePrefix .. 'Cargoships/',
 		meshPath = 'acsCargoShip.xml',
@@ -1231,9 +1357,51 @@ units = {
 	{
 		weapons = {},
 		abilityButtons = {
-			{buttonType = ButtonType.ORDER, name = 'Supply', orderType = OrderType.SUPPLY},
-			{buttonType = ButtonType.ORDER, name = 'Load', orderType = OrderType.LOAD},
-			{buttonType = ButtonType.ORDER, name = 'Unload', orderType = OrderType.UNLOAD},
+			{
+				buttonType = ButtonType.ORDER, 
+				name = 'Supply', 
+				orderType = OrderType.SUPPLY,
+				tooltip = {
+					size = {x = 210, y = 60},
+					lines = {
+						{entry = {text = 'Supply'}},
+						{entry = {text = 'Begin collecting refineds'}},
+						{entry = {text = 'from an extractor'}},
+					}
+				}
+			},
+			{
+				buttonType = ButtonType.ORDER, 
+				name = 'Load', 
+				orderType = OrderType.LOAD,
+				tooltip = {
+					size = {x = 290, y = 120},
+					lines = {
+						{entry = {text = 'Load'}},
+						{entry = {text = 'Load the cargo ship with the'}},
+						{entry = {text = 'corresponding resource. Can load:'}},
+						{entry = {text = 'from refineries'}, icons = {{charId = 0, path = 'Resources/refineds.png'}}},
+						{entry = {text = 'from trade centers'}, icons = {{charId = 0, path = 'Resources/wealth.png'}}},
+						{entry = {text = 'from labs'}, icons = {{charId = 0, path = 'Resources/research.png'}}},
+					}
+				}
+			},
+			{
+				buttonType = ButtonType.ORDER, 
+				name = 'Unload', 
+				orderType = OrderType.UNLOAD,
+				tooltip = {
+					size = {x = 320, y = 120},
+					lines = {
+						{entry = {text = 'Unload'}},
+						{entry = {text = 'Unload the cargo ship with the'}},
+						{entry = {text = 'corresponding resource. Can unload:'}},
+						{entry = {text = 'to refineries'}, icons = {{charId = 0, path = 'Resources/refineds.png'}}},
+						{entry = {text = 'to trade centers'}, icons = {{charId = 0, path = 'Resources/wealth.png'}}},
+						{entry = {text = 'to labs'}, icons = {{charId = 0, path = 'Resources/research.png'}}},
+					}
+				}
+			}
 		},
 		unitClass = UnitClass.RESOURCE_ROVER,
 		unitType = UnitType.HOVER,
@@ -1251,6 +1419,7 @@ units = {
 		hitboxOffset = {x = 0, y = 2.65, z = 0},
 		lineOfSight = 5,
 		name = 'Cargo ship',
+		description = '',
 		colorNodes = {'Cargo'},
 		basePath = PATH .. vehiclePrefix .. 'Cargoships/',
 		meshPath = 'aincCargoShip.xml',
@@ -1266,9 +1435,51 @@ units = {
 	{
 		weapons = {},
 		abilityButtons = {
-			{buttonType = ButtonType.ORDER, name = 'Supply', orderType = OrderType.SUPPLY},
-			{buttonType = ButtonType.ORDER, name = 'Load', orderType = OrderType.LOAD},
-			{buttonType = ButtonType.ORDER, name = 'Unload', orderType = OrderType.UNLOAD},
+			{
+				buttonType = ButtonType.ORDER, 
+				name = 'Supply', 
+				orderType = OrderType.SUPPLY,
+				tooltip = {
+					size = {x = 210, y = 60},
+					lines = {
+						{entry = {text = 'Supply'}},
+						{entry = {text = 'Begin collecting refineds'}},
+						{entry = {text = 'from an extractor'}},
+					}
+				}
+			},
+			{
+				buttonType = ButtonType.ORDER, 
+				name = 'Load', 
+				orderType = OrderType.LOAD,
+				tooltip = {
+					size = {x = 290, y = 120},
+					lines = {
+						{entry = {text = 'Load'}},
+						{entry = {text = 'Load the cargo ship with the'}},
+						{entry = {text = 'corresponding resource. Can load:'}},
+						{entry = {text = 'from refineries'}, icons = {{charId = 0, path = 'Resources/refineds.png'}}},
+						{entry = {text = 'from trade centers'}, icons = {{charId = 0, path = 'Resources/wealth.png'}}},
+						{entry = {text = 'from labs'}, icons = {{charId = 0, path = 'Resources/research.png'}}},
+					}
+				}
+			},
+			{
+				buttonType = ButtonType.ORDER, 
+				name = 'Unload', 
+				orderType = OrderType.UNLOAD,
+				tooltip = {
+					size = {x = 320, y = 120},
+					lines = {
+						{entry = {text = 'Unload'}},
+						{entry = {text = 'Unload the cargo ship with the'}},
+						{entry = {text = 'corresponding resource. Can unload:'}},
+						{entry = {text = 'to refineries'}, icons = {{charId = 0, path = 'Resources/refineds.png'}}},
+						{entry = {text = 'to trade centers'}, icons = {{charId = 0, path = 'Resources/wealth.png'}}},
+						{entry = {text = 'to labs'}, icons = {{charId = 0, path = 'Resources/research.png'}}},
+					}
+				}
+			}
 		},
 		unitClass = UnitClass.RESOURCE_ROVER,
 		unitType = UnitType.HOVER,
@@ -1286,6 +1497,7 @@ units = {
 		hitboxOffset = {x = 0, y = 2.65, z = 0},
 		lineOfSight = 5,
 		name = 'Cargo ship',
+		description = '',
 		colorNodes = {'Cargo'},
 		basePath = PATH .. vehiclePrefix .. 'Cargoships/',
 		meshPath = 'erCargoShip.xml',
@@ -1394,6 +1606,7 @@ units = {
 		lineOfSight = 50,
 		colorNodes = {'AATuret'},
 		name = 'Assault cruiser',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Cruisers/',
 		meshPath = 'heavyAssaultCruiser.xml',
 		albedoPath = 'cruiser.jpg',
@@ -1411,6 +1624,7 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1500, 
 				damage = 70, 
+				ammoConsumption = 1, --Test
 				maxRange = 50,
 				nodes = {{name = 'frontTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44}, vertical = false}},
 				fireFx = {
@@ -1431,6 +1645,7 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1500, 
 				damage = 70, 
+				ammoConsumption = 1, --Test
 				maxRange = 50,
 				nodes = {{name = 'rearTurret', rotationSpeed = .05, angleConstraints = {min = -2.44, max = 2.44}, vertical = false}},
 				fireFx = {
@@ -1451,6 +1666,7 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				damage = 10, 
+				ammoConsumption = 1, --Test
 				maxRange = 50,
 				nodes = {{name = 'frontAATurret', rotationSpeed = .05, vertical = false}, {name = 'frontAATurretBarrel', rotationSpeed = .05, vertical = true}},
 				fireFx = {
@@ -1474,6 +1690,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				damage = 10, 
+				ammoConsumption = 1, --Test
+				maxAmmo = 100, -- Just a test
+				ammo = 100, -- Just a test
 				maxRange = 50,
 				nodes = {{name = 'rearAATurret', rotationSpeed = .05, vertical = false}, {name = 'rearAATurretBarrel', rotationSpeed = .05, vertical = true}},
 				fireFx = {
@@ -1506,6 +1725,7 @@ units = {
 		lineOfSight = 5,
 		colorNodes = {'frontAATurret', 'rearAATurret'},
 		name = 'Assault cruiser',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Cruisers/',
 		meshPath = 'mediumAssaultCruiser.xml',
 		albedoPath = 'cruiser.jpg',
@@ -1569,6 +1789,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 200, 
 				damage = 10, 
+				ammoConsumption = 1, -- Test
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 50,
 				nodes = {
 					{name = 'aaTurret', rotationSpeed = .05, vertical = false}, 
@@ -1616,6 +1839,7 @@ units = {
 		lineOfSight = 5,
 		colorNodes = {'aaTurret'},
 		name = 'Assault cruiser',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Cruisers/',
 		meshPath = 'lightAssaultCruiser.xml',
 		albedoPath = 'cruiser.jpg',
@@ -1706,6 +1930,7 @@ units = {
 		lineOfSight = 100,
 		colorNodes = {'FrontTurret', 'RearTurret'},
 		name = 'Anti sub cruiser',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Cruisers/',
 		meshPath = 'acsAntiSubCruiser.xml',
 		albedoPath = 'cruiser.jpg',
@@ -1832,6 +2057,7 @@ units = {
 		lineOfSight = 100,
 		colorNodes = {'sides'},
 		name = 'Anti sub cruiser',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Cruisers/',
 		meshPath = 'aincAntiSubCruiser.xml',
 		albedoPath = 'cruiser.jpg',
@@ -1987,6 +2213,7 @@ units = {
 		lineOfSight = 100,
 		colorNodes = {'Gunship.001'},
 		name = 'Anti sub cruiser',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Cruisers/',
 		meshPath = 'erAntiSubCruiser.xml',
 		albedoPath = 'cruiser.jpg',
@@ -2038,6 +2265,7 @@ units = {
 		hitboxOffset = {x = 0, y = 1.8, z = -1.3},
 		lineOfSight = 50,
 		name = 'Missile submarine',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Submarines/',
 		meshPath = 'acsMissileSubmarine.xml',
 		albedoPath = 'submarine.jpg',
@@ -2142,6 +2370,7 @@ units = {
 		hitboxOffset = {x = 0, y = 2.29, z = -1.09},
 		lineOfSight = 500,
 		name = 'Missile submarine',
+		description = '',
 		basePath = PATH .. vehiclePrefix .. 'Submarines/',
 		meshPath = 'erMissileSubmarine.xml',
 		albedoPath = 'submarine.jpg',
@@ -2181,6 +2410,7 @@ units = {
 		hitboxOffset = {x = 0, y = 1.8, z = -1.3},
 		lineOfSight = 0,
 		name = 'Stealth submarine',
+		description = '',
 		colorNodes = {'Cube.001'},
 		basePath = PATH .. vehiclePrefix .. 'Submarines/',
 		meshPath = 'acsSubmarine.xml',
@@ -2220,6 +2450,7 @@ units = {
 		size = {x = 8.32, y = 12.1, z = 57.4},
 		lineOfSight = 0,
 		name = 'Stealth submarine',
+		description = '',
 		colorNodes = {'Cube.001'},
 		basePath = PATH .. vehiclePrefix .. 'Submarines/',
 		meshPath = 'aincSubmarine.xml',
@@ -2238,6 +2469,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				projectile = {id = ProjectileId.TORPEDO, pos = {x = 0, y = -.27, z = 4.6}, rot = {w = 1, x = 0, y = 0, z = 0}},
 				damage = 200, 
+				ammoConsumption = 1, --Test
+				maxAmmo = 50, -- Just a test
+				ammo = 50, -- Just a test
 				maxRange = 200, 
 				rateOfFire = 500, 
 				fireFx = {
@@ -2259,6 +2493,7 @@ units = {
 		size = {x = 5.37, y = 7.66, z = 43},
 		lineOfSight = 0,
 		name = 'Stealth submarine',
+		description = '',
 		colorNodes = {'Sphere.001'},
 		basePath = PATH .. vehiclePrefix .. 'Submarines/',
 		meshPath = 'erSubmarine.xml',
@@ -2282,6 +2517,7 @@ units = {
 		hitboxOffset = {x = 0, y = 6.7, z = 0},
 		lineOfSight = 25,
 		name = 'Icebreaker',
+		description = '',
 		colorNodes = {'Cube.001'},
 		basePath = PATH .. vehiclePrefix .. 'Icebreakers/',
 		meshPath = 'acsIcebreaker.xml',
@@ -2305,6 +2541,7 @@ units = {
 		hitboxOffset = {x = 0, y = 7.6, z = 5.88},
 		lineOfSight = 25,
 		name = 'Icebreaker',
+		description = '',
 		colorNodes = {'Cube.001'},
 		basePath = PATH .. vehiclePrefix .. 'Icebreakers/',
 		meshPath = 'aincIcebreaker.xml',
@@ -2328,6 +2565,7 @@ units = {
 		hitboxOffset = {x = 0, y = 6.71, z = 5.95},
 		lineOfSight = 25,
 		name = 'Icebreaker',
+		description = '',
 		colorNodes = {'Cube.001'},
 		basePath = PATH .. vehiclePrefix .. 'Icebreakers/',
 		meshPath = 'erIcebreaker.xml',
@@ -2348,6 +2586,9 @@ units = {
 				rateOfFire = 100,
 				maxRange = 500,
 				damage = 0,
+				ammoConsumption = 1, --Test
+				maxAmmo = 100, -- Just a test
+				ammo = 50, -- Just a test
 				nodes = {
 					{name = 'turret', rotationSpeed = .05, vertical = false},
 					{name = 'barrel', rotationSpeed = .05, angleConstraints = {min = -.523, max = .523}, vertical = true},
@@ -2375,6 +2616,7 @@ units = {
 		hitboxOffset = {x = 0, y = 4.7, z = 0},
 		lineOfSight = 25,
 		name = 'Freezer',
+		description = '',
 		colorNodes = {'CryoGun'},
 		basePath = PATH .. vehiclePrefix .. 'Freezers/',
 		meshPath = 'freezer.xml',
@@ -2392,7 +2634,10 @@ units = {
 			{
 				orderType = OrderType.ATTACK,
 				rateOfFire = 1000, 
-				damage = 0, 
+				damage = 0,
+				ammoConsumption = 1, --Test
+				maxAmmo = 100, -- Just a test
+				ammo = 100, -- Just a test
 				maxRange = 25,
 				maxFireAngle = .1,
 				nodes = {{name = 'turret', rotationSpeed = .05, vertical = false}},
@@ -2416,6 +2661,7 @@ units = {
 		hitboxOffset = {x = 0, y = 1.13, z = 1.83},
 		lineOfSight = 25,
 		name = 'EMP boat',
+		description = '',
 		colorNodes = {'turret'},
 		basePath = PATH .. vehiclePrefix .. 'EMPShips/',
 		meshPath = 'empShip.xml',
@@ -2449,6 +2695,7 @@ units = {
 		lineOfSight = 5,
 		colorNodes = {'ring'},
 		name = 'Land factory',
+		description = '',
 		albedoPath = 'factory.jpg',
 		basePath = PATH .. structurePrefix .. 'LandFactories/',
 		meshPath = 'acsFactory.xml',
@@ -2476,6 +2723,7 @@ units = {
 		lineOfSight = 5,
 		colorNodes = {'Cube.002'},
 		name = 'Land factory',
+		description = '',
 		albedoPath = 'factory.jpg',
 		basePath = PATH .. structurePrefix .. 'LandFactories/',
 		meshPath = 'aincFactory.xml',
@@ -2503,6 +2751,7 @@ units = {
 		lineOfSight = 5,
 		colorNodes = {'Sphere.001'},
 		name = 'Land factory',
+		description = '',
 		albedoPath = 'factory.jpg',
 		basePath = PATH .. structurePrefix .. 'LandFactories/',
 		meshPath = 'erFactory.xml',
@@ -2530,6 +2779,7 @@ units = {
 		hitboxOffset = {x = 0, y = 28.4, z = -29},
 		lineOfSight = 5,
 		name = 'Naval factory',
+		description = '',
 		basePath = PATH .. structurePrefix .. 'NavalFactories/',
 		meshPath = 'acsFactory.xml',
 		colorNodes = {'stripes'},
@@ -2558,6 +2808,7 @@ units = {
 		hitboxOffset = {x = 0, y = 18, z = 0},
 		lineOfSight = 5,
 		name = 'Naval factory',
+		description = '',
 		colorNodes = {'roof'},
 		basePath = PATH .. structurePrefix .. 'NavalFactories/',
 		meshPath = 'aincFactory.xml',
@@ -2588,6 +2839,7 @@ units = {
 		hitboxOffset = {x = 0, y = 10, z = -14},
 		lineOfSight = 5,
 		name = 'Naval factory',
+		description = '',
 		colorNodes = {'building'},
 		basePath = PATH .. structurePrefix .. 'NavalFactories/',
 		meshPath = 'erFactory.xml',
@@ -2599,10 +2851,46 @@ units = {
 		unitClass = UnitClass.TRADE_CENTER,
 		unitType = UnitType.LAND,
 		abilityButtons = {
-			{buttonType = ButtonType.BUY_REFINEDS, name = 'Buy ref', trigger = 73},
-			{buttonType = ButtonType.SELL_REFINEDS, name = 'Sell ref', trigger = 79},
-			{buttonType = ButtonType.BUY_RESEARCH, name = 'Buy rsch', trigger = 75},
-			{buttonType = ButtonType.SELL_RESEARCH, name = 'Sell rsch', trigger = 76}
+			{
+				buttonType = ButtonType.BUY_REFINEDS, 
+				name = 'Buy ref', 
+				trigger = 73,
+				amount = 10,
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {{entry = {text = 'Buy _ refineds for _ wealth'}}}
+				}
+			},
+			{
+				buttonType = ButtonType.SELL_REFINEDS, 
+				name = 'Sell ref', 
+				trigger = 79,
+				amount = 10,
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {{entry = {text = 'Sell _ refineds for _ wealth'}}}
+				}
+			},
+			{
+				buttonType = ButtonType.BUY_RESEARCH, 
+				name = 'Buy rsch', 
+				trigger = 75,
+				amount = 10,
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {{entry = {text = 'Buy _ research for _ wealth'}}}
+				}
+			},
+			{
+				buttonType = ButtonType.SELL_RESEARCH, 
+				name = 'Sell rsch', 
+				trigger = 76,
+				amount = 10,
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {{entry = {text = 'Sell _ research for _ wealth'}}}
+				}
+			}
 		},
 		maxUnevenness = .5,
 		isVehicle = false,
@@ -2614,6 +2902,7 @@ units = {
 		lineOfSight = 5,
 		colorNodes = {'wall'},
 		name = 'Trade center',
+		description = '',
 		basePath = PATH .. structurePrefix .. 'TradeCenters/',
 		meshPath = 'acsTradeCenter.xml',
 		albedoPath = 'tradeCenter.jpg',
@@ -2624,10 +2913,46 @@ units = {
 		unitClass = UnitClass.TRADE_CENTER,
 		unitType = UnitType.LAND,
 		abilityButtons = {
-			{buttonType = ButtonType.BUY_REFINEDS, name = 'Buy ref', trigger = 73},
-			{buttonType = ButtonType.SELL_REFINEDS, name = 'Sell ref', trigger = 79},
-			{buttonType = ButtonType.BUY_RESEARCH, name = 'Buy rsch', trigger = 75},
-			{buttonType = ButtonType.SELL_RESEARCH, name = 'Sell rsch', trigger = 76}
+			{
+				buttonType = ButtonType.BUY_REFINEDS, 
+				name = 'Buy ref', 
+				trigger = 73,
+				amount = 10,
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {{entry = {text = 'Buy _ refineds for _ wealth'}}}
+				}
+			},
+			{
+				buttonType = ButtonType.SELL_REFINEDS, 
+				name = 'Sell ref', 
+				trigger = 79,
+				amount = 10,
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {{entry = {text = 'Sell _ refineds for _ wealth'}}}
+				}
+			},
+			{
+				buttonType = ButtonType.BUY_RESEARCH, 
+				name = 'Buy rsch', 
+				trigger = 75,
+				amount = 10,
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {{entry = {text = 'Buy _ research for _ wealth'}}}
+				}
+			},
+			{
+				buttonType = ButtonType.SELL_RESEARCH, 
+				name = 'Sell rsch', 
+				trigger = 76,
+				amount = 10,
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {{entry = {text = 'Sell _ research for _ wealth'}}}
+				}
+			}
 		},
 		maxUnevenness = .5,
 		isVehicle = false,
@@ -2639,6 +2964,7 @@ units = {
 		lineOfSight = 5,
 		colorNodes = {'Cube.001'},
 		name = 'Trade center',
+		description = '',
 		basePath = PATH .. structurePrefix .. 'TradeCenters/',
 		meshPath = 'aincTradeCenter.xml',
 		albedoPath = 'tradeCenter.jpg',
@@ -2649,10 +2975,46 @@ units = {
 		unitClass = UnitClass.TRADE_CENTER,
 		unitType = UnitType.LAND,
 		abilityButtons = {
-			{buttonType = ButtonType.BUY_REFINEDS, name = 'Buy ref', trigger = 73},
-			{buttonType = ButtonType.SELL_REFINEDS, name = 'Sell ref', trigger = 79},
-			{buttonType = ButtonType.BUY_RESEARCH, name = 'Buy rsch', trigger = 75},
-			{buttonType = ButtonType.SELL_RESEARCH, name = 'Sell rsch', trigger = 76}
+			{
+				buttonType = ButtonType.BUY_REFINEDS, 
+				name = 'Buy ref', 
+				trigger = 73,
+				amount = 10,
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {{entry = {text = 'Buy _ refineds for _ wealth'}}}
+				}
+			},
+			{
+				buttonType = ButtonType.SELL_REFINEDS, 
+				name = 'Sell ref', 
+				trigger = 79,
+				amount = 10,
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {{entry = {text = 'Sell _ refineds for _ wealth'}}}
+				}
+			},
+			{
+				buttonType = ButtonType.BUY_RESEARCH, 
+				name = 'Buy rsch', 
+				trigger = 75,
+				amount = 10,
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {{entry = {text = 'Buy _ research for _ wealth'}}}
+				}
+			},
+			{
+				buttonType = ButtonType.SELL_RESEARCH, 
+				name = 'Sell rsch', 
+				trigger = 76,
+				amount = 10,
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {{entry = {text = 'Sell _ research for _ wealth'}}}
+				}
+			}
 		},
 		maxUnevenness = .5,
 		isVehicle = false,
@@ -2664,6 +3026,7 @@ units = {
 		lineOfSight = 5,
 		colorNodes = {'sphere'},
 		name = 'Trade center',
+		description = '',
 		basePath = PATH .. structurePrefix .. 'TradeCenters/',
 		meshPath = 'erTradeCenter.xml',
 		albedoPath = 'tradeCenter.jpg',
@@ -2674,7 +3037,20 @@ units = {
 		unitClass = UnitClass.LAB,
 		unitType = UnitType.LAND,
 		maxUnevenness = .5,
-		abilityButtons = {{buttonType = ButtonType.ACTIVE_STATE, name = 'Tech tree', guiScreen = 'acsTechTree.lua'}},
+		abilityButtons = {
+			{
+				buttonType = ButtonType.ACTIVE_STATE, 
+				name = 'Tech tree', 
+				guiScreen = 'acsTechTree.lua',
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {
+						{entry = {text = 'Tech tree'}},
+						{entry = {text = 'Access the Asian technology tree'}},
+					}
+				}
+			}
+		},
 		isVehicle = false,
 		health = 500,
 		buildTime = 1000,
@@ -2686,6 +3062,7 @@ units = {
 		generationSpeed = 10,
 		researchCost = 1,
 		name = 'Lab',
+		description = '',
 		colorNodes = {'stripes'},
 		basePath = PATH .. structurePrefix .. 'Labs/',
 		meshPath = 'acsLab.xml',
@@ -2697,7 +3074,20 @@ units = {
 		unitClass = UnitClass.LAB,
 		unitType = UnitType.LAND,
 		maxUnevenness = .5,
-		abilityButtons = {{buttonType = ButtonType.ACTIVE_STATE, name = 'Tech tree', guiScreen = 'aincTechTree.lua'}},
+		abilityButtons = {
+			{
+				buttonType = ButtonType.ACTIVE_STATE, 
+				name = 'Tech tree', 
+				guiScreen = 'aincTechTree.lua',
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {
+						{entry = {text = 'Tech tree'}},
+						{entry = {text = 'Access the American technology tree'}},
+					}
+				}
+			}
+		},
 		isVehicle = false,
 		health = 500,
 		buildTime = 1000,
@@ -2709,6 +3099,7 @@ units = {
 		generationSpeed = 10,
 		researchCost = 1,
 		name = 'Lab',
+		description = '',
 		colorNodes = {'stripe'},
 		basePath = PATH .. structurePrefix .. 'Labs/',
 		meshPath = 'aincLab.xml',
@@ -2720,7 +3111,20 @@ units = {
 		unitClass = UnitClass.LAB,
 		unitType = UnitType.LAND,
 		maxUnevenness = .5,
-		abilityButtons = {{buttonType = ButtonType.ACTIVE_STATE, name = 'Tech tree', guiScreen = 'erTechTree.lua'}},
+		abilityButtons = {
+			{
+				buttonType = ButtonType.ACTIVE_STATE, 
+				name = 'Tech tree', 
+				guiScreen = 'erTechTree.lua',
+				tooltip = {
+					size = {x = 200, y = 40},
+					lines = {
+						{entry = {text = 'Tech tree'}},
+						{entry = {text = 'Access the European technology tree'}},
+					}
+				}
+			}
+		},
 		isVehicle = false,
 		health = 500,
 		buildTime = 1000,
@@ -2732,6 +3136,7 @@ units = {
 		generationSpeed = 10,
 		researchCost = 1,
 		name = 'Lab',
+		description = '',
 		colorNodes = {'stripes'},
 		basePath = PATH .. structurePrefix .. 'Labs/',
 		meshPath = 'erLab.xml',
@@ -2745,6 +3150,9 @@ units = {
 				orderType = OrderType.ATTACK,
 				rateOfFire = 100, 
 				damage = 7, 
+				ammoConsumption = 2, --Test
+				maxAmmo = 100, -- Just a test
+				ammo = 80, -- Just a test
 				maxRange = 100,
 				maxFireAngle = .4,
 				nodes = {
@@ -2796,6 +3204,7 @@ units = {
 		hitboxOffset = {x = 0, y = 4, z = 0},
 		lineOfSight = 55,
 		name = 'Point defense',
+		description = '',
 		colorNodes = {'Hoses', 'Hoses.001'},
 		turretNode = 'TurretBody',
 		basePath = PATH .. structurePrefix .. 'PointDefenses/',
@@ -2819,6 +3228,7 @@ units = {
 		size = {x = 9.72, y = 10.14, z = 9.72},
 		lineOfSight = 5,
 		name = 'Extractor',
+		description = 'Collects refineds from resource deposits',
 		basePath = PATH .. structurePrefix .. 'Extractors/',
 		meshPath = 'extractor.xml',
 		albedoPath = 'extractor.jpg',
@@ -2857,6 +3267,7 @@ units = {
 		hitboxOffset = {x = 0, y = 15.2, z = 0},
 		lineOfSight = 5,
 		name = 'Refinery',
+		description = '',
 		basePath = PATH .. structurePrefix .. 'Refineries/',
 		meshPath = 'aincRefinery.xml',
 		albedoPath = 'refinery.jpg',
@@ -2876,6 +3287,7 @@ units = {
 		hitboxOffset = {x = 0, y = 13.95, z = 3.23},
 		lineOfSight = 5,
 		name = 'Refinery',
+		description = '',
 		basePath = PATH .. structurePrefix .. 'Refineries/',
 		meshPath = 'erRefinery.xml',
 		albedoPath = 'refinery.jpg',
@@ -2891,6 +3303,7 @@ units = {
 		hitboxOffset = {x = 0, y = 0, z = 0},
 		lineOfSight = 5,
 		name = 'Ice sheet',
+		description = '',
 		basePath = PATH .. structurePrefix .. 'IceSheets/',
 		meshPath = 'iceSheet.xml',
 		albedoPath = 'iceSheet.jpg',

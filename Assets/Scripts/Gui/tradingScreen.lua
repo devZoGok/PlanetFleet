@@ -3,7 +3,7 @@ HubMargin.top = 100
 
 resTrayPos = {x = HubPos.x + HubMargin.left, y = HubPos.y + HubMargin.top}
 iconSize = {x = 25, y = 25}
-textboxSize = {x = 200, y = 25}
+textboxSize = {x = 150, y = 25}
 
 buttonSize = {x = 100, y = 20}
 
@@ -12,6 +12,9 @@ IconPath = {WEALTH = 'Icons/Resources/wealth.png', RESEARCH = 'Icons/Resources/r
 
 function createResourceTrayGui(cpuPlayer, lineId, guiId, imgPath)
 	height = HubMargin.top + lineId * iconSize.y
+	tooltipOffset = {x = iconSize.x * (cpuPlayer and 1 or -1), y = -iconSize.y, z = .1}
+	tooltipSize = {x = 190, y = 20}
+	resourceAmountDelta = 10
 
 	if guiId == ResourceTrayGuiId.ICON then
 		guiElPos = {x = HubPos.x + (cpuPlayer and HubMargin.left or HubSize.x -(HubMargin.right + 3 * iconSize.x + textboxSize.x)), y = height, z = .2}
@@ -36,11 +39,18 @@ function createResourceTrayGui(cpuPlayer, lineId, guiId, imgPath)
 		return {
 			guiType = GuiType.BUTTON,
 			buttonType = ButtonType.RESOURCE_AMMOUNT,
-			ammount = 10,
+			ammount = resourceAmountDelta,
 			name = '+',
 			pos = guiElPos,
 			size = iconSize,
-			trigger = 10
+			trigger = 10,
+			tooltip = {
+				offset = tooltipOffset,
+				size = tooltipSize,
+				lines = {
+					{entry = {text = 'Increase value by ' .. resourceAmountDelta}},
+				}
+			}
 		}
 	elseif guiId == ResourceTrayGuiId.DECREMENT then
 		guiElPos = {x = HubPos.x + (cpuPlayer and HubMargin.left + 2 * iconSize.x + textboxSize.x or HubSize.x -(HubMargin.right + iconSize.x)), y = height, z = .2}
@@ -48,11 +58,18 @@ function createResourceTrayGui(cpuPlayer, lineId, guiId, imgPath)
 		return {
 			guiType = GuiType.BUTTON,
 			buttonType = ButtonType.RESOURCE_AMMOUNT,
-			ammount = -10,
+			ammount = -resourceAmountDelta,
 			name = '-',
 			pos = guiElPos,
 			size = iconSize,
-			trigger = 10
+			trigger = 10,
+			tooltip = {
+				offset = tooltipOffset,
+				size = tooltipSize,
+				lines = {
+					{entry = {text = 'Decrease value by ' .. resourceAmountDelta}},
+				}
+			}
 		}
 	end
 end
@@ -117,7 +134,7 @@ gui = {
 		buttonType = ButtonType.PLAYER_TRADE,
 		name = 'Back',
 		guiScreen = 'tradingHub.lua',
-		pos = {x = HubPos.x + HubSize.x - 3 * buttonSize.x - HubMargin.right, y = HubPos.y + HubSize.y - buttonSize.y - HubMargin.bottom, z = .2},
+		pos = {x = HubPos.x + HubSize.x - 2 * buttonSize.x - 2 * HubMargin.right, y = HubPos.y + HubSize.y - buttonSize.y - HubMargin.bottom, z = .2},
 		size = buttonSize,
 		trigger = 10
 	},
