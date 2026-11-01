@@ -20,7 +20,7 @@ namespace battleship{
 			void update();
 			int getNumQueueUnitsById(int);
 			void appendToQueue(int);
-			inline void setRallyPoint(vb01::Vector3 rp){this->rallyPoint = rp;}
+			vb01::Vector3 updateRallyPoint(vb01::Vector3);
 			inline vb01::Vector3 getRallyPoint(){return rallyPoint;}
 			inline std::vector<int> getQueue(){return unitQueue;}
 		private:

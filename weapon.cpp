@@ -292,7 +292,7 @@ namespace battleship{
 			if(target) updateTarget(target);
 			else{
 				Map *map = Map::getSingleton();
-				Map::Cell::Type cellType = map->getCells()[map->getCellId(targPos)].type;
+				Map::Cell::Type cellType = map->getCell(map->getCellId(targPos)).type;
 				fxKey = (cellType == Map::Cell::Type::LAND ? "landHitFx" : "waterHitFx");
 			}
 

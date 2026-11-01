@@ -119,54 +119,30 @@ function Player:updatePdSpots()
 	pdFrame:destroy()
 end
 
---TODO remove heuristics
 function Player:landRouteToSpawnpoint_(mapPoint)
 	map = Map.getSingleton()
 	dest = map:getCellId(mapPoint, false)
 	source = map:getCellId(map:getSpawnPoint(self:getSpawnPointId()), false)
 
 	pf = Pathfinder.getSingleton()
-	forwClampedDest = pf:clampDestToSourceRegion(source, dest)
+	forwPath = pf:findPath(source, dest, UnitType.LAND)
 
-	if dest ~= forwClampedDest then
-		cells = map:getCells()
+	if dest ~= forwPath[#forwPath] then
+		embarkCellId = forwPath[#forwPath - 1]
+		navalRallyCellId = forwPath[#forwPath]
+		self.navalFactoryCellId = navalRallyCellId
 
-		embarkCellId = nil
-		navalRallyCellId = nil
-		embarkCellId = forwClampedDest
+		backPath = pf:findPath(dest, source, UnitType.LAND)
 
-		for i = 1, #cells[embarkCellId + 1].edges do
-			destCellId = cells[embarkCellId + 1].edges[i].destCellId
+		disembarkCellId = backPath[#backPath - 1]
+		navalSupportCellId = backPath[#backPath]
 
-			if cells[destCellId + 1].type == 1 then
-				if not self.navalFactoryCellId then self.navalFactoryCellId = destCellId end
-
-				navalRallyCellId = destCellId
-				break
-			end
-		end
-
-		disembarkCellId = nil
-		navalSupportCellId = nil
-		backwClampedDest = pf:clampDestToSourceRegion(dest, embarkCellId)
-		disembarkCellId = backwClampedDest
-
-		for i = 1, #cells[disembarkCellId + 1].edges do
-			destCellId = cells[disembarkCellId + 1].edges[i].destCellId
-
-			if cells[destCellId + 1].type == 1 then
-				navalSupportCellId = destCellId
-				break
-			end
-		end
-		
-		
 		return {
 			reachable = false, 
-			embarkCellId = embarkCellId, 
-			navalRallyCellId = navalRallyCellId, 
-			navalSupportCellId = navalSupportCellId, 
-			disembarkCellId = disembarkCellId
+			embarkCellId = CellId:new(embarkCellId.x, embarkCellId.y, embarkCellId.z), 
+			navalRallyCellId = CellId:new(navalRallyCellId.x, navalRallyCellId.y, navalRallyCellId.z), 
+			navalSupportCellId = CellId:new(navalSupportCellId.x, navalSupportCellId.y, navalSupportCellId.z), 
+			disembarkCellId = CellId:new(disembarkCellId.x, disembarkCellId.y, disembarkCellId.z)
 		}
 	else
 		return {reachable = true}
@@ -189,12 +165,11 @@ function Player:init()
 			taskForce.arrived = true
 			taskForce.landed = true
 			self.spawnPointData[i] = {reachable = true}
+		else
+			self.spawnPointData[i] = self:landRouteToSpawnpoint_(Map.getSingleton():getSpawnPoint(i - 1))
 		end
 
 		self.taskForces[i] = taskForce
-		spawnPoint = Map.getSingleton():getSpawnPoint(i - 1)
-		self.spawnPointData[i] = self:landRouteToSpawnpoint_(spawnPoint)
-
 	end
 end
 
@@ -344,7 +319,7 @@ function Player:buildLandFactory(arguments)
 	if pos then
 		self:buildStructure(engi, factId, pos, self.baseQuat:getAngle())
 		factory = self:getUnitsByClass(UnitClass.LAND_FACTORY, 1)[1]:toFactory()
-		factory:setRallyPoint(factory:getPos():add(factory:getDirVec():mult(100)))
+		factory:updateRallyPoint(factory:getPos():add(factory:getDirVec():mult(100)))
 		return BTNodeResult.RUNNING
 	else return BTNodeResult.FAILURE end
 end
@@ -437,7 +412,7 @@ function Player:startHarvesting()
 	if #extractors == 0 then return BTNodeResult.FAILURE end
 
 	for i = #extractors, 1, -1 do
-		if extractors[i]:toExtractor():getDeposit():getAmmount() == 0 then
+		if extractors[i]:toExtractor():getDeposit():getAmount() == 0 then
 			table.remove(extractors, i)
 		end
 	end
@@ -803,7 +778,6 @@ function Player:generateTaskForceActions()
 		{type = BTNodeType.PARALLEL, children = {}}, 
 	}
 	numSpawnPoints = Map.getSingleton():getNumSpawnPoints()
-	tfId = 1
 
 	for i = 1, numSpawnPoints do
 		arguments = {taskForceId = i}
@@ -831,7 +805,6 @@ function Player:generateTaskForceActions()
 		)
 		table.insert(children[2].children, {type = BTNodeType.FUNCTION, func = self.occupySpawnPoint, args = arguments})
 
-		tfId = tfId + 1
 		::continue::
 	end
 
