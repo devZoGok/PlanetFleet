@@ -3,7 +3,7 @@ gui = {
 	{
 		guiType = GuiType.GUI_RECTANGLE,
 		pos = {x = 0, y = 0, z = -.01},
-		size = graphics.resolution,
+		size = windowSize,
 		color = {x = 0, y = 0, z = 0, w = .6}
 	},
 	{

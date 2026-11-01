@@ -1,4 +1,4 @@
-res = graphics.resolution
+res = windowSize
 
 HubSize = {x = 500, y = res.y * .8}
 HubPos = {x = .5 * (res.x - HubSize.x), y = 10, z = .1}

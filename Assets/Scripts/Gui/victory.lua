@@ -5,7 +5,7 @@ music = {
 	tracks = {'victory.ogg'}
 }
 
-res = graphics.resolution
+res = windowSize
 overlaySize = {x = 600, y = 450}
 overlayPos = {x = .5 * (res.x - overlaySize.x), y = 100, z = .2}
 buttonSize = {x = 150, y = 40}

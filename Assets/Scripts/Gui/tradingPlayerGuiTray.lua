@@ -1,4 +1,4 @@
-res = graphics.resolution
+res = windowSize
 
 buttonSize = {x = 60, y = 20}
 textboxSize = {x = 200, y = 20}
