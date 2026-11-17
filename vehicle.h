@@ -50,7 +50,7 @@ namespace battleship{
 			void navigateToTarget(float);
 			void preparePathpoints(Order&, vb01::Vector3, bool = false);
 			virtual void attack(Order);
-			virtual void build(Order);
+			void build(Order) override;
 			void garrison(Order);
 			void patrol(Order);
 			virtual void initProperties();

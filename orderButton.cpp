@@ -54,6 +54,9 @@ namespace battleship{
 						case Order::TYPE::HACK:
 							cs = ActiveGameState::CursorState::HACK;
 							break;
+						case Order::TYPE::BUILD:
+							cs = ActiveGameState::CursorState::BUILD;
+							break;
 					}
 
 					activeState->setCursorState(cs);

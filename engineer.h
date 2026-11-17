@@ -25,7 +25,6 @@ namespace battleship{
 			vb01::s64 lastRepairTime = 0;
 
 			void hack(Order);
-			void build(Order);
 	};
 }
 
