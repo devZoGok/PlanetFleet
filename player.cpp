@@ -296,6 +296,8 @@ namespace battleship{
 		return destructables;
 	}
 
+	/// @brief Update the player's stats based on the change in health of a target unit
+	/// @param targetUnit 
 	void Player::updateGameStats(Unit *targetUnit){
 		Destructable *destructTarg = targetUnit->getDestructable();
 

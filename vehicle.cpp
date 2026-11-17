@@ -512,25 +512,66 @@ namespace battleship{
 		}
 	}
 
-	void Vehicle::build(Order order){
-		Structure *structure = (Structure*)order.targets[0].unit;
-		float offset = .5 * Map::getSingleton()->getCellSize().x;
+	/// @brief Continues building a structure or repairing the structure in the order
+	/// @param order 
+	void Vehicle::build(Order order)
+	{
+		Unit *targ = (Unit*)order.targets[0].unit;
 
-		if(pathPoints.empty() && closeEnough(structure, pos, offset)){
-			sol::table targTable = generateView()["units"][structure->getId()];
+		// Build/Repair the structure if the vehicle is close enough to the location selected to build
+		// This is the offset between the vehicle and vehicle/structure
+		float offset = .5 * Map::getSingleton()->getCellSize().x;
+		
+		// If the vehicle is close enough to the target to build/rebuild
+		if(pathPoints.empty() && closeEnough(targ, pos, offset))
+		{
+			sol::table targTable = generateView()["units"][targ->getId()];
+
 			int costRate = (int)targTable["cost"] / 100, buildRate = (int)targTable["buildTime"] / 100;
 
-			if(!structure->isComplete() && player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastBuildTime > buildRate){
-				structure->incrementBuildStatus();
-				player->updateResource(ResourceType::REFINEDS, -costRate, true);
-				lastBuildTime = getTime();
+			// If target is a vehicle or completed structure, then repair the vehicle's/structure's health
+			if(targ->isVehicle() || ((Structure*)targ)->isComplete())
+			{
+				// If the player is able is able to rebuild economically and according to build rate and the vehicle/structure is not at full health
+				// Increment the health, subtract the used resources and update the latest build time
+				if(!targ->getDestructable()->atFullHealth() && player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastBuildTime > buildRate){
+					targ->getDestructable()->incrementHealth();
+					player->updateResource(ResourceType::REFINEDS, -costRate, true);
+					lastBuildTime = getTime();
+				}
+				// If the vehicle/structure is at full health, delete the order
+				else if(targ->getDestructable()->atFullHealth() )
+				{
+					removeOrder(0);
+				}
 			}
-			else if(structure->isComplete()){
-				removeOrder(0);
-				player->incStructuresBuilt();
+			// If the target is a structure and its not completely built, continue building it
+			else if(!((Structure*)targ)->isComplete())
+			{
+				Structure *structure = (Structure*)targ;
+				// If the player is able is able to build economically and according to build rate
+				// Increment the build status, subtract the used resources and update the latest build time
+				if(player->getResource(ResourceType::REFINEDS) >= costRate && getTime() - lastBuildTime > buildRate){
+					structure->incrementBuildStatus();
+					player->updateResource(ResourceType::REFINEDS, -costRate, true);
+					lastBuildTime = getTime();
+				}
+				// If the structure is now complete delete the order and increment the number of strcutres built
+				else if(structure->isComplete()){
+					removeOrder(0);
+					player->incStructuresBuilt();
+				}
+				// Should probably be something done for if the player can't afford to build the structure
 			}
+			else
+			{
+				return;
+			}
+
 		}
+		// If the vehicle is not close enough to the target then navigate towards it
 		else navigate(offset);
+
 	}
 
 	void Vehicle::select(){

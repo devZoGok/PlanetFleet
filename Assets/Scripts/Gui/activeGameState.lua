@@ -38,9 +38,11 @@ attackTex = 'attack.png'
 garrisonTex = 'garrison.png'
 supplyTex = 'supply.png'
 hackTex = 'hack.png'
+buildTex = 'build.png'
 noGarrisonTex = 'noGarrison.png'
 noSupplyTex = 'noSupply.png'
 noHackTex = 'noHack.png'
+noBuildTex = 'noBuild.png'
 
 gui = {
 	{

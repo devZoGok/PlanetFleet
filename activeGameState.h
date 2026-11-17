@@ -5,6 +5,7 @@
 #include "player.h"
 #include "map.h"
 #include "unit.h"
+#include "engineer.h"
 
 #include <util.h>
 #include <unordered_map>
@@ -32,7 +33,8 @@ namespace battleship{
 			SUPPLY,
 			LOAD,
 			UNLOAD,
-			HACK
+			HACK,
+			BUILD
 		};
 
         ActiveGameState(GuiAppState*, int);
@@ -110,7 +112,7 @@ namespace battleship{
 		float depth = 1;
 		vb01::s64 lastSelectMouseClicked = 0, lastOrderMouseClicked = 0;
 		vb01::Node *cursorNode = nullptr;
-		vb01::Texture *pointerTex = nullptr, *attackTex = nullptr, *garrisonTex = nullptr, *noGarrisonTex = nullptr, *supplyTex = nullptr, *noSupplyTex = nullptr, *hackTex = nullptr, *noHackTex = nullptr;
+		vb01::Texture *pointerTex = nullptr, *attackTex = nullptr, *garrisonTex = nullptr, *noGarrisonTex = nullptr, *supplyTex = nullptr, *noSupplyTex = nullptr, *hackTex = nullptr, *noHackTex = nullptr, *buildTex = nullptr, *noBuildTex = nullptr;
     };
 }
 

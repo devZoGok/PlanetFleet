@@ -72,6 +72,7 @@ namespace battleship{
 		root->getGuiNode()->attachChild(dragboxNode);
 	}
 
+	/// @brief Loads the cursor textures from the files
 	void ActiveGameState::initCursor(){
 		string basePath = GameManager::getSingleton()->getPath() + "Textures/Icons/Cursors/";
 		sol::state_view SOL_LUA_VIEW = generateView();
@@ -81,17 +82,21 @@ namespace battleship{
 			   gt = SOL_LUA_VIEW["garrisonTex"],
 			   st = SOL_LUA_VIEW["supplyTex"],
 			   ht = SOL_LUA_VIEW["hackTex"],
+			   bt = SOL_LUA_VIEW["buildTex"],
 			   ngt = SOL_LUA_VIEW["noGarrisonTex"],
 			   nst = SOL_LUA_VIEW["noSupplyTex"],
 			   nht = SOL_LUA_VIEW["noHackTex"],
+			   nbt = SOL_LUA_VIEW["noBuildTex"],
 			   p1[]{basePath + pt}, 
 			   p2[]{basePath + at}, 
 			   p3[]{basePath + gt}, 
 			   p4[]{basePath + st},
 			   p5[]{basePath + ht},
-			   p6[]{basePath + ngt}, 
-			   p7[]{basePath + nst},
-			   p8[]{basePath + nht};
+			   p6[]{basePath + bt},
+			   p7[]{basePath + ngt}, 
+			   p8[]{basePath + nst},
+			   p9[]{basePath + nht},
+			   p10[]{basePath + nbt};
 		pointerTex = new Texture(p1, 1, false);
 		attackTex = new Texture(p2, 1, false);
 		garrisonTex = new Texture(p3, 1, false);
@@ -100,6 +105,9 @@ namespace battleship{
 		noGarrisonTex = new Texture(p6, 1, false);
 		noSupplyTex = new Texture(p7, 1, false);
 		noHackTex = new Texture(p8, 1, false);
+		// This is placeholder until a cursor for repair is created and added
+		buildTex = new Texture(p9, 1, false);
+		noBuildTex = new Texture(p10, 1, false);
 
 		Root *root = Root::getSingleton();
 		Material *mat = new Material(root->getLibPath() + "gui");
@@ -150,23 +158,28 @@ namespace battleship{
 		Vector2 cursorPos = getCursorPos();
 		cursorNode->setPosition(Vector3(cursorPos.x, cursorPos.y, .8));
 
+		// If a unit is selected, figure out the cursor and actions to present to the player
 		if(mainPlayer->getNumSelectedUnits() > 0){
 			bool ownGameObj = (gameObjHoveredOn && gameObjHoveredOn->getPlayer() == mainPlayer);
 			bool alliedGameObj = (gameObjHoveredOn && !ownGameObj && gameObjHoveredOn->getPlayer()->getTeam() == mainPlayer->getTeam());
 			bool gameObjUnit = (gameObjHoveredOn && gameObjHoveredOn->getType() == GameObject::Type::UNIT);
 			bool gameObjTransport = (gameObjUnit && ((Unit*)gameObjHoveredOn)->getNumGarrisonSlots() > 0);
+			// bool gameObjBuild = (gameObjUnit && (ownGameObj || alliedGameObj) && ((Unit*)gameObjHoveredOn)->canBuild());
 			bool canGarrison = true;
 
+			// Determine if the object hovered on can garrison any of the player's selected vehicles
 			if(gameObjUnit && gameObjTransport)
 				for(int i = 0; i < mainPlayer->getNumSelectedUnits(); i++)
 					if(!((Unit*)gameObjHoveredOn)->canGarrison((Vehicle*)mainPlayer->getSelectedUnit(i))){
 						canGarrison = false;
-						break;
+						break; 
 					}
-
+			
+			// Store the trade offers if hovering on an allied game object and keep the trade offer vector empty if not
 			vector<TradeOffer*> offers = (gameObjHoveredOn && alliedGameObj ? mainPlayer->getTradeOffers(gameObjHoveredOn->getPlayer()) : vector<TradeOffer*>{});
 			bool tradeResource[NUM_RESOURCES][2], trade = false;
-
+			
+			// Whether or not a specific resource can be traded
 			for(int i = 0; i < NUM_RESOURCES; i++)
 				for(int j = 0; j < 2; j++){
 					if(!offers.empty() && offers[0]->tradeResources[i][j] > 0){
@@ -182,10 +195,13 @@ namespace battleship{
 			bool lab = ((UnitClass)objClass == UnitClass::LAB);
 			bool ownExtractor = (ownGameObj && (UnitClass)objClass == UnitClass::EXTRACTOR);
 
+			bool engineerSelected = (mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::CYBORG_ENGINEER || mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::ROBO_ENGINEER);
+			bool freezerSelected = (mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::FREEZER);
 			bool roverSelected = (mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::RESOURCE_ROVER);
 			ResourceRover *rover = (roverSelected ? (ResourceRover*)mainPlayer->getSelectedUnit(0) : nullptr);
-			int unloadFlag = (int)shiftPressed;
-
+			int unloadFlag = (int)shiftPressed; // Whether to unload resources
+			
+			// If the cursor state hasn't been forced then determine it
 			if(!forceCursorState){
 				if(gameObjUnit && ownGameObj && gameObjTransport){
 					orderPossible = (ownGameObj && canGarrison);
@@ -225,9 +241,20 @@ namespace battleship{
 					orderPossible = true;
 					cursorState = CursorState::ATTACK;
 				}
+				else if((ownGameObj || alliedGameObj) && (engineerSelected || freezerSelected) && gameObjUnit){
+					// Set build possible based on if the hovered unit is a structure or vehicle for engineers and only structures for freezers
+					if(engineerSelected){
+						orderPossible = dynamic_cast<Vehicle*>(gameObjHoveredOn) != nullptr || dynamic_cast<Structure*>(gameObjHoveredOn) != nullptr;
+					}
+					else{
+						orderPossible = dynamic_cast<Structure*>(gameObjHoveredOn) != nullptr;
+					}
+					cursorState = CursorState::BUILD;
+				}
 				else
 					cursorState = CursorState::NORMAL;
 			}
+			// If the cursor state is being forced (by order button) then set up the logic for that cursor state
 			else{
 				if(cursorState == CursorState::GARRISON)
 					orderPossible = (ownGameObj && gameObjTransport && canGarrison);
@@ -257,6 +284,15 @@ namespace battleship{
 				}
 				else if(cursorState == CursorState::HACK)
 					orderPossible = (!ownGameObj && gameObjUnit && mainPlayer->getSelectedUnit(0)->getUnitClass() == UnitClass::CYBORG_ENGINEER);
+				else if (cursorState == CursorState::BUILD)
+					// The hovered on unit needs to be a structure (or vehicle for engineers) on the player's team (same faction or allied)
+					if(engineerSelected){
+						orderPossible = (ownGameObj || alliedGameObj) &&  (dynamic_cast<Vehicle*>(gameObjHoveredOn) != nullptr || dynamic_cast<Structure*>(gameObjHoveredOn) != nullptr);
+					}
+					else if(freezerSelected){
+						orderPossible = (ownGameObj || alliedGameObj)  && dynamic_cast<Structure*>(gameObjHoveredOn) != nullptr;
+					}
+					else orderPossible = false;
 				else if(controlPressed)
 					cursorState = CursorState::ATTACK;
 				else
@@ -264,9 +300,11 @@ namespace battleship{
 			}
 		}
 
+		// Set the cursor visible if it is not set to the normal state
 		cursorNode->setVisible(cursorState != CursorState::NORMAL);
 		Texture *tex = nullptr;
 
+		// Set the texture for the cursor based on what state it is in
 		switch(cursorState){
 			case CursorState::ATTACK:
 				tex = attackTex;
@@ -279,8 +317,19 @@ namespace battleship{
 			case CursorState::UNLOAD:
 				tex = (orderPossible ? supplyTex : noSupplyTex);
 				break;
+			/* In attempt to fix the hack icon showing up when build icons should, this check was added to make sure hack only shows up when object
+			the object hovered on is not of the same player or allied and build only shows up when the object hovered on is the same player or allied */
+			
 			case CursorState::HACK:
-				tex = (orderPossible ? hackTex : noHackTex);
+				// tex = (orderPossible ? hackTex : noHackTex);
+				// break;
+			case CursorState::BUILD:
+				if(gameObjHoveredOn->getPlayer() == mainPlayer || gameObjHoveredOn->getPlayer()->getTeam() == mainPlayer->getTeam()){
+					tex = (orderPossible ? buildTex: noBuildTex);
+				}
+				else{
+					tex = (orderPossible ? hackTex : noHackTex);
+				}
 				break;
 		}
 
@@ -293,6 +342,7 @@ namespace battleship{
 		guiManager->getText("wealth")->setText(to_wstring(mainPlayer->getResource(ResourceType::WEALTH)));
 		guiManager->getText("research")->setText(to_wstring(mainPlayer->getResource(ResourceType::RESEARCH)));
 
+		// Object hover status is updated every game state
 		updateGameObjHoveredOn();
 
 		updateCursor();
@@ -355,6 +405,7 @@ namespace battleship{
 		vector<GameObject*> gameObjs;
 		vector<Player*> players = Game::getSingleton()->getPlayers(true);
 
+		// Store all the game objects belonging to both players
 		for(Player *pl : players){
 			vector<ResourceDeposit*> resDeps = pl->getResourceDeposits();
 			vector<Unit*> units = pl->getUnits();
@@ -366,15 +417,18 @@ namespace battleship{
 				gameObjs.push_back((GameObject*)u);
 		}
 
+		// If there is a game object being hovered on but it does not belong to either player then set the object hovered on to nullpt
 		if(gameObjHoveredOn && find(gameObjs.begin(), gameObjs.end(), gameObjHoveredOn) == gameObjs.end())
 			gameObjHoveredOn = nullptr;
 
+		// Go through all the game objects and determine if the cursor is in the object's hitbox (not considering drag box). If it is, set that object as gameObjHoveredOn
 		for(GameObject *gameObj : gameObjs)
 			if(isGameObjSelectable(gameObj, false)){
 				gameObjHoveredOn = gameObj;
 				return;
 			}
-
+		
+		// If no object is hovered on, set the object hovered on the nullptr
 		gameObjHoveredOn = nullptr;
 	}
 
@@ -397,6 +451,10 @@ namespace battleship{
 		return false;
 	}
 
+	/// @brief Determines if the cursor is on an object. If so it is selectable.
+	/// @param obj 
+	/// @param useDragBox Whether to use the dragbox position or the cursor position
+	/// @return 
 	bool ActiveGameState::isGameObjSelectable(GameObject *obj, bool useDragBox){
 		if(!obj->getModel()->isVisible()) return false;
 
@@ -675,6 +733,9 @@ namespace battleship{
 						}
 						else if(cursorState == CursorState::HACK){
 							if(orderPossible) issueOrder(Order::TYPE::HACK, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
+						}
+						else if(cursorState == CursorState::BUILD){
+							if(orderPossible) issueOrder(Order::TYPE::BUILD, vector<Order::Target>{Order::Target((Unit*)gameObjHoveredOn)}, shiftPressed);
 						}
 						else if(ufCtr->isPlacingOnSurface()){
 							Order::TYPE type;
